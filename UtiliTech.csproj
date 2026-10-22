@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AssemblyName>UtiliTech</AssemblyName>
+    <RootNamespace>UtiliTech</RootNamespace>
+    <!-- Versão local; nas releases do GitHub ela vem da tag (v0.2.0 → 0.2.0) -->
+    <Version>0.2.0</Version>
+    <Product>UtiliTech</Product>
+    <ApplicationIcon>Assets\utilitech.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\utilitech.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Sensores (MPL 2.0): temperatura/uso/clock; a CPU e a placa-mãe precisam do driver PawnIO -->
+    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.6" />
+    <PackageReference Include="System.Management" Version="10.0.2" />
+    <PackageReference Include="System.Diagnostics.EventLog" Version="10.0.2" />  </ItemGroup>
+
+</Project>

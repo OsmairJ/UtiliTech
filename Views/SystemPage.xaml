@@ -1,0 +1,64 @@
+<UserControl x:Class="UtiliTech.Views.SystemPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="0,0,12,0">
+      <DockPanel Margin="0,0,0,18">
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+          <Button Content="Atualizar" Style="{StaticResource BtnGhost}" Click="Refresh_Click" Margin="0,0,8,0"/>
+          <Button Content="Copiar resumo" Style="{StaticResource BtnGhost}" Click="Copy_Click" Margin="0,0,8,0"/>
+          <Button x:Name="ExportSheetBtn" Content="Exportar planilha" Style="{StaticResource BtnGhost}" Click="ExportSheet_Click" Margin="0,0,8,0"
+                  ToolTip="Excel (.xlsx) ou CSV, com abas Resumo, Sistema, Discos e Bateria"/>
+          <Button x:Name="ExportBtn" Content="Exportar relatório" Style="{StaticResource Btn}" Click="Export_Click"
+                  ToolTip="Página HTML para imprimir ou salvar em PDF"/>
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Text="Sistema" Style="{StaticResource H1}"/>
+          <TextBlock x:Name="Status" Style="{StaticResource Muted}" Text="Carregando..."/>
+        </StackPanel>
+      </DockPanel>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Dados do atendimento (vão no relatório)" Style="{StaticResource H2}"/>
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition/>
+              <ColumnDefinition Width="12"/>
+              <ColumnDefinition/>
+              <ColumnDefinition Width="12"/>
+              <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+              <TextBlock Text="Cliente" Style="{StaticResource Label}"/>
+              <TextBox x:Name="ClienteBox" Style="{StaticResource Input}"/>
+            </StackPanel>
+            <StackPanel Grid.Column="2">
+              <TextBlock Text="Ordem de serviço" Style="{StaticResource Label}"/>
+              <TextBox x:Name="OsBox" Style="{StaticResource Input}"/>
+            </StackPanel>
+            <StackPanel Grid.Column="4">
+              <TextBlock Text="Técnico" Style="{StaticResource Label}"/>
+              <TextBox x:Name="TecnicoBox" Style="{StaticResource Input}"/>
+            </StackPanel>
+          </Grid>
+          <TextBlock Text="Serviço realizado / observações" Style="{StaticResource Label}" Margin="0,10,0,4"/>
+          <TextBox x:Name="ObsBox" Style="{StaticResource Input}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60"/>
+        </StackPanel>
+      </Border>
+
+      <ItemsControl x:Name="Sections">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border Style="{StaticResource Card}">
+              <StackPanel>
+                <TextBlock Text="{Binding Title}" Style="{StaticResource H2}"/>
+                <ItemsControl ItemsSource="{Binding Items}" ItemTemplate="{StaticResource InfoRow}"/>
+              </StackPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

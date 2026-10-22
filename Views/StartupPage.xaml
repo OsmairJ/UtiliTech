@@ -1,0 +1,43 @@
+<UserControl x:Class="UtiliTech.Views.StartupPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="0,0,12,0">
+      <DockPanel Margin="0,0,0,18">
+        <Button DockPanel.Dock="Right" Content="Atualizar" Style="{StaticResource BtnGhost}" Click="Refresh_Click" VerticalAlignment="Center"/>
+        <StackPanel>
+          <TextBlock Text="Inicialização" Style="{StaticResource H1}"/>
+          <TextBlock x:Name="Status" Style="{StaticResource Muted}" Text="Carregando..."/>
+        </StackPanel>
+      </DockPanel>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,12"
+                     Text="Programas que abrem junto com o Windows. Desmarcar desativa igual ao Gerenciador de Tarefas: nada é apagado e dá para reativar a qualquer momento. Vale no próximo login."/>
+          <ItemsControl x:Name="EntryList">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border Margin="0,0,0,8" Padding="12,10" CornerRadius="8" Background="{DynamicResource PanelBrush}"
+                        BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
+                  <DockPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                      <Button Content="Abrir local" Style="{StaticResource BtnGhost}" Padding="10,5" Click="OpenLocation_Click" Margin="0,0,14,0"/>
+                      <CheckBox Content="Ativado" IsChecked="{Binding Enabled}" Click="Toggle_Click" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,12,0">
+                      <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                      <TextBlock Text="{Binding Source}" Style="{StaticResource Muted}" FontSize="11"/>
+                      <TextBlock Text="{Binding Command}" Foreground="{DynamicResource MutedBrush}" FontSize="11"
+                                 TextTrimming="CharacterEllipsis" ToolTip="{Binding Command}"/>
+                    </StackPanel>
+                  </DockPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

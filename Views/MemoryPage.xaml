@@ -1,0 +1,73 @@
+<UserControl x:Class="UtiliTech.Views.MemoryPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="0,0,12,0">
+      <StackPanel Margin="0,0,0,18">
+        <TextBlock Text="Memória RAM" Style="{StaticResource H1}"/>
+        <TextBlock Text="Módulos instalados e testes de memória" Style="{StaticResource Muted}"/>
+      </StackPanel>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Memória instalada" Style="{StaticResource H2}"/>
+          <ItemsControl x:Name="RamItems" ItemTemplate="{StaticResource InfoRow}"/>
+        </StackPanel>
+      </Border>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Teste rápido (dentro do Windows)" Style="{StaticResource H2}"/>
+          <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,12"
+                     Text="Reserva parte da memória livre, grava 6 padrões (zeros, uns, xadrez, endereço e aleatório) e confere cada valor. Feche os outros programas antes. A parte da RAM usada pelo Windows não é testada: para um teste completo use o diagnóstico no boot, abaixo."/>
+          <Grid Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Testar" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <Slider x:Name="PercentSlider" Grid.Column="1" Minimum="30" Maximum="90" Value="70" TickFrequency="5"
+                    IsSnapToTickEnabled="True" VerticalAlignment="Center" ValueChanged="PercentSlider_ValueChanged"/>
+            <TextBlock x:Name="PercentText" Grid.Column="2" VerticalAlignment="Center" Margin="12,0,20,0" MinWidth="230"/>
+            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+              <TextBlock Text="Passadas" VerticalAlignment="Center" Margin="0,0,8,0"/>
+              <ComboBox x:Name="PassesBox" Width="60" SelectedIndex="1">
+                <ComboBoxItem Content="1"/>
+                <ComboBoxItem Content="2"/>
+                <ComboBoxItem Content="3"/>
+                <ComboBoxItem Content="5"/>
+                <ComboBoxItem Content="10"/>
+              </ComboBox>
+            </StackPanel>
+          </Grid>
+          <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+            <Button x:Name="StartBtn" Content="Iniciar teste" Style="{StaticResource Btn}" Click="Start_Click" Margin="0,0,8,0"/>
+            <Button x:Name="StopBtn" Content="Parar" Style="{StaticResource BtnDanger}" Click="Stop_Click" IsEnabled="False"/>
+          </StackPanel>
+          <DockPanel Margin="0,0,0,6">
+            <TextBlock x:Name="ErrorsText" DockPanel.Dock="Right" FontWeight="SemiBold"/>
+            <TextBlock x:Name="StageText" Style="{StaticResource Muted}" Text="Pronto para iniciar"/>
+          </DockPanel>
+          <ProgressBar x:Name="TestBar" Maximum="100" Margin="0,0,0,12"/>
+          <TextBlock x:Name="ResultText" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,10" Visibility="Collapsed"/>
+          <TextBox x:Name="LogBox" Style="{StaticResource LogBox}" Height="150"/>
+        </StackPanel>
+      </Border>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Diagnóstico de Memória do Windows (teste completo no boot)" Style="{StaticResource H2}"/>
+          <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,12"
+                     Text="Reinicia o PC e testa toda a RAM antes do Windows carregar. Depois de voltar ao Windows, clique em 'Ver último resultado'. Para teste ainda mais profundo, use o MemTest86 em pendrive."/>
+          <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+            <Button Content="Agendar teste (reinicia o PC)" Style="{StaticResource Btn}" Click="Schedule_Click" Margin="0,0,8,0"/>
+            <Button Content="Ver último resultado" Style="{StaticResource BtnGhost}" Click="LastResult_Click"/>
+          </StackPanel>
+          <TextBlock x:Name="WinDiagText" TextWrapping="Wrap"/>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

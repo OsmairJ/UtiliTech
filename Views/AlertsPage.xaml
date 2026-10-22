@@ -1,0 +1,54 @@
+<UserControl x:Class="UtiliTech.Views.AlertsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="0,0,12,0">
+      <StackPanel Margin="0,0,0,18">
+        <TextBlock Text="Alertas" Style="{StaticResource H1}"/>
+        <TextBlock x:Name="Status" Style="{StaticResource Muted}"/>
+      </StackPanel>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Configuração" Style="{StaticResource H2}"/>
+          <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,12"
+                     Text="Aviso no canto da tela, por cima das outras janelas, quando a temperatura passar do limite ou um disco der sinal de falha. Funciona com o UtiliTech aberto, em qualquer tela."/>
+          <StackPanel Orientation="Horizontal">
+            <CheckBox x:Name="AlertsBox" Content="Alertas ligados" Click="Settings_Changed" VerticalAlignment="Center" Margin="0,0,24,0"/>
+            <TextBlock Text="CPU acima de" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <ComboBox x:Name="CpuLimitBox" Width="80" SelectionChanged="Settings_Changed"/>
+            <TextBlock Text="GPU acima de" VerticalAlignment="Center" Margin="24,0,8,0"/>
+            <ComboBox x:Name="GpuLimitBox" Width="80" SelectionChanged="Settings_Changed"/>
+            <Button Content="Testar aviso" Style="{StaticResource BtnGhost}" Padding="10,5" Click="Test_Click" Margin="24,0,0,0"/>
+          </StackPanel>
+          <TextBlock Style="{StaticResource Muted}" FontSize="11" Margin="0,12,0,0"
+                     Text="Cada aviso se repete no máximo a cada 5 minutos. Durante o teste de estresse os avisos de temperatura ficam em silêncio, porque o próprio teste controla o limite."/>
+        </StackPanel>
+      </Border>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Avisos desta sessão" Style="{StaticResource H2}"/>
+          <TextBlock x:Name="EmptyText" Style="{StaticResource Muted}" Text="Nenhum aviso até agora."/>
+          <ItemsControl x:Name="HistoryList">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border Margin="0,0,0,8" Padding="12,9" CornerRadius="8" Background="{DynamicResource PanelBrush}"
+                        BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
+                  <DockPanel>
+                    <Border DockPanel.Dock="Left" Width="4" CornerRadius="2" Background="{Binding Color}" Margin="0,0,12,0"/>
+                    <TextBlock DockPanel.Dock="Right" Text="{Binding TimeText, Mode=OneWay}" Foreground="{DynamicResource MutedBrush}" FontSize="12"/>
+                    <StackPanel>
+                      <TextBlock Text="{Binding Title}" FontWeight="SemiBold"/>
+                      <TextBlock Text="{Binding Message}" Style="{StaticResource Muted}" Margin="0,2,0,0"/>
+                    </StackPanel>
+                  </DockPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

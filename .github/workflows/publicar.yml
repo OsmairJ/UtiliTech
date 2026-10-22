@@ -1,0 +1,34 @@
+# Gera o UtiliTech.exe e publica uma release a cada tag de versão (ex.: git tag v0.2.0 && git push --tags).
+# O app procura atualização na release mais recente deste repositório.
+name: Publicar
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  publicar:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Compilar o .exe único
+        shell: pwsh
+        run: |
+          $versao = "${{ github.ref_name }}".TrimStart('v')
+          dotnet publish UtiliTech.csproj -c Release -r win-x64 --self-contained true `
+            -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:EnableCompressionInSingleFile=true -p:DebugType=none -p:Version=$versao -o dist
+
+      - name: Publicar a release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/UtiliTech.exe
+          generate_release_notes: true

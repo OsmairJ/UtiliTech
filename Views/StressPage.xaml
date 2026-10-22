@@ -1,0 +1,100 @@
+<UserControl x:Class="UtiliTech.Views.StressPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:v="clr-namespace:UtiliTech.Views">
+  <UserControl.Resources>
+    <Style x:Key="MetricLabel" TargetType="TextBlock" BasedOn="{StaticResource Muted}">
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+    <Style x:Key="MetricValue" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="28"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Margin" Value="0,2,0,0"/>
+    </Style>
+  </UserControl.Resources>
+
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="0,0,12,0">
+      <StackPanel Margin="0,0,0,18">
+        <TextBlock Text="Teste de estresse" Style="{StaticResource H1}"/>
+        <TextBlock x:Name="Status" Style="{StaticResource Muted}" Text="Abrindo sensores..."/>
+      </StackPanel>
+
+      <Border x:Name="NoTempBanner" Style="{StaticResource Card}" BorderBrush="#7A5A12" Visibility="Collapsed">
+        <StackPanel>
+          <TextBlock Text="Sem leitura da temperatura da CPU" FontWeight="SemiBold" Foreground="#F59E0B"/>
+          <TextBlock Style="{StaticResource Muted}" Margin="0,2,0,0"
+                     Text="Por segurança o teste só roda com o limite de temperatura funcionando. Abra o UtiliTech como administrador e, se precisar, instale o driver PawnIO na tela Monitor."/>
+        </StackPanel>
+      </Border>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Configuração" Style="{StaticResource H2}"/>
+          <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,12"
+                     Text="Coloca a CPU a 100% em todas as threads para ver se o resfriamento dá conta. O teste para sozinho se a temperatura chegar no limite, quando o tempo acabar ou se a RAM apresentar erro."/>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Duração" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <ComboBox x:Name="DurationBox" Width="90" SelectedIndex="1">
+              <ComboBoxItem Content="1 min" Tag="1"/>
+              <ComboBoxItem Content="5 min" Tag="5"/>
+              <ComboBoxItem Content="10 min" Tag="10"/>
+              <ComboBoxItem Content="15 min" Tag="15"/>
+              <ComboBoxItem Content="30 min" Tag="30"/>
+            </ComboBox>
+            <TextBlock Text="Parar em" VerticalAlignment="Center" Margin="24,0,8,0"/>
+            <ComboBox x:Name="LimitBox" Width="80" SelectedIndex="2">
+              <ComboBoxItem Content="80 °C" Tag="80"/>
+              <ComboBoxItem Content="85 °C" Tag="85"/>
+              <ComboBoxItem Content="90 °C" Tag="90"/>
+              <ComboBoxItem Content="95 °C" Tag="95"/>
+            </ComboBox>
+            <CheckBox x:Name="RamBox" Content="Incluir memória RAM" VerticalAlignment="Center" Margin="24,0,0,0"/>
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+            <Button x:Name="StartBtn" Content="Iniciar teste" Style="{StaticResource Btn}" Click="Start_Click" Margin="0,0,8,0"/>
+            <Button x:Name="StopBtn" Content="Parar" Style="{StaticResource BtnDanger}" Click="Stop_Click" IsEnabled="False"/>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <UniformGrid Columns="4" Margin="0,0,0,14">
+            <StackPanel>
+              <TextBlock Text="TEMPERATURA" Style="{StaticResource MetricLabel}"/>
+              <TextBlock x:Name="TempText" Text="—" Style="{StaticResource MetricValue}"/>
+            </StackPanel>
+            <StackPanel>
+              <TextBlock Text="MÁXIMA NO TESTE" Style="{StaticResource MetricLabel}"/>
+              <TextBlock x:Name="MaxText" Text="—" Style="{StaticResource MetricValue}"/>
+            </StackPanel>
+            <StackPanel>
+              <TextBlock Text="CLOCK" Style="{StaticResource MetricLabel}"/>
+              <TextBlock x:Name="ClockText" Text="—" Style="{StaticResource MetricValue}"/>
+            </StackPanel>
+            <StackPanel>
+              <TextBlock Text="USO · CONSUMO" Style="{StaticResource MetricLabel}"/>
+              <TextBlock x:Name="LoadText" Text="—" Style="{StaticResource MetricValue}"/>
+            </StackPanel>
+          </UniformGrid>
+          <DockPanel Margin="0,0,0,6">
+            <TextBlock x:Name="TimeText" DockPanel.Dock="Right" Style="{StaticResource Muted}" Text="00:00 / 05:00"/>
+            <TextBlock Text="Temperatura da CPU durante o teste" Style="{StaticResource Muted}"/>
+          </DockPanel>
+          <v:Sparkline x:Name="TempSpark" Height="110" Capacity="300" Maximum="110"/>
+          <ProgressBar x:Name="TimeBar" Maximum="100" Margin="0,10,0,0"/>
+          <TextBlock x:Name="ResultText" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,14,0,0" Visibility="Collapsed"/>
+        </StackPanel>
+      </Border>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Registro" Style="{StaticResource H2}"/>
+          <TextBox x:Name="LogBox" Style="{StaticResource LogBox}" Height="130"/>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

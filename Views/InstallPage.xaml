@@ -1,0 +1,101 @@
+<UserControl x:Class="UtiliTech.Views.InstallPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="0,0,12,0">
+      <DockPanel Margin="0,0,0,18">
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+          <Button Content="Marcar faltantes" Style="{StaticResource BtnGhost}" Click="SelectMissing_Click" Margin="0,0,8,0"/>
+          <Button Content="Desmarcar" Style="{StaticResource BtnGhost}" Click="ClearSelection_Click" Margin="0,0,8,0"/>
+          <Button x:Name="InstallBtn" Content="Instalar selecionados" Style="{StaticResource Btn}" Click="Install_Click"/>
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Text="Instalar apps" Style="{StaticResource H1}"/>
+          <TextBlock x:Name="Status" Style="{StaticResource Muted}" Text="Verificando o que já está instalado..."/>
+        </StackPanel>
+      </DockPanel>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <DockPanel Margin="0,0,0,4">
+            <Button DockPanel.Dock="Right" Content="Restaurar lista padrão" Style="{StaticResource BtnGhost}" Padding="10,5"
+                    Click="ResetList_Click" VerticalAlignment="Top"/>
+            <Button DockPanel.Dock="Right" Content="Abrir pasta Instaladores" Style="{StaticResource BtnGhost}" Padding="10,5"
+                    Click="OpenInstallers_Click" VerticalAlignment="Top" Margin="0,0,8,0"
+                    ToolTip="Coloque aqui os instaladores que não estão no winget (drivers, PJe Office Pro...)"/>
+            <TextBlock Text="Minha lista de programas" Style="{StaticResource H2}"/>
+          </DockPanel>
+          <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,12"
+                     Text="Os programas que você instala depois de formatar. Marque os que quer e clique em Instalar selecionados: um de cada vez, pelo winget ou pelo instalador guardado na pasta Instaladores do pendrive. Use o × para tirar da lista e a busca abaixo para incluir outros."/>
+          <ItemsControl x:Name="AppList">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <UniformGrid Columns="2"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border Margin="0,0,10,8" Padding="12,9" CornerRadius="8" Background="{DynamicResource PanelBrush}"
+                        BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
+                  <DockPanel>
+                    <Button DockPanel.Dock="Right" Content="×" Style="{StaticResource BtnGhost}" Padding="8,2"
+                            Margin="8,0,0,0" VerticalAlignment="Center" ToolTip="Tirar da lista" Click="Remove_Click"/>
+                    <TextBlock DockPanel.Dock="Right" Text="{Binding Status}" Foreground="{Binding StatusColor}"
+                               VerticalAlignment="Center" FontSize="12" Margin="8,0,0,0"/>
+                    <CheckBox IsChecked="{Binding Selected}" VerticalAlignment="Center" VerticalContentAlignment="Center">
+                      <StackPanel Margin="6,0,0,0">
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding Source, Mode=OneWay}" Style="{StaticResource Muted}" FontSize="11"/>
+                      </StackPanel>
+                    </CheckBox>
+                  </DockPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <TextBlock x:Name="ListPathText" Style="{StaticResource Muted}" FontSize="11" Margin="0,4,0,0"/>
+        </StackPanel>
+      </Border>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Adicionar programa à lista" Style="{StaticResource H2}"/>
+          <DockPanel Margin="0,0,0,10">
+            <Button x:Name="SearchBtn" DockPanel.Dock="Right" Content="Buscar no winget" Style="{StaticResource Btn}"
+                    Click="Search_Click" Margin="8,0,0,0"/>
+            <TextBox x:Name="SearchBox" Style="{StaticResource Input}" KeyDown="SearchBox_KeyDown" VerticalContentAlignment="Center"/>
+          </DockPanel>
+          <TextBlock x:Name="SearchStatus" Style="{StaticResource Muted}" Text="Digite o nome do programa (ex.: Spotify, Telegram, Office) e tecle Enter."/>
+          <ItemsControl x:Name="ResultList" Margin="0,8,0,0">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border Margin="0,0,0,6" Padding="12,8" CornerRadius="8" Background="{DynamicResource PanelBrush}"
+                        BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
+                  <DockPanel>
+                    <Button DockPanel.Dock="Right" Content="Adicionar" Style="{StaticResource BtnGhost}" Padding="10,5"
+                            VerticalAlignment="Center" Click="AddResult_Click"/>
+                    <StackPanel>
+                      <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                      <TextBlock Foreground="{DynamicResource MutedBrush}" FontSize="11">
+                        <Run Text="{Binding Id, Mode=OneWay}"/>
+                        <Run Text="·"/>
+                        <Run Text="{Binding Version, Mode=OneWay}"/>
+                      </TextBlock>
+                    </StackPanel>
+                  </DockPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Registro" Style="{StaticResource H2}"/>
+          <TextBox x:Name="LogBox" Style="{StaticResource LogBox}" Height="140"/>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

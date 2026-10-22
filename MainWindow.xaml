@@ -1,0 +1,89 @@
+<Window x:Class="UtiliTech.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="UtiliTech" Icon="Assets/utilitech.ico" Width="1200" Height="800" MinWidth="900" MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource BgBrush}" Foreground="{DynamicResource TextBrush}"
+        FontFamily="Segoe UI" FontSize="13">
+  <Grid Background="{DynamicResource BgBrush}">
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="230"/>
+      <ColumnDefinition Width="*"/>
+    </Grid.ColumnDefinitions>
+
+    <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,0,1,0">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="20,22,20,14">
+          <Image Source="{StaticResource LogoMark}" Width="40" Height="40" VerticalAlignment="Center"/>
+          <StackPanel Margin="11,0,0,0" VerticalAlignment="Center">
+            <TextBlock FontSize="21" FontWeight="Bold">
+              <Run Text="Utili"/><Run Text="Tech">
+                <Run.Foreground>
+                  <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#60A5FA" Offset="0"/>
+                    <GradientStop Color="#A78BFA" Offset="1"/>
+                  </LinearGradientBrush>
+                </Run.Foreground>
+              </Run>
+            </TextBlock>
+            <TextBlock Text="Ferramentas do técnico" Style="{StaticResource Muted}" FontSize="11" Margin="1,-2,0,0"/>
+          </StackPanel>
+        </StackPanel>
+
+        <StackPanel DockPanel.Dock="Bottom" Margin="22,12,22,18">
+          <!-- Leitura ao vivo, sempre visível -->
+          <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1"
+                  CornerRadius="8" Padding="10,7" Margin="0,0,0,12">
+            <UniformGrid Columns="2">
+              <StackPanel>
+                <TextBlock Text="CPU" Style="{StaticResource Muted}" FontSize="10" FontWeight="SemiBold"/>
+                <TextBlock x:Name="LiveCpu" Text="—" FontWeight="SemiBold" FontSize="14"/>
+              </StackPanel>
+              <StackPanel>
+                <TextBlock Text="GPU" Style="{StaticResource Muted}" FontSize="10" FontWeight="SemiBold"/>
+                <TextBlock x:Name="LiveGpu" Text="—" FontWeight="SemiBold" FontSize="14"/>
+              </StackPanel>
+            </UniformGrid>
+          </Border>
+          <TextBlock x:Name="MachineText" FontWeight="SemiBold"/>
+          <TextBlock x:Name="AdminText" Style="{StaticResource Muted}" FontSize="11" Margin="0,2,0,0"/>
+        </StackPanel>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <StackPanel>
+            <ToggleButton x:Name="DiagGroup" Style="{StaticResource NavGroup}" Content="DIAGNÓSTICO"/>
+            <StackPanel x:Name="DiagItems" Margin="12,0,0,4"
+                        Visibility="{Binding IsChecked, ElementName=DiagGroup, Converter={StaticResource BoolToVisibility}}">
+              <RadioButton x:Name="NavSystem" GroupName="Nav" Style="{StaticResource NavItem}" Content="Sistema" Tag="system" Checked="Nav_Checked"/>
+              <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Monitor" Tag="monitor" Checked="Nav_Checked"/>
+              <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Discos (S.M.A.R.T.)" Tag="disks" Checked="Nav_Checked"/>
+              <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Bateria" Tag="battery" Checked="Nav_Checked"/>
+              <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Memória RAM" Tag="memory" Checked="Nav_Checked"/>
+              <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Teste de estresse" Tag="stress" Checked="Nav_Checked"/>
+              <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Alertas" Tag="alerts" Checked="Nav_Checked"/>
+            </StackPanel>
+
+            <ToggleButton x:Name="PosGroup" Style="{StaticResource NavGroup}" Content="PÓS-FORMATAÇÃO"/>
+            <StackPanel x:Name="PosItems" Margin="12,0,0,4"
+                        Visibility="{Binding IsChecked, ElementName=PosGroup, Converter={StaticResource BoolToVisibility}}">
+              <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Instalar apps" Tag="install" Checked="Nav_Checked"/>
+              <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Inicialização" Tag="startup" Checked="Nav_Checked"/>
+            </StackPanel>
+
+            <ToggleButton x:Name="ManGroup" Style="{StaticResource NavGroup}" Content="MANUTENÇÃO"/>
+            <StackPanel x:Name="ManItems" Margin="12,0,0,4"
+                        Visibility="{Binding IsChecked, ElementName=ManGroup, Converter={StaticResource BoolToVisibility}}">
+              <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Reparos rápidos" Tag="repairs" Checked="Nav_Checked"/>
+              <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Limpeza" Tag="cleanup" Checked="Nav_Checked"/>
+            </StackPanel>
+
+            <Border Height="1" Background="{DynamicResource LineBrush}" Margin="22,10,22,6"/>
+            <RadioButton x:Name="NavSettings" GroupName="Nav" Style="{StaticResource NavItem}" Content="Configurações" Tag="settings" Checked="Nav_Checked"/>
+          </StackPanel>
+        </ScrollViewer>
+      </DockPanel>
+    </Border>
+
+    <ContentControl x:Name="Host" Grid.Column="1" Margin="28,24,16,12"/>
+  </Grid>
+</Window>

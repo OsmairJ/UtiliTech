@@ -1,0 +1,51 @@
+<UserControl x:Class="UtiliTech.Views.CleanupPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="0,0,12,0">
+      <DockPanel Margin="0,0,0,18">
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+          <Button x:Name="AnalyzeBtn" Content="Analisar de novo" Style="{StaticResource BtnGhost}" Click="Analyze_Click" Margin="0,0,8,0"/>
+          <Button x:Name="CleanBtn" Content="Limpar selecionados" Style="{StaticResource Btn}" Click="Clean_Click"/>
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Text="Limpeza" Style="{StaticResource H1}"/>
+          <TextBlock x:Name="Status" Style="{StaticResource Muted}" Text="Analisando..."/>
+        </StackPanel>
+      </DockPanel>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <DockPanel Margin="0,0,0,4">
+            <TextBlock x:Name="TotalText" DockPanel.Dock="Right" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
+            <StackPanel>
+              <TextBlock Text="O que pode ser apagado" Style="{StaticResource H2}" Margin="0"/>
+              <TextBlock x:Name="DriveText" Style="{StaticResource Muted}" Margin="0,2,0,0"/>
+            </StackPanel>
+          </DockPanel>
+          <TextBlock Style="{StaticResource Muted}" FontSize="11" Margin="0,6,0,12"
+                     Text="Só apaga arquivos descartáveis. Arquivos em uso por algum programa são pulados. Feche os navegadores para limpar o cache deles por completo."/>
+          <ItemsControl x:Name="CategoryList">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border Margin="0,0,0,8" Padding="12,9" CornerRadius="8" Background="{DynamicResource PanelBrush}"
+                        BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
+                  <DockPanel>
+                    <TextBlock DockPanel.Dock="Right" Text="{Binding SizeText}" FontWeight="SemiBold" VerticalAlignment="Center" MinWidth="80" TextAlignment="Right"/>
+                    <CheckBox IsChecked="{Binding Selected}" VerticalAlignment="Center" VerticalContentAlignment="Center" Click="Selection_Click">
+                      <StackPanel Margin="6,0,0,0">
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding Description}" Style="{StaticResource Muted}" FontSize="11"/>
+                      </StackPanel>
+                    </CheckBox>
+                  </DockPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <TextBlock x:Name="ResultText" FontSize="15" FontWeight="SemiBold" Foreground="#22C55E" TextWrapping="Wrap" Margin="0,8,0,0" Visibility="Collapsed"/>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

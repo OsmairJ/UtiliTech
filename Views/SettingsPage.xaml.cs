@@ -1,0 +1,153 @@
+using System.IO;
+using System.Windows;
+using System.Windows.Controls;
+using UtiliTech.Services;
+
+namespace UtiliTech.Views;
+
+public partial class SettingsPage : UserControl
+{
+    UpdateInfo? _update;
+
+    public SettingsPage()
+    {
+        InitializeComponent();
+        var cfg = AppSettings.Current;
+        VersionText.Text = $"UtiliTech {Updater.CurrentText}";
+        RepoBox.Text = cfg.UpdateRepo;
+        AutoCheckBox.IsChecked = cfg.CheckUpdatesOnStart;
+        AboutText.Text =
+            $"UtiliTech {Updater.CurrentText} · ferramentas do técnico\n" +
+            "Sensores: LibreHardwareMonitorLib (MPL 2.0) com o driver PawnIO.\n" +
+            $"Configurações: {Path.Combine(AppContext.BaseDirectory, "settings.json")}";
+        UpdateThemeButtons();
+        IsVisibleChanged += (_, _) => { if (IsVisible) RefreshLogInfo(); };
+
+        // Se a verificação ao abrir o app já achou versão nova, mostra direto
+        if (AppState.AvailableUpdate is { } pending) ShowUpdate(pending);
+    }
+
+    // ---------- Aparência ----------
+
+    void Dark_Click(object sender, RoutedEventArgs e) => SetTheme(false);
+    void Light_Click(object sender, RoutedEventArgs e) => SetTheme(true);
+
+    void SetTheme(bool light)
+    {
+        ThemeManager.Apply(light);
+        AppSettings.Current.LightTheme = light;
+        AppSettings.Current.Save();
+        UpdateThemeButtons();
+    }
+
+    void UpdateThemeButtons()
+    {
+        DarkBtn.Style = (Style)FindResource(ThemeManager.IsLight ? "BtnGhost" : "Btn");
+        LightBtn.Style = (Style)FindResource(ThemeManager.IsLight ? "Btn" : "BtnGhost");
+    }
+
+    // ---------- Atualizações ----------
+
+    void Repo_LostFocus(object sender, RoutedEventArgs e) => SaveRepo();
+
+    void SaveRepo()
+    {
+        AppSettings.Current.UpdateRepo = RepoBox.Text.Trim();
+        AppSettings.Current.Save();
+    }
+
+    void AutoCheck_Click(object sender, RoutedEventArgs e)
+    {
+        AppSettings.Current.CheckUpdatesOnStart = AutoCheckBox.IsChecked == true;
+        AppSettings.Current.Save();
+    }
+
+    async void Check_Click(object sender, RoutedEventArgs e)
+    {
+        SaveRepo();
+        if (string.IsNullOrWhiteSpace(AppSettings.Current.UpdateRepo))
+        {
+            SetStatus("Informe o repositório do GitHub (usuário/nome).", Palette.Warn);
+            return;
+        }
+        CheckBtn.IsEnabled = false;
+        InstallPanel.Visibility = UpdateNotes.Visibility = Visibility.Collapsed;
+        SetStatus("Consultando o GitHub...", Palette.Muted);
+        try
+        {
+            var update = await Updater.CheckAsync(AppSettings.Current.UpdateRepo);
+            AppState.AvailableUpdate = update;
+            if (update == null) SetStatus($"Você já está na versão mais recente ({Updater.CurrentText}).", Palette.Good);
+            else ShowUpdate(update);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Verificação de atualização", ex);
+            SetStatus("Não foi possível verificar: " + ex.Message, Palette.Bad);
+        }
+        finally { CheckBtn.IsEnabled = true; }
+    }
+
+    void ShowUpdate(UpdateInfo update)
+    {
+        _update = update;
+        SetStatus($"Versão nova disponível: {update.Tag} ({Fmt.Bytes(update.Size)}) · você está na {Updater.CurrentText}", Palette.Accent);
+        if (!string.IsNullOrWhiteSpace(update.Notes))
+        {
+            UpdateNotes.Text = update.Notes.Length > 600 ? update.Notes[..600] + "…" : update.Notes;
+            UpdateNotes.Visibility = Visibility.Visible;
+        }
+        InstallPanel.Visibility = Visibility.Visible;
+    }
+
+    async void Install_Click(object sender, RoutedEventArgs e)
+    {
+        if (_update == null) return;
+        if (MessageBox.Show($"Baixar e instalar o UtiliTech {_update.Tag}?\n\nO app fecha e abre de novo já atualizado.", "UtiliTech",
+                MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+
+        InstallBtn.IsEnabled = CheckBtn.IsEnabled = false;
+        DownloadBar.Visibility = Visibility.Visible;
+        SetStatus("Baixando...", Palette.Accent);
+        try
+        {
+            await Updater.InstallAsync(_update, new Progress<double>(p =>
+            {
+                DownloadBar.Value = p;
+                UpdateStatus.Text = $"Baixando... {p:0}%";
+            }));
+            Application.Current.Shutdown();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Instalação de atualização", ex);
+            SetStatus("A atualização falhou: " + ex.Message, Palette.Bad);
+            InstallBtn.IsEnabled = CheckBtn.IsEnabled = true;
+            DownloadBar.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    void SetStatus(string text, string color)
+    {
+        UpdateStatus.Text = text;
+        UpdateStatus.Foreground = Ui.Hex(color);
+    }
+
+    // ---------- Registro de erros ----------
+
+    void RefreshLogInfo()
+    {
+        int errors = Logger.ErrorsToday();
+        LogInfo.Text = $"Pasta: {Logger.Folder}\nErros registrados hoje: {errors}";
+        if (errors > 0) LogInfo.Foreground = Ui.Hex(Palette.Warn);
+        else LogInfo.ClearValue(TextBlock.ForegroundProperty); // herda a cor do tema (muda junto com ele)
+    }
+
+    void OpenLogs_Click(object sender, RoutedEventArgs e) => Ui.Open(Logger.Folder);
+
+    void OpenToday_Click(object sender, RoutedEventArgs e)
+    {
+        if (!File.Exists(Logger.TodayFile)) Logger.Info("Registro aberto pelo usuário");
+        Ui.Open(Logger.TodayFile);
+    }
+}
