@@ -151,9 +151,20 @@ public partial class DriversPage : UserControl
 
     async Task InstallNvidiaAsync(GpuCard card, NvidiaDriver driver)
     {
-        if (MessageBox.Show($"Baixar e instalar o {driver.Name} {driver.Version} ({Fmt.Bytes(driver.Size)})?\n\n" +
-                            "A instalação é silenciosa; a tela vai piscar algumas vezes. Feche jogos e programas de vídeo antes.",
-                "UtiliTech", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+        if (!await ConfirmWindow.ConfirmAsync(new ConfirmRequest
+            {
+                Title = $"Instalar o driver NVIDIA {driver.Version}?",
+                Effects = new[]
+                {
+                    $"Baixa o {driver.Name} {driver.Version} ({Fmt.Bytes(driver.Size)}) do site da NVIDIA",
+                    "Confere a assinatura digital do instalador",
+                    "Instala em silêncio, por cima do driver atual: a tela vai piscar algumas vezes",
+                },
+                Warning = "Feche jogos e programas de vídeo antes.",
+                ConfirmText = "Baixar e instalar",
+                RestorePoint = $"driver NVIDIA {driver.Version}",
+                RestorePointType = RestorePoint.DeviceDriverInstall,
+            }, Log)) return;
 
         card.ActionVisible = false;
         card.Busy = true;
@@ -251,8 +262,16 @@ public partial class DriversPage : UserControl
             SetWuStatus("Marque pelo menos um driver.", Palette.Warn);
             return;
         }
-        if (MessageBox.Show($"Baixar e instalar {chosen.Count} driver(s) do Windows Update?\n\nA tela de algum dispositivo (vídeo, rede) pode piscar durante a instalação.",
-                "UtiliTech", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+        if (!await ConfirmWindow.ConfirmAsync(new ConfirmRequest
+            {
+                Title = $"Instalar {chosen.Count} driver(s) do Windows Update?",
+                Effects = chosen.Select(u => u.Title).Take(8)
+                    .Concat(chosen.Count > 8 ? new[] { $"... e mais {chosen.Count - 8}" } : Array.Empty<string>()).ToList(),
+                Warning = "A tela ou a rede podem piscar durante a instalação. Alguns drivers pedem reinício no final.",
+                ConfirmText = "Baixar e instalar",
+                RestorePoint = $"{chosen.Count} driver(s) do Windows Update",
+                RestorePointType = RestorePoint.DeviceDriverInstall,
+            }, Log)) return;
 
         foreach (var u in chosen) { u.Status = "Na fila"; u.StatusColor = Palette.Muted; }
         SetWuBusy(true, $"Preparando {chosen.Count} driver(s)...");
@@ -319,6 +338,20 @@ public partial class DriversPage : UserControl
             InitialDirectory = Directory.Exists(suggested) ? suggested : AppContext.BaseDirectory,
         };
         if (dlg.ShowDialog() != true) return;
+        int infCount = Directory.EnumerateFiles(dlg.FolderName, "*.inf", SearchOption.AllDirectories).Count();
+        if (!await ConfirmWindow.ConfirmAsync(new ConfirmRequest
+            {
+                Title = "Instalar drivers da pasta?",
+                Effects = new[]
+                {
+                    $"Adiciona ao Windows os {infCount} pacote(s) de driver (.inf) de {dlg.FolderName} e subpastas",
+                    "Os dispositivos compatíveis passam a usar esses drivers (pnputil /add-driver /install)",
+                },
+                Warning = infCount == 0 ? "Nenhum arquivo .inf nesta pasta: nada será instalado." : null,
+                ConfirmText = "Instalar",
+                RestorePoint = infCount > 0 ? "drivers de pasta" : null,
+                RestorePointType = RestorePoint.DeviceDriverInstall,
+            }, Log)) return;
 
         FolderBtn.IsEnabled = SearchBtn.IsEnabled = false;
         FolderStatus.Text = "Instalando drivers da pasta...";

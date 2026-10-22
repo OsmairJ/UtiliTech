@@ -40,6 +40,19 @@
 
       <Border Style="{StaticResource Card}">
         <StackPanel>
+          <TextBlock Text="Segurança" Style="{StaticResource H2}"/>
+          <CheckBox x:Name="RestorePointBox" Click="RestorePoint_Click">
+            <StackPanel Margin="6,0,0,0">
+              <TextBlock Text="Criar ponto de restauração antes de mexer no PC" FontWeight="SemiBold"/>
+              <TextBlock Style="{StaticResource Muted}" FontSize="11" TextWrapping="Wrap"
+                         Text="Vem marcado na confirmação de resetar rede, resetar Windows Update e instalar drivers. Dá para desmarcar na hora."/>
+            </StackPanel>
+          </CheckBox>
+        </StackPanel>
+      </Border>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
           <TextBlock Text="Registro de erros" Style="{StaticResource H2}"/>
           <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,10"
                      Text="Quando algo dá errado no app, os detalhes ficam guardados aqui (últimos 10 dias). Útil para descobrir o que aconteceu num PC do cliente."/>

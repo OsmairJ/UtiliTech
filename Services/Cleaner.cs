@@ -132,6 +132,35 @@ public static class Cleaner
 
     static readonly EnumerationOptions TopOnly = new() { IgnoreInaccessible = true };
 
+    /// <summary>
+    /// Modo simulação: lista em <paramref name="list"/> os arquivos que a limpeza apagaria, sem apagar nada
+    /// nem parar serviços. Arquivos em uso só aparecem na limpeza de verdade (lá eles são pulados).
+    /// </summary>
+    public static CleanResult Preview(CleanCategory c, List<string> list)
+    {
+        if (c.Kind == CleanKind.RecycleBin)
+        {
+            var info = new SHQUERYRBINFO { cbSize = Marshal.SizeOf<SHQUERYRBINFO>() };
+            SHQueryRecycleBin(null, ref info);
+            list.Add($"(lixeira de todas as unidades: {info.i64NumItems:N0} item(ns), {Fmt.Bytes(info.i64Size)})");
+            return new CleanResult(info.i64Size, 0);
+        }
+
+        long total = 0;
+        foreach (var folder in c.Folders().Where(Directory.Exists))
+            foreach (var f in new DirectoryInfo(folder).EnumerateFiles(c.FilePattern ?? "*", c.FilePattern == null ? AllFiles : TopOnly))
+            {
+                if (c.IsExcluded(f.FullName)) continue;
+                try
+                {
+                    total += f.Length;
+                    list.Add($"{f.FullName}  ({Fmt.Bytes(f.Length)})");
+                }
+                catch { }
+            }
+        return new CleanResult(total, 0);
+    }
+
     public static CleanResult Clean(CleanCategory c)
     {
         if (c.Kind == CleanKind.RecycleBin)

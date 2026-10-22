@@ -3,10 +3,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <ScrollViewer VerticalScrollBarVisibility="Auto">
     <StackPanel Margin="0,0,12,0">
-      <StackPanel Margin="0,0,0,18">
-        <TextBlock Text="Reparos rápidos" Style="{StaticResource H1}"/>
-        <TextBlock x:Name="Status" Style="{StaticResource Muted}" Text="Correções comuns do dia a dia, com 1 clique. Tudo fica no registro abaixo."/>
-      </StackPanel>
+      <DockPanel Margin="0,0,0,18">
+        <CheckBox x:Name="SimulationBox" DockPanel.Dock="Right" VerticalAlignment="Center"
+                  ToolTip="Mostra no registro os comandos e arquivos que seriam mexidos, sem executar nada">
+          <TextBlock Text="Modo simulação (não altera nada)" Margin="6,0,0,0"/>
+        </CheckBox>
+        <StackPanel>
+          <TextBlock Text="Reparos rápidos" Style="{StaticResource H1}"/>
+          <TextBlock x:Name="Status" Style="{StaticResource Muted}" Text="Correções comuns do dia a dia, com 1 clique. Tudo fica no registro abaixo."/>
+        </StackPanel>
+      </DockPanel>
 
       <ItemsControl x:Name="RepairList" Margin="0,0,-12,0">
         <ItemsControl.ItemsPanel>

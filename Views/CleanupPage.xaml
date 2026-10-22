@@ -5,6 +5,10 @@
     <StackPanel Margin="0,0,12,0">
       <DockPanel Margin="0,0,0,18">
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+          <CheckBox x:Name="SimulationBox" VerticalAlignment="Center" Margin="0,0,14,0" Click="Simulation_Click"
+                    ToolTip="Gera a lista dos arquivos que seriam apagados, sem apagar nada">
+            <TextBlock Text="Modo simulação" Margin="6,0,0,0"/>
+          </CheckBox>
           <Button x:Name="AnalyzeBtn" Content="Analisar de novo" Style="{StaticResource BtnGhost}" Click="Analyze_Click" Margin="0,0,8,0"/>
           <Button x:Name="CleanBtn" Content="Limpar selecionados" Style="{StaticResource Btn}" Click="Clean_Click"/>
         </StackPanel>
@@ -44,6 +48,8 @@
             </ItemsControl.ItemTemplate>
           </ItemsControl>
           <TextBlock x:Name="ResultText" FontSize="15" FontWeight="SemiBold" Foreground="#23A559" TextWrapping="Wrap" Margin="0,8,0,0" Visibility="Collapsed"/>
+          <Button x:Name="OpenListBtn" Content="Abrir lista da simulação" Style="{StaticResource BtnGhost}" HorizontalAlignment="Left"
+                  Margin="0,10,0,0" Click="OpenList_Click" Visibility="Collapsed"/>
         </StackPanel>
       </Border>
     </StackPanel>

@@ -20,9 +20,9 @@ Ferramenta de bancada para técnico de informática (WPF .NET 8), inspirada no
 - **Nome e domínio**: confere no AD do domínio informado na tela (catálogo global) se o nome novo já existe — se existir, alerta com a OU, criação e último logon do objeto e bloqueia; se estiver livre, renomeia e ingressa no domínio com uma única reinicialização (ou só renomeia, se o PC já estiver no domínio). Valida as regras do nome (até 15 caracteres) e lembra o usuário usado (a senha nunca é salva). Se o login for recusado, confere se o relógio do PC está diferente do servidor (causa comum em PC recém-formatado).
 
 **Manutenção**
-- **Reparos rápidos**: atualizar políticas de grupo (gpupdate /force), fila de impressão, DNS, IP, rede, Windows Update, relógio e Explorer, com 1 clique.
-- **Limpeza**: mostra quanto cada categoria ocupa e apaga só o que for marcado.
-- **Drivers**: lista os dispositivos com problema (sem driver, código 28, 43...), procura no Windows Update os drivers que faltam ou estão desatualizados e instala os marcados, e instala pacotes de driver de uma pasta (ex.: `InstaladoresDrivers` no pendrive), sem internet. **Placa de vídeo**: NVIDIA consulta o driver mais novo no site da NVIDIA, baixa, confere a assinatura digital e instala em silêncio; AMD abre a detecção automática do site da AMD; Intel instala o Intel Driver & Support Assistant.
+- **Reparos rápidos**: atualizar políticas de grupo (gpupdate /force), fila de impressão, DNS, IP, rede, Windows Update, relógio e Explorer, com 1 clique. Os que mexem no PC mostram antes o que vai acontecer; resetar rede e Windows Update oferecem criar um ponto de restauração. **Modo simulação**: registra os comandos e arquivos que seriam mexidos, sem executar nada.
+- **Limpeza**: mostra quanto cada categoria ocupa e apaga só o que for marcado. **Modo simulação**: gera a lista dos arquivos que seriam apagados (pasta `logs`), sem apagar nada.
+- **Drivers**: lista os dispositivos com problema (sem driver, código 28, 43...), procura no Windows Update os drivers que faltam ou estão desatualizados e instala os marcados, e instala pacotes de driver de uma pasta (ex.: `InstaladoresDrivers` no pendrive), sem internet. Antes de instalar, oferece criar um ponto de restauração. **Placa de vídeo**: NVIDIA consulta o driver mais novo no site da NVIDIA, baixa, confere a assinatura digital e instala em silêncio; AMD abre a detecção automática do site da AMD; Intel instala o Intel Driver & Support Assistant.
 
 ## Requisitos
 
@@ -50,7 +50,7 @@ A lista de programas de **Instalar apps** fica salva em `apps.json`, na mesma pa
 
 1. Crie um repositório no GitHub (ex.: `seu-usuario/UtiliTech`) e envie esta pasta para ele. O workflow `.github/workflows/publicar.yml` já vem pronto.
 2. Para lançar uma versão, crie uma tag e envie: `git tag v0.2.0` e `git push --tags`. O GitHub compila o `UtiliTech.exe` e publica a release sozinho.
-3. No app, em **Configurações → Atualizações**, informe `seu-usuario/UtiliTech`. Ao abrir, o UtiliTech avisa quando houver versão nova e instala com 1 clique (baixa, troca o `.exe` e reabre).
+3. No app, em **Configurações → Atualizações**, informe `seu-usuario/UtiliTech`. Ao abrir, o UtiliTech avisa quando houver versão nova e instala com 1 clique (baixa, confere o SHA-256 com o publicado na release, troca o `.exe` e reabre). Se o hash não bater, nada é trocado.
 
 O repositório precisa ser **público** para o app conseguir ler as releases sem senha.
 

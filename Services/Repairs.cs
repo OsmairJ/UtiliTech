@@ -10,8 +10,12 @@ public class RepairAction : Observable
 {
     public string Title { get; init; } = "";
     public string Description { get; init; } = "";
-    /// <summary>Pergunta antes de executar (null = executa direto).</summary>
-    public string? Confirm { get; init; }
+    /// <summary>O que acontece no PC, mostrado na confirmação (vazio = executa direto, sem perguntar).</summary>
+    public string[] Effects { get; init; } = Array.Empty<string>();
+    /// <summary>Aviso em destaque na confirmação (ex.: configuração que se perde).</summary>
+    public string? Warning { get; init; }
+    /// <summary>Muda configuração do Windows: botão vermelho e oferece ponto de restauração antes.</summary>
+    public bool Risky { get; init; }
     /// <summary>Recebe a função de registro; devolve a mensagem final (sucesso) ou lança exceção.</summary>
     public Func<Action<string>, Task<string>> Run { get; init; } = _ => Task.FromResult("");
 
@@ -26,12 +30,25 @@ public static class Repairs
 {
     static Repairs() => Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
+    /// <summary>Modo simulação: registra os comandos e arquivos que seriam mexidos, sem executar nada.</summary>
+    public static bool Simulation { get; set; }
+
+    /// <summary>Mensagem final: a real, ou "Simulação: ..." quando nada foi executado.</summary>
+    static string Done(string message, string simulated = "nada foi alterado") => Simulation ? "Simulação: " + simulated : message;
+
     public static List<RepairAction> All() => new()
     {
         new()
         {
             Title = "Destravar fila de impressão",
             Description = "Para o spooler, apaga os trabalhos presos na fila e liga de novo. Resolve impressão que não sai ou documento que não some da fila.",
+            Effects = new[]
+            {
+                "Para o serviço de impressão (Spooler) por alguns segundos",
+                "Apaga todos os documentos da fila, inclusive os que ainda não saíram",
+                "Liga o serviço de novo",
+            },
+            Warning = "Os documentos apagados da fila precisam ser mandados de novo.",
             Run = FixSpooler,
         },
         new()
@@ -44,36 +61,56 @@ public static class Repairs
         {
             Title = "Limpar cache DNS",
             Description = "Esquece os endereços de sites guardados. Resolve site que não abre só neste PC ou que abre a página antiga.",
-            Run = async log => { await Step(log, "ipconfig", "/flushdns"); return "Cache DNS limpo"; },
+            Run = async log => { await Step(log, "ipconfig", "/flushdns"); return Done("Cache DNS limpo"); },
         },
         new()
         {
             Title = "Renovar IP",
             Description = "Solta e pede de novo o endereço IP ao roteador (DHCP). A conexão cai por alguns segundos.",
+            Effects = new[]
+            {
+                "Solta o endereço IP de todas as placas de rede (ipconfig /release)",
+                "Pede um endereço novo ao roteador (ipconfig /renew)",
+            },
+            Warning = "A internet e as pastas de rede caem por alguns segundos. Se o acesso for remoto, a conexão pode não voltar.",
             Run = async log =>
             {
                 await Step(log, "ipconfig", "/release");
                 var code = await Step(log, "ipconfig", "/renew");
-                return code == 0 ? "IP renovado" : "Pedido feito; confira se a rede voltou";
+                return Done(code == 0 ? "IP renovado" : "Pedido feito; confira se a rede voltou");
             },
         },
         new()
         {
             Title = "Resetar rede",
             Description = "Recria as configurações de rede do Windows (Winsock e TCP/IP). Para quando nada conecta mesmo com a rede funcionando em outros PCs.",
-            Confirm = "Resetar Winsock e TCP/IP?\n\nIP fixo e configurações manuais de rede serão perdidos, e é preciso reiniciar o PC no final.",
+            Effects = new[]
+            {
+                "Recria o catálogo Winsock (netsh winsock reset)",
+                "Volta o TCP/IP ao padrão do Windows (netsh int ip reset)",
+                "O PC precisa reiniciar no final",
+            },
+            Warning = "IP fixo, DNS manual e outras configurações feitas à mão nas placas de rede serão perdidos. Anote antes.",
+            Risky = true,
             Run = async log =>
             {
                 await Step(log, "netsh", "winsock reset");
                 await Step(log, "netsh", "int ip reset");
-                return "Feito · reinicie o PC";
+                return Done("Feito · reinicie o PC");
             },
         },
         new()
         {
             Title = "Resetar Windows Update",
             Description = "Para os serviços de atualização, renomeia o cache (SoftwareDistribution e catroot2) e liga tudo de novo. Para atualização travada ou com erro.",
-            Confirm = "Resetar o Windows Update?\n\nO histórico de atualizações exibido no Windows Update vai zerar (as atualizações instaladas continuam). Leva cerca de 1 minuto.",
+            Effects = new[]
+            {
+                "Para os serviços wuauserv, bits, cryptsvc e msiserver",
+                "Renomeia as pastas SoftwareDistribution e catroot2 (ficam como .bak, dá para voltar)",
+                "Liga os serviços de novo · leva cerca de 1 minuto",
+            },
+            Warning = "O histórico exibido no Windows Update vai zerar (as atualizações instaladas continuam).",
+            Risky = true,
             Run = ResetWindowsUpdate,
         },
         new()
@@ -84,13 +121,19 @@ public static class Repairs
             {
                 await Step(log, "net", "start w32time");
                 var code = await Step(log, "w32tm", "/resync /force");
-                return code == 0 ? $"Relógio sincronizado ({DateTime.Now:HH:mm:ss})" : "O servidor de horário não respondeu";
+                return Done(code == 0 ? $"Relógio sincronizado ({DateTime.Now:HH:mm:ss})" : "O servidor de horário não respondeu");
             },
         },
         new()
         {
             Title = "Reiniciar o Explorer",
             Description = "Fecha e abre de novo a barra de tarefas, o menu Iniciar e as pastas. Para quando a barra trava ou os ícones somem.",
+            Effects = new[]
+            {
+                "Encerra o Explorer (barra de tarefas, menu Iniciar e janelas de pasta)",
+                "Abre o Explorer de novo em seguida",
+            },
+            Warning = "As janelas de pasta abertas são fechadas. Programas como Word e navegador continuam abertos.",
             Run = RestartExplorer,
         },
     };
@@ -103,9 +146,20 @@ public static class Repairs
         if (Directory.Exists(queue))
             foreach (var f in Directory.GetFiles(queue))
             {
+                if (Simulation)
+                {
+                    log($"  apagaria {Path.GetFileName(f)}");
+                    removed++;
+                    continue;
+                }
                 try { File.Delete(f); removed++; }
                 catch { locked++; }
             }
+        if (Simulation)
+        {
+            await Step(log, "net", "start spooler");
+            return Done("", $"{removed / 2} trabalho(s) seriam removidos da fila");
+        }
         log($"{removed} arquivo(s) de trabalho removido(s) da fila" + (locked > 0 ? $", {locked} em uso" : ""));
         await Step(log, "net", "start spooler");
         if (ServiceState("Spooler") != "Running") throw new InvalidOperationException("O spooler não voltou a rodar");
@@ -121,6 +175,7 @@ public static class Repairs
         // O gpupdate pode perguntar se faz logoff/reinicia (S/N); a entrada vai fechada, então ele não espera
         // resposta. Se alguma política só vale no próximo logon/reinício, ele avisa no texto e o técnico decide.
         int code = await Step(log, "gpupdate.exe", "/force /wait:300", timeoutMinutes: 6);
+        if (Simulation) return Done("", $"atualizaria as políticas do domínio {machine.Domain}");
         return code == 0
             ? $"Políticas do domínio {machine.Domain} atualizadas"
             : $"gpupdate terminou com código {code}: o PC está na rede da empresa? (veja o registro)";
@@ -136,6 +191,11 @@ public static class Repairs
         foreach (var dir in new[] { Path.Combine(windows, "SoftwareDistribution"), Path.Combine(Environment.SystemDirectory, "catroot2") })
         {
             if (!Directory.Exists(dir)) continue;
+            if (Simulation)
+            {
+                log($"Renomearia: {dir} → {Path.GetFileName(dir)}.bak-{stamp}");
+                continue;
+            }
             try
             {
                 Directory.Move(dir, $"{dir}.bak-{stamp}");
@@ -145,12 +205,13 @@ public static class Repairs
         }
 
         foreach (var s in new[] { "cryptsvc", "bits", "wuauserv" }) await Step(log, "net", $"start {s}");
-        return "Windows Update resetado · procure atualizações de novo";
+        return Done("Windows Update resetado · procure atualizações de novo");
     }
 
     static async Task<string> RestartExplorer(Action<string> log)
     {
         await Step(log, "taskkill", "/f /im explorer.exe");
+        if (Simulation) return Done("", "o Explorer seria fechado e aberto de novo");
         // O Windows reabre o Explorer sozinho (AutoRestartShell); se não reabrir, abre aqui
         for (int i = 0; i < 10 && Process.GetProcessesByName("explorer").Length == 0; i++) await Task.Delay(500);
         if (Process.GetProcessesByName("explorer").Length == 0)
@@ -168,9 +229,15 @@ public static class Repairs
     /// Roda um comando do Windows, registra a saída linha a linha e devolve o código de saída.
     /// Não espera a saída "fechar": alguns comandos (ex.: gpupdate) deixam processos em segundo plano
     /// segurando a saída, e esperar por ela travaria o app. Passado o limite de tempo, encerra o comando.
+    /// No modo simulação só registra o comando e devolve 0.
     /// </summary>
     internal static async Task<int> Step(Action<string> log, string file, string args, int timeoutMinutes = 10)
     {
+        if (Simulation)
+        {
+            log($"> {file} {args}   (simulação: não executado)");
+            return 0;
+        }
         log($"> {file} {args}");
         // Comandos de console (net, ipconfig, netsh) escrevem na página de código OEM (850 em português)
         var oem = Encoding.GetEncoding(CultureInfo.CurrentCulture.TextInfo.OEMCodePage);

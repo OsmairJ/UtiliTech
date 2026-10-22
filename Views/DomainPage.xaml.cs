@@ -166,8 +166,19 @@ public partial class DomainPage : UserControl
         }
         bool inDomain = DomainTools.IsInDomain(_current);
         string action = inDomain ? $"Renomear {_current.Name} para {name} no domínio" : $"Renomear {_current.Name} para {name} e adicionar ao domínio {DomainTools.DomainName}";
-        if (MessageBox.Show($"{action}?\n\nConta: {user}\nO PC precisa reiniciar no final.", "UtiliTech",
-                MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+        var effects = new List<string> { $"O nome do computador muda de {_current.Name} para {name}" };
+        if (!inDomain) effects.Add($"O PC entra no domínio {DomainTools.DomainName} (conta criada no AD com a conta {user})");
+        else effects.Add($"A conta do computador é renomeada no AD (com a conta {user})");
+        effects.Add("O PC precisa reiniciar para concluir");
+        if (!await ConfirmWindow.ConfirmAsync(new ConfirmRequest
+            {
+                Title = action + "?",
+                Effects = effects,
+                Warning = inDomain ? null : "Depois de reiniciar, o login passa a ser com usuário do domínio. Confira se há uma conta local de administrador com senha conhecida.",
+                ConfirmText = inDomain ? "Renomear" : "Renomear e ingressar",
+                // Sem ponto de restauração: voltar um ponto depois de ingressar desfaz a senha da conta do
+                // computador e quebra a relação de confiança com o domínio
+            }, null)) return;
 
         ApplyBtn.IsEnabled = CheckBtn.IsEnabled = false;
         ApplyResult.Text = inDomain ? "Renomeando no domínio..." : "Ingressando no domínio...";
@@ -200,8 +211,14 @@ public partial class DomainPage : UserControl
 
     void Restart_Click(object sender, RoutedEventArgs e)
     {
-        if (MessageBox.Show("Reiniciar o computador agora? Salve o que estiver aberto.", "UtiliTech",
-                MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+        if (ConfirmWindow.Ask(new ConfirmRequest
+            {
+                Title = "Reiniciar o computador agora?",
+                Effects = new[] { "Fecha todos os programas e reinicia o Windows", "O novo nome (e o domínio) passam a valer na volta" },
+                Warning = "O que não estiver salvo nos programas abertos será perdido.",
+                ConfirmText = "Reiniciar",
+                Danger = true,
+            }).Ok)
             DomainTools.Restart();
     }
 }

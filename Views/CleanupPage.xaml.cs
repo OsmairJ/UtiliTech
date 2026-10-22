@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using UtiliTech.Services;
@@ -9,6 +10,7 @@ public partial class CleanupPage : UserControl
 {
     readonly List<CleanCategory> _categories = Cleaner.Categories();
     bool _loaded, _busy;
+    string? _simulationFile;
 
     public CleanupPage()
     {
@@ -22,18 +24,24 @@ public partial class CleanupPage : UserControl
         };
     }
 
+    bool Simulating => SimulationBox.IsChecked == true;
+
     async Task AnalyzeAsync()
     {
         SetBusy(true);
         Status.Text = "Analisando quanto espaço dá para liberar...";
-        ResultText.Visibility = Visibility.Collapsed;
+        ResultText.Visibility = OpenListBtn.Visibility = Visibility.Collapsed;
         foreach (var c in _categories) c.SizeText = "...";
         foreach (var c in _categories)
             c.Size = await Task.Run(() => Cleaner.Measure(c));
         UpdateTotals();
-        Status.Text = "Marque o que quer apagar e clique em Limpar selecionados.";
+        Status.Text = IdleText();
         SetBusy(false);
     }
+
+    string IdleText() => Simulating
+        ? "Modo simulação: marque as categorias e clique em Simular para ver a lista do que seria apagado."
+        : "Marque o que quer apagar e clique em Limpar selecionados.";
 
     void UpdateTotals()
     {
@@ -45,6 +53,12 @@ public partial class CleanupPage : UserControl
 
     void Selection_Click(object sender, RoutedEventArgs e) => UpdateTotals();
 
+    void Simulation_Click(object sender, RoutedEventArgs e)
+    {
+        CleanBtn.Content = Simulating ? "Simular limpeza" : "Limpar selecionados";
+        if (!_busy) Status.Text = IdleText();
+    }
+
     async void Analyze_Click(object sender, RoutedEventArgs e) => await AnalyzeAsync();
 
     async void Clean_Click(object sender, RoutedEventArgs e)
@@ -55,12 +69,28 @@ public partial class CleanupPage : UserControl
             Status.Text = "Marque pelo menos uma categoria.";
             return;
         }
+        if (Simulating)
+        {
+            await SimulateAsync(selected);
+            return;
+        }
+
         long planned = selected.Where(c => c.Size > 0).Sum(c => c.Size);
-        string names = string.Join("\n", selected.Select(c => $"• {c.Name} ({c.SizeText})"));
-        if (MessageBox.Show($"Apagar {Fmt.Bytes(planned)}?\n\n{names}\n\nIsso não pode ser desfeito.", "UtiliTech",
-                MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+        var effects = selected.Select(c => $"{c.Name} ({c.SizeText}) · {c.Description}").ToList();
+        if (selected.Any(c => c.StopServices.Length > 0))
+            effects.Add("O Windows Update fica parado durante a limpeza do cache e volta sozinho no final");
+        if (!ConfirmWindow.Ask(new ConfirmRequest
+            {
+                Title = $"Apagar {Fmt.Bytes(planned)}?",
+                Effects = effects,
+                Warning = "Os arquivos são apagados de vez (não vão para a lixeira) e não dá para desfazer." +
+                          (selected.Any(c => c.Kind == CleanKind.RecycleBin) ? " A lixeira está marcada: confirme com o cliente." : ""),
+                ConfirmText = "Apagar",
+                Danger = true,
+            }).Ok) return;
 
         SetBusy(true);
+        ResultText.Visibility = OpenListBtn.Visibility = Visibility.Collapsed;
         var drive = new DriveInfo(Path.GetPathRoot(Environment.SystemDirectory)!);
         long freeBefore = drive.AvailableFreeSpace;
         long freed = 0;
@@ -75,19 +105,62 @@ public partial class CleanupPage : UserControl
             c.Size = await Task.Run(() => Cleaner.Measure(c));
         }
         long gained = drive.AvailableFreeSpace - freeBefore;
+        Logger.Info($"Limpeza: {Fmt.Bytes(Math.Max(freed, gained))} liberados ({string.Join(", ", selected.Select(c => c.Name))})");
 
         ResultText.Text = $"Liberados {Fmt.Bytes(Math.Max(freed, gained))}" +
                           (skipped > 0 ? $" · {skipped:N0} arquivo(s) em uso ficaram para a próxima" : "");
+        ResultText.Foreground = Ui.Hex(Palette.Good);
         ResultText.Visibility = Visibility.Visible;
         UpdateTotals();
         Status.Text = "Limpeza concluída.";
         SetBusy(false);
     }
 
+    /// <summary>Lista o que seria apagado num arquivo de texto (pasta de registros), sem apagar nada.</summary>
+    async Task SimulateAsync(List<CleanCategory> selected)
+    {
+        SetBusy(true);
+        ResultText.Visibility = OpenListBtn.Visibility = Visibility.Collapsed;
+        var report = new StringBuilder().AppendLine($"UtiliTech {Updater.CurrentText} · simulação da limpeza · {DateTime.Now:dd/MM/yyyy HH:mm}");
+        report.AppendLine("Nada foi apagado. Arquivos em uso por algum programa seriam pulados na limpeza de verdade.");
+        long total = 0;
+        int files = 0;
+        foreach (var c in selected)
+        {
+            Status.Text = $"Simulando: {c.Name}...";
+            var list = new List<string>();
+            var r = await Task.Run(() => Cleaner.Preview(c, list));
+            total += r.Freed;
+            if (c.Kind != CleanKind.RecycleBin) files += list.Count;
+            report.AppendLine().AppendLine($"=== {c.Name} · {Fmt.Bytes(r.Freed)} · {list.Count:N0} linha(s) ===");
+            foreach (var line in list) report.AppendLine(line);
+        }
+
+        _simulationFile = Path.Combine(Logger.Folder, $"simulacao-limpeza-{DateTime.Now:yyyyMMdd-HHmmss}.txt");
+        try { await File.WriteAllTextAsync(_simulationFile, report.ToString(), Encoding.UTF8); }
+        catch (Exception ex)
+        {
+            Logger.Error("Salvar a lista da simulação", ex);
+            _simulationFile = null;
+        }
+
+        ResultText.Text = $"Simulação: apagaria {files:N0} arquivo(s), cerca de {Fmt.Bytes(total)}. Nada foi apagado.";
+        ResultText.Foreground = Ui.Hex(Palette.Accent);
+        ResultText.Visibility = Visibility.Visible;
+        OpenListBtn.Visibility = _simulationFile != null ? Visibility.Visible : Visibility.Collapsed;
+        Status.Text = "Simulação concluída.";
+        SetBusy(false);
+    }
+
+    void OpenList_Click(object sender, RoutedEventArgs e)
+    {
+        if (_simulationFile != null && File.Exists(_simulationFile)) Ui.Open(_simulationFile);
+    }
+
     void SetBusy(bool busy)
     {
         _busy = busy;
-        AnalyzeBtn.IsEnabled = CleanBtn.IsEnabled = !busy;
+        AnalyzeBtn.IsEnabled = CleanBtn.IsEnabled = SimulationBox.IsEnabled = !busy;
         CategoryList.IsEnabled = !busy;
     }
 }

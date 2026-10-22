@@ -1,5 +1,5 @@
 # Gera o UtiliTech.exe e publica uma release a cada tag de versão (ex.: git tag v0.2.0 && git push --tags).
-# O app procura atualização na release mais recente deste repositório.
+# O app procura atualização na release mais recente deste repositório e só instala se o SHA-256 conferir.
 name: Publicar
 
 on:
@@ -27,8 +27,17 @@ jobs:
             -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true `
             -p:EnableCompressionInSingleFile=true -p:DebugType=none -p:Version=$versao -o dist
 
+      - name: Calcular o SHA-256
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash dist/UtiliTech.exe -Algorithm SHA256).Hash.ToLower()
+          "$hash  UtiliTech.exe" | Out-File dist/UtiliTech.exe.sha256 -Encoding ascii -NoNewline
+          Write-Host "SHA-256: $hash"
+
       - name: Publicar a release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/UtiliTech.exe
+          files: |
+            dist/UtiliTech.exe
+            dist/UtiliTech.exe.sha256
           generate_release_notes: true

@@ -20,6 +20,8 @@ public class AppSettings
     public string DomainName { get; set; } = "";
     /// <summary>Usuário do domínio usado por último (a senha nunca é salva).</summary>
     public string LastDomainUser { get; set; } = "";
+    /// <summary>As confirmações já vêm com "Criar ponto de restauração antes" marcado.</summary>
+    public bool CreateRestorePoints { get; set; } = true;
 
     public static AppSettings Current { get; } = Load();
 

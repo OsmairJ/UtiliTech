@@ -8,6 +8,7 @@ namespace UtiliTech.Views;
 
 public partial class RepairsPage : UserControl, INotifyPropertyChanged
 {
+    const string DefaultStatus = "Correções comuns do dia a dia, com 1 clique. Tudo fica no registro abaixo.";
     bool _canRun = true;
 
     /// <summary>Um reparo por vez: os botões ficam desligados enquanto um roda.</summary>
@@ -27,22 +28,38 @@ public partial class RepairsPage : UserControl, INotifyPropertyChanged
         RepairList.ItemsSource = Repairs.All();
     }
 
+    bool Simulating => SimulationBox.IsChecked == true;
+
     async void Run_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { DataContext: RepairAction repair }) return;
-        if (repair.Confirm != null &&
-            MessageBox.Show(repair.Confirm, "UtiliTech", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+        bool simulate = Simulating;
+
+        // Na simulação nada muda no PC: não precisa confirmar nem criar ponto de restauração
+        if (!simulate && repair.Effects.Length > 0 &&
+            !await ConfirmWindow.ConfirmAsync(new ConfirmRequest
+            {
+                Title = repair.Title,
+                Effects = repair.Effects,
+                Warning = repair.Warning,
+                ConfirmText = "Executar",
+                Danger = repair.Risky,
+                RestorePoint = repair.Risky ? repair.Title : null,
+            }, Log)) return;
 
         CanRun = false;
-        repair.Status = "Executando...";
+        SimulationBox.IsEnabled = false;
+        repair.Status = simulate ? "Simulando..." : "Executando...";
         repair.StatusColor = Palette.Accent;
-        Status.Text = $"Executando: {repair.Title}";
-        Log($"=== {repair.Title} ===");
+        Status.Text = (simulate ? "Simulando: " : "Executando: ") + repair.Title;
+        Log($"=== {repair.Title}{(simulate ? " (simulação)" : "")} ===");
+        // A simulação vale só durante este reparo: Repairs.Step também é usado pela tela de drivers
+        Repairs.Simulation = simulate;
         try
         {
             var result = await Task.Run(() => repair.Run(msg => Dispatcher.InvokeAsync(() => Log(msg))));
-            repair.Status = "✓ " + result;
-            repair.StatusColor = Palette.Good;
+            repair.Status = (simulate ? "○ " : "✓ ") + result;
+            repair.StatusColor = simulate ? Palette.Accent : Palette.Good;
             Log("Concluído: " + result);
         }
         catch (Exception ex)
@@ -53,8 +70,10 @@ public partial class RepairsPage : UserControl, INotifyPropertyChanged
         }
         finally
         {
+            Repairs.Simulation = false;
             CanRun = true;
-            Status.Text = "Correções comuns do dia a dia, com 1 clique. Tudo fica no registro abaixo.";
+            SimulationBox.IsEnabled = true;
+            Status.Text = DefaultStatus;
         }
     }
 

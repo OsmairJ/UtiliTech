@@ -16,6 +16,7 @@ public partial class SettingsPage : UserControl
         VersionText.Text = $"UtiliTech {Updater.CurrentText}";
         RepoBox.Text = cfg.UpdateRepo;
         AutoCheckBox.IsChecked = cfg.CheckUpdatesOnStart;
+        RestorePointBox.IsChecked = cfg.CreateRestorePoints;
         UpdateThemeButtons();
         IsVisibleChanged += (_, _) =>
         {
@@ -106,8 +107,17 @@ public partial class SettingsPage : UserControl
     async void Install_Click(object sender, RoutedEventArgs e)
     {
         if (_update == null) return;
-        if (MessageBox.Show($"Baixar e instalar o UtiliTech {_update.Tag}?\n\nO app fecha e abre de novo já atualizado.", "UtiliTech",
-                MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+        if (!ConfirmWindow.Ask(new ConfirmRequest
+            {
+                Title = $"Atualizar para o UtiliTech {_update.Tag}?",
+                Effects = new[]
+                {
+                    $"Baixa o UtiliTech.exe novo do GitHub ({Fmt.Bytes(_update.Size)})",
+                    "Confere a impressão digital (SHA-256) do arquivo com a publicada na release",
+                    "Troca o .exe e abre o app de novo, já atualizado",
+                },
+                ConfirmText = "Baixar e instalar",
+            }).Ok) return;
 
         InstallBtn.IsEnabled = CheckBtn.IsEnabled = false;
         DownloadBar.Visibility = Visibility.Visible;
@@ -144,6 +154,14 @@ public partial class SettingsPage : UserControl
             "Sensores: LibreHardwareMonitorLib (MPL 2.0) e driver PawnIO 2.2.0 (GPL 2.0, licença em Licencas\\PawnIO).\n" +
             $"Driver de sensores: {SensorDriver.State}\n" +
             $"Configurações: {Path.Combine(AppContext.BaseDirectory, "settings.json")}";
+
+    // ---------- Segurança ----------
+
+    void RestorePoint_Click(object sender, RoutedEventArgs e)
+    {
+        AppSettings.Current.CreateRestorePoints = RestorePointBox.IsChecked == true;
+        AppSettings.Current.Save();
+    }
 
     // ---------- Registro de erros ----------
 
