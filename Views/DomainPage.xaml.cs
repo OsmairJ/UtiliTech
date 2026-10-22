@@ -14,8 +14,29 @@ public partial class DomainPage : UserControl
     {
         InitializeComponent();
         UserBox.Text = AppSettings.Current.LastDomainUser;
+        // Primeiro uso: sugere o domínio em que este PC já está
+        if (string.IsNullOrWhiteSpace(AppSettings.Current.DomainName) && DomainTools.Current() is { PartOfDomain: true } m)
+            SaveDomain(m.Domain);
+        DomainBox.Text = AppSettings.Current.DomainName;
         RefreshCurrent();
         UpdateApplyState();
+    }
+
+    void DomainBox_LostFocus(object sender, RoutedEventArgs e) => SaveDomain(DomainBox.Text);
+
+    void DomainBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    {
+        if (e.Key == System.Windows.Input.Key.Enter) SaveDomain(DomainBox.Text);
+    }
+
+    void SaveDomain(string domain)
+    {
+        domain = domain.Trim().ToLowerInvariant();
+        if (domain == AppSettings.Current.DomainName) return;
+        AppSettings.Current.DomainName = domain;
+        AppSettings.Current.Save();
+        _verifiedFree = null; // outro domínio: o nome precisa ser conferido de novo
+        if (IsLoaded) { ResultBox.Visibility = Visibility.Collapsed; RefreshCurrent(); UpdateApplyState(); }
     }
 
     void RefreshCurrent()
@@ -23,6 +44,18 @@ public partial class DomainPage : UserControl
         _current = DomainTools.Current();
         string domain = DomainTools.DomainName;
         bool inDomain = DomainTools.IsInDomain(_current);
+        CheckBtn.IsEnabled = domain.Length > 0;
+        if (domain.Length == 0)
+        {
+            CurrentList.ItemsSource = new List<InfoItem>
+            {
+                new("Nome do computador", _current.Name),
+                new(_current.PartOfDomain ? "Domínio" : "Grupo de trabalho", _current.Domain),
+            };
+            Status.Text = "Informe abaixo o domínio da empresa para conferir nomes e ingressar.";
+            ApplyBtn.Content = "Renomear e adicionar ao domínio";
+            return;
+        }
         CurrentList.ItemsSource = new List<InfoItem>
         {
             new("Nome do computador", _current.Name),

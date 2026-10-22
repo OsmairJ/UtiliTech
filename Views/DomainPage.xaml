@@ -12,6 +12,10 @@
         <StackPanel>
           <TextBlock Text="Situação atual" Style="{StaticResource H2}"/>
           <ItemsControl x:Name="CurrentList" ItemTemplate="{StaticResource InfoRow}"/>
+          <TextBlock Text="Domínio da empresa (nome DNS, ex.: empresa.local)" Style="{StaticResource Label}" Margin="0,12,0,4"/>
+          <TextBox x:Name="DomainBox" Style="{StaticResource Input}" LostFocus="DomainBox_LostFocus" KeyDown="DomainBox_KeyDown"/>
+          <TextBlock Style="{StaticResource Muted}" FontSize="11" Margin="0,4,0,0"
+                     Text="Fica salvo no settings.json ao lado do UtiliTech.exe (no pendrive), não no código."/>
         </StackPanel>
       </Border>
 

@@ -16,8 +16,8 @@ public class AppSettings
     /// <summary>Repositório do GitHub onde saem as versões (usuário/nome); vazio = não procura atualização.</summary>
     public string UpdateRepo { get; set; } = "OsmairJ/UtiliTech";
     public bool CheckUpdatesOnStart { get; set; } = true;
-    /// <summary>Domínio usado na ferramenta Nome e domínio.</summary>
-    public string DomainName { get; set; } = "empresa.local";
+    /// <summary>Domínio (DNS) usado na ferramenta Nome e domínio; digitado pelo técnico na tela e salvo só aqui.</summary>
+    public string DomainName { get; set; } = "";
     /// <summary>Usuário do domínio usado por último (a senha nunca é salva).</summary>
     public string LastDomainUser { get; set; } = "";
 

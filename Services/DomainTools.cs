@@ -60,7 +60,7 @@ public static class DomainTools
 
     /// <summary>
     /// Credencial com o domínio separado do usuário, como o AD espera de um PC fora do domínio:
-    /// "DOMINIO\usuario" → (usuario, DOMINIO); "usuario@empresa.local" fica como está; "usuario" → (usuario, empresa.local).
+    /// "DOMINIO\usuario" → (usuario, empresa.local); "usuario@empresa.local" fica como está; "usuario" → (usuario, empresa.local).
     /// </summary>
     static NetworkCredential Credential(string user, string password)
     {
@@ -69,7 +69,7 @@ public static class DomainTools
         if (slash > 0)
         {
             // "DOMINIO\usuario": de um PC fora do domínio o nome curto (NetBIOS) não serve para o Kerberos;
-            // o nome DNS do domínio (empresa.local) funciona tanto para Kerberos quanto para NTLM
+            // o nome DNS do domínio (ex.: empresa.local) funciona tanto para Kerberos quanto para NTLM
             string domain = user[..slash];
             return new NetworkCredential(user[(slash + 1)..], password, domain.Contains('.') ? domain : DomainName);
         }
