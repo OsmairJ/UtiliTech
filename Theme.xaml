@@ -2,19 +2,20 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:v="clr-namespace:UtiliTech.Views">
 
-  <!-- Cores (tema escuro, preto e branco). O tema claro troca estes pincéis em Views/ThemeManager.cs -->
-  <SolidColorBrush x:Key="BgBrush" Color="#000000"/>
-  <SolidColorBrush x:Key="PanelBrush" Color="#0B0B0C"/>
-  <SolidColorBrush x:Key="CardBrush" Color="#111113"/>
-  <SolidColorBrush x:Key="InputBrush" Color="#0B0B0C"/>
-  <SolidColorBrush x:Key="LineBrush" Color="#26262A"/>
-  <SolidColorBrush x:Key="HoverBrush" Color="#1C1C1F"/>
-  <SolidColorBrush x:Key="SelectedBrush" Color="#222226"/>
-  <SolidColorBrush x:Key="TextBrush" Color="#F2F2F2"/>
-  <SolidColorBrush x:Key="MutedBrush" Color="#8C8C93"/>
-  <SolidColorBrush x:Key="AccentBrush" Color="#F2F2F2"/>
-  <SolidColorBrush x:Key="AccentTextBrush" Color="#0A0A0A"/>
-  <SolidColorBrush x:Key="DangerBrush" Color="#DC2626"/>
+  <!-- Cores do Discord (tema escuro). O tema claro troca estes pincéis em Views/ThemeManager.cs -->
+  <SolidColorBrush x:Key="TitleBrush" Color="#1E1F22"/>
+  <SolidColorBrush x:Key="BgBrush" Color="#313338"/>
+  <SolidColorBrush x:Key="PanelBrush" Color="#232428"/>
+  <SolidColorBrush x:Key="CardBrush" Color="#2B2D31"/>
+  <SolidColorBrush x:Key="InputBrush" Color="#1E1F22"/>
+  <SolidColorBrush x:Key="LineBrush" Color="#3F4147"/>
+  <SolidColorBrush x:Key="HoverBrush" Color="#35373C"/>
+  <SolidColorBrush x:Key="SelectedBrush" Color="#404249"/>
+  <SolidColorBrush x:Key="TextBrush" Color="#F2F3F5"/>
+  <SolidColorBrush x:Key="MutedBrush" Color="#949BA4"/>
+  <SolidColorBrush x:Key="AccentBrush" Color="#5865F2"/>
+  <SolidColorBrush x:Key="AccentTextBrush" Color="#FFFFFF"/>
+  <SolidColorBrush x:Key="DangerBrush" Color="#DA373C"/>
 
   <FontFamily x:Key="IconFont">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
   <FontFamily x:Key="NumberFont">Consolas</FontFamily>
@@ -320,9 +321,9 @@
   </Style>
 
   <!-- Barras de rolagem: finas, sem setas, trilho invisível; a alça engrossa ao passar o mouse -->
-  <SolidColorBrush x:Key="ScrollThumbBrush" Color="#2E2E33"/>
-  <SolidColorBrush x:Key="ScrollThumbHoverBrush" Color="#46464D"/>
-  <SolidColorBrush x:Key="ScrollThumbDragBrush" Color="#5E5E66"/>
+  <SolidColorBrush x:Key="ScrollThumbBrush" Color="#1A1B1E"/>
+  <SolidColorBrush x:Key="ScrollThumbHoverBrush" Color="#4E5058"/>
+  <SolidColorBrush x:Key="ScrollThumbDragBrush" Color="#6D6F78"/>
 
   <Style x:Key="ScrollPage" TargetType="RepeatButton">
     <Setter Property="OverridesDefaultStyle" Value="True"/>

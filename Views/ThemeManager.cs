@@ -12,23 +12,23 @@ namespace UtiliTech.Views;
 /// </summary>
 public static class ThemeManager
 {
-    // Preto e branco: o destaque é a própria cor do texto (botão principal branco no escuro, preto no claro)
+    // Cores do Discord: fundos cinza-azulados em camadas e destaque "blurple" (#5865F2)
     static readonly Dictionary<string, string> Dark = new()
     {
-        ["BgBrush"] = "#000000", ["PanelBrush"] = "#0B0B0C", ["CardBrush"] = "#111113", ["InputBrush"] = "#0B0B0C",
-        ["LineBrush"] = "#26262A", ["HoverBrush"] = "#1C1C1F", ["SelectedBrush"] = "#222226",
-        ["TextBrush"] = "#F2F2F2", ["MutedBrush"] = "#8C8C93",
-        ["AccentBrush"] = "#F2F2F2", ["AccentTextBrush"] = "#0A0A0A", ["DangerBrush"] = "#DC2626",
-        ["ScrollThumbBrush"] = "#2E2E33", ["ScrollThumbHoverBrush"] = "#46464D", ["ScrollThumbDragBrush"] = "#5E5E66",
+        ["TitleBrush"] = "#1E1F22", ["BgBrush"] = "#313338", ["PanelBrush"] = "#232428", ["CardBrush"] = "#2B2D31",
+        ["InputBrush"] = "#1E1F22", ["LineBrush"] = "#3F4147", ["HoverBrush"] = "#35373C", ["SelectedBrush"] = "#404249",
+        ["TextBrush"] = "#F2F3F5", ["MutedBrush"] = "#949BA4",
+        ["AccentBrush"] = "#5865F2", ["AccentTextBrush"] = "#FFFFFF", ["DangerBrush"] = "#DA373C",
+        ["ScrollThumbBrush"] = "#1A1B1E", ["ScrollThumbHoverBrush"] = "#4E5058", ["ScrollThumbDragBrush"] = "#6D6F78",
     };
 
     static readonly Dictionary<string, string> Light = new()
     {
-        ["BgBrush"] = "#F2F2F4", ["PanelBrush"] = "#FFFFFF", ["CardBrush"] = "#FFFFFF", ["InputBrush"] = "#F7F7F8",
-        ["LineBrush"] = "#E3E3E7", ["HoverBrush"] = "#EEEEF1", ["SelectedBrush"] = "#E6E6EA",
-        ["TextBrush"] = "#111113", ["MutedBrush"] = "#6B6B73",
-        ["AccentBrush"] = "#111113", ["AccentTextBrush"] = "#FFFFFF", ["DangerBrush"] = "#DC2626",
-        ["ScrollThumbBrush"] = "#CFCFD6", ["ScrollThumbHoverBrush"] = "#B1B1BA", ["ScrollThumbDragBrush"] = "#93939C",
+        ["TitleBrush"] = "#E3E5E8", ["BgBrush"] = "#FFFFFF", ["PanelBrush"] = "#EBEDEF", ["CardBrush"] = "#F2F3F5",
+        ["InputBrush"] = "#E3E5E8", ["LineBrush"] = "#E1E2E4", ["HoverBrush"] = "#E8E9EC", ["SelectedBrush"] = "#D7D9DC",
+        ["TextBrush"] = "#313338", ["MutedBrush"] = "#5C5E66",
+        ["AccentBrush"] = "#5865F2", ["AccentTextBrush"] = "#FFFFFF", ["DangerBrush"] = "#DA373C",
+        ["ScrollThumbBrush"] = "#C4C9CE", ["ScrollThumbHoverBrush"] = "#A9AEB4", ["ScrollThumbDragBrush"] = "#8E9297",
     };
 
     public static bool IsLight { get; private set; }
@@ -44,7 +44,7 @@ public static class ThemeManager
             resources[key] = brush;
         }
         Palette.Text = (light ? Light : Dark)["TextBrush"];
-        Palette.Accent = Palette.Text; // destaque monocromático: "em andamento" na cor do texto
+        Palette.Accent = (light ? Light : Dark)["AccentBrush"]; // "em andamento", versão nova... em blurple
         foreach (Window w in Application.Current.Windows) ApplyTitleBar(w);
     }
 

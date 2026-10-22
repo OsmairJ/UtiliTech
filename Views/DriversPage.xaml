@@ -18,7 +18,7 @@
       <Border Style="{StaticResource Card}">
         <StackPanel>
           <TextBlock Text="Dispositivos com problema" Style="{StaticResource H2}"/>
-          <TextBlock x:Name="ProblemsEmpty" Text="✓ Nenhum dispositivo com problema no Gerenciador de Dispositivos." Foreground="#22C55E"
+          <TextBlock x:Name="ProblemsEmpty" Text="✓ Nenhum dispositivo com problema no Gerenciador de Dispositivos." Foreground="#23A559"
                      FontWeight="SemiBold" Visibility="Collapsed"/>
           <ItemsControl x:Name="ProblemList">
             <ItemsControl.ItemTemplate>

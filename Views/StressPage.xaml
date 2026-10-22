@@ -21,9 +21,9 @@
         <TextBlock x:Name="Status" Style="{StaticResource Muted}" Text="Abrindo sensores..."/>
       </StackPanel>
 
-      <Border x:Name="NoTempBanner" Style="{StaticResource Card}" BorderBrush="#7A5A12" Visibility="Collapsed">
+      <Border x:Name="NoTempBanner" Style="{StaticResource Card}" BorderBrush="#F0B232" Visibility="Collapsed">
         <StackPanel>
-          <TextBlock Text="Sem leitura da temperatura da CPU" FontWeight="SemiBold" Foreground="#F59E0B"/>
+          <TextBlock Text="Sem leitura da temperatura da CPU" FontWeight="SemiBold" Foreground="#F0B232"/>
           <TextBlock Style="{StaticResource Muted}" Margin="0,2,0,0"
                      Text="Por segurança o teste só roda com o limite de temperatura funcionando. Abra o UtiliTech como administrador e, se precisar, instale o driver PawnIO na tela Monitor."/>
         </StackPanel>

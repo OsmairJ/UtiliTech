@@ -43,7 +43,7 @@
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
-          <TextBlock x:Name="ResultText" FontSize="15" FontWeight="SemiBold" Foreground="#22C55E" TextWrapping="Wrap" Margin="0,8,0,0" Visibility="Collapsed"/>
+          <TextBlock x:Name="ResultText" FontSize="15" FontWeight="SemiBold" Foreground="#23A559" TextWrapping="Wrap" Margin="0,8,0,0" Visibility="Collapsed"/>
         </StackPanel>
       </Border>
     </StackPanel>

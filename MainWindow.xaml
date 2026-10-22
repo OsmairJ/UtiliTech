@@ -23,7 +23,7 @@
     </Grid.ColumnDefinitions>
 
     <!-- Barra de título -->
-    <DockPanel Grid.ColumnSpan="2">
+    <DockPanel Grid.ColumnSpan="2" Background="{DynamicResource TitleBrush}">
       <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
         <Button x:Name="ThemeBtn" Style="{StaticResource TitleBtn}" Content="&#xE706;" FontSize="14" ToolTip="Tema claro/escuro"
                 Click="Theme_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
@@ -44,12 +44,11 @@
     </DockPanel>
 
     <!-- Menu lateral em painel arredondado -->
-    <Border Grid.Row="1" Margin="8,0,0,8" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource LineBrush}"
-            BorderThickness="1" CornerRadius="16">
+    <Border Grid.Row="1" Background="{DynamicResource CardBrush}">
       <DockPanel>
         <StackPanel DockPanel.Dock="Bottom" Margin="14,8,14,14">
           <!-- Versão e situação da atualização; com versão nova, um clique abre Configurações -->
-          <Border x:Name="VersionCard" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1"
+          <Border x:Name="VersionCard" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1"
                   CornerRadius="12" Padding="12,9" Margin="0,0,0,10" MouseLeftButtonUp="VersionCard_Click">
             <Grid>
               <Grid.ColumnDefinitions>
@@ -112,6 +111,6 @@
       </DockPanel>
     </Border>
 
-    <ContentControl x:Name="Host" Grid.Row="1" Grid.Column="1" Margin="20,0,12,8"/>
+    <ContentControl x:Name="Host" Grid.Row="1" Grid.Column="1" Margin="20,16,12,8"/>
   </Grid>
 </Window>

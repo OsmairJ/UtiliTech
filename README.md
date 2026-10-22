@@ -63,4 +63,4 @@ O repositório precisa ser **público** para o app conseguir ler as releases sem
 
 - `Services/`: a lógica (WMI, sensores, winget, testes, reparos, limpeza, atualização, relatório), sem dependência da interface.
 - `Views/`: uma tela por módulo.
-- `Theme.xaml`: visual preto e branco (inspirado no ResetExplode), com barra de título própria e ícones Segoe Fluent no menu; o tema claro troca os pincéis na hora (`Views/ThemeManager.cs`).
+- `Theme.xaml`: cores do Discord (fundos cinza-azulados e destaque blurple #5865F2), layout inspirado no ResetExplode com barra de título própria e ícones Segoe Fluent no menu; o tema claro troca os pincéis na hora (`Views/ThemeManager.cs`).

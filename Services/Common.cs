@@ -9,14 +9,14 @@ public record InfoSection(string Title, List<InfoItem> Items);
 
 public static class Palette
 {
-    public const string Good = "#22C55E";
-    public const string Warn = "#F59E0B";
-    public const string Bad = "#EF4444";
-    public const string Muted = "#8B93A1";
-    /// <summary>Destaque ("em andamento", versão nova...): segue o tema, preto e branco.</summary>
-    public static string Accent { get; set; } = "#F2F2F2";
+    public const string Good = "#23A559";
+    public const string Warn = "#F0B232";
+    public const string Bad = "#F23F43";
+    public const string Muted = "#949BA4";
+    /// <summary>Destaque ("em andamento", versão nova...): o blurple do Discord.</summary>
+    public static string Accent { get; set; } = "#5865F2";
     /// <summary>Cor do texto principal do tema atual (muda com o tema claro/escuro).</summary>
-    public static string Text { get; set; } = "#E6E8EC";
+    public static string Text { get; set; } = "#F2F3F5";
 }
 
 /// <summary>Estado compartilhado entre páginas (ex.: resultado dos testes vai no relatório).</summary>
