@@ -88,6 +88,7 @@ public partial class MainWindow : Window
                 "startup" => new StartupPage(),
                 "repairs" => new RepairsPage(),
                 "cleanup" => new CleanupPage(),
+                "drivers" => new DriversPage(),
                 "settings" => new SettingsPage(),
                 _ => throw new ArgumentOutOfRangeException(nameof(key), key, null)
             };

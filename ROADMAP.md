@@ -8,6 +8,7 @@
 ## Fase 2 — Manutenção (concluída)
 - [x] **Reparos de 1 clique**: destravar fila de impressão, limpar cache DNS, renovar IP, resetar rede (Winsock/TCP-IP), resetar Windows Update, sincronizar relógio e reiniciar o Explorer, com registro de cada comando.
 - [x] **Limpeza**: temporários (usuário e Windows), cache do Windows Update, lixeira, miniaturas, cache dos navegadores e relatórios de erro, mostrando quanto espaço libera antes de apagar.
+- [x] **Drivers**: dispositivos com problema no Gerenciador (sem driver, com erro), drivers que faltam ou estão desatualizados no catálogo do Windows Update (instala os marcados) e instalação de pacotes de driver de uma pasta (pendrive/offline).
 
 ## Fase 3 — Acabamento (concluída)
 - [x] **Atualização automática** pelo GitHub Releases: avisa ao abrir quando há versão nova e instala com 1 clique em Configurações.

@@ -13,8 +13,13 @@ Ferramenta de bancada para técnico de informática (WPF .NET 8), inspirada no
 - **Memória RAM**: módulos instalados; teste rápido dentro do Windows (6 padrões, várias passadas, multi-thread) e atalho para o Diagnóstico de Memória do Windows no boot, com leitura do último resultado no log.
 
 **Pós-formatação**
-- **Instalar apps**: a lista de programas do técnico, instalados pelo winget em silêncio e um por vez. Detecta o que já está instalado. A lista é editável na própria tela: busca no winget e **Adicionar**, **×** para tirar, **Restaurar lista padrão**. Fica salva em `apps.json` ao lado do .exe (vai junto no pendrive) ou, se a pasta não aceitar escrita, em `%AppData%\UtiliTech`. Lista padrão: Chrome, Firefox, 7-Zip, WinRAR, Acrobat Reader, LibreOffice, VLC, AnyDesk, TeamViewer, RustDesk, Zoom, Discord, runtimes (Java, VC++, .NET), Notepad++, Lightshot, PowerToys, CrystalDiskInfo, HWiNFO e Steam.
+- **Instalar apps**: a lista de programas do técnico, instalados pelo winget em silêncio e um por vez. Detecta o que já está instalado. A lista é editável na própria tela: busca no winget e **Adicionar**, **×** para tirar, **Restaurar lista padrão**. Fica salva em `apps.json` ao lado do .exe (vai junto no pendrive) ou, se a pasta não aceitar escrita, em `%AppData%\UtiliTech`. Lista padrão: Chrome, Firefox, 7-Zip, WinRAR, Acrobat Reader, LibreOffice, VLC, AnyDesk, TeamViewer, Zoom, NAPS2, runtimes (Java, VC++, .NET), Notepad++ e CrystalDiskInfo, mais os instaladores do pendrive (pasta `Instaladores`): PJe Office Pro e os drivers das impressoras Lexmark.
 - **Inicialização**: lista os programas que abrem com o Windows (registro do usuário, de todos os usuários, 32 bits e pastas Inicializar) e ativa/desativa igual ao Gerenciador de Tarefas.
+
+**Manutenção**
+- **Reparos rápidos**: fila de impressão, DNS, IP, rede, Windows Update, relógio e Explorer, com 1 clique.
+- **Limpeza**: mostra quanto cada categoria ocupa e apaga só o que for marcado.
+- **Drivers**: lista os dispositivos com problema (sem driver, código 28, 43...), procura no Windows Update os drivers que faltam ou estão desatualizados e instala os marcados, e instala pacotes de driver de uma pasta (ex.: `InstaladoresDrivers` no pendrive), sem internet.
 
 ## Requisitos
 

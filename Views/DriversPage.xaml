@@ -1,0 +1,101 @@
+<UserControl x:Class="UtiliTech.Views.DriversPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="0,0,12,0">
+      <DockPanel Margin="0,0,0,18">
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+          <Button x:Name="ScanHwBtn" Content="Procurar alterações de hardware" Style="{StaticResource BtnGhost}" Click="ScanHardware_Click" Margin="0,0,8,0"/>
+          <Button x:Name="RefreshBtn" Content="Verificar de novo" Style="{StaticResource BtnGhost}" Click="Refresh_Click"/>
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Text="Drivers" Style="{StaticResource H1}"/>
+          <TextBlock x:Name="Status" Style="{StaticResource Muted}" Text="Verificando dispositivos..."/>
+        </StackPanel>
+      </DockPanel>
+
+      <!-- 1. Dispositivos com problema -->
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Dispositivos com problema" Style="{StaticResource H2}"/>
+          <TextBlock x:Name="ProblemsEmpty" Text="✓ Nenhum dispositivo com problema no Gerenciador de Dispositivos." Foreground="#22C55E"
+                     FontWeight="SemiBold" Visibility="Collapsed"/>
+          <ItemsControl x:Name="ProblemList">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border Margin="0,0,0,8" Padding="12,9" CornerRadius="8" Background="{DynamicResource PanelBrush}"
+                        BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
+                  <DockPanel>
+                    <Border DockPanel.Dock="Left" Width="4" CornerRadius="2" Background="{Binding Color, Mode=OneWay}" Margin="0,0,12,0"/>
+                    <StackPanel>
+                      <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                      <TextBlock Text="{Binding Detail, Mode=OneWay}" Foreground="{Binding Color, Mode=OneWay}" FontSize="12" Margin="0,2,0,0"/>
+                      <TextBlock Text="{Binding Advice}" Style="{StaticResource Muted}" FontSize="12" Margin="0,2,0,0"/>
+                      <TextBlock Text="{Binding DeviceId}" Style="{StaticResource Muted}" FontSize="10" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                  </DockPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <!-- 2. Windows Update -->
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <DockPanel Margin="0,0,0,4">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top">
+              <Button x:Name="SearchBtn" Content="Procurar drivers" Style="{StaticResource Btn}" Click="Search_Click" Margin="0,0,8,0"/>
+              <Button x:Name="InstallBtn" Content="Instalar selecionados" Style="{StaticResource Btn}" Click="Install_Click" Visibility="Collapsed"/>
+            </StackPanel>
+            <TextBlock Text="Drivers no Windows Update" Style="{StaticResource H2}"/>
+          </DockPanel>
+          <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,10"
+                     Text="Procura no catálogo oficial da Microsoft os drivers que faltam ou têm versão mais nova para os dispositivos deste PC. A busca leva de 1 a 2 minutos."/>
+          <TextBlock x:Name="WuStatus" FontWeight="SemiBold" TextWrapping="Wrap"/>
+          <ProgressBar x:Name="WuBar" IsIndeterminate="True" Margin="0,8,0,0" Visibility="Collapsed"/>
+          <ItemsControl x:Name="UpdateList" Margin="0,10,0,0">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border Margin="0,0,0,8" Padding="12,9" CornerRadius="8" Background="{DynamicResource PanelBrush}"
+                        BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
+                  <DockPanel>
+                    <TextBlock DockPanel.Dock="Right" Text="{Binding Status}" Foreground="{Binding StatusColor}" FontWeight="SemiBold"
+                               VerticalAlignment="Center" Margin="10,0,0,0"/>
+                    <CheckBox IsChecked="{Binding Selected}" VerticalAlignment="Center" VerticalContentAlignment="Center">
+                      <StackPanel Margin="6,0,0,0">
+                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding Detail}" Style="{StaticResource Muted}" FontSize="11"/>
+                      </StackPanel>
+                    </CheckBox>
+                  </DockPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <!-- 3. Pasta de drivers -->
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <DockPanel Margin="0,0,0,4">
+            <Button x:Name="FolderBtn" DockPanel.Dock="Right" Content="Instalar de uma pasta..." Style="{StaticResource Btn}" Click="Folder_Click" VerticalAlignment="Top"/>
+            <TextBlock Text="Instalar drivers de uma pasta" Style="{StaticResource H2}"/>
+          </DockPanel>
+          <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,8"
+                     Text="Para pacotes do fabricante (notebook, placa-mãe, impressora) ou PCs sem internet: escolha a pasta onde os drivers estão extraídos (arquivos .inf). O Windows instala só os que servem para este PC. Dica: guarde os pacotes em Instaladores\Drivers no pendrive."/>
+          <TextBlock x:Name="FolderStatus" FontWeight="SemiBold" TextWrapping="Wrap"/>
+        </StackPanel>
+      </Border>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Registro" Style="{StaticResource H2}"/>
+          <TextBox x:Name="LogBox" Style="{StaticResource LogBox}" Height="150"/>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

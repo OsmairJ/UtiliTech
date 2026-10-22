@@ -145,7 +145,7 @@ public static class Repairs
         Wmi.Query($"SELECT State FROM Win32_Service WHERE Name='{name}'").Select(s => Wmi.Str(s, "State")).FirstOrDefault() ?? "";
 
     /// <summary>Roda um comando do Windows, registra a saída e devolve o código de saída.</summary>
-    static async Task<int> Step(Action<string> log, string file, string args)
+    internal static async Task<int> Step(Action<string> log, string file, string args)
     {
         log($"> {file} {args}");
         // Comandos de console (net, ipconfig, netsh) escrevem na página de código OEM (850 em português)

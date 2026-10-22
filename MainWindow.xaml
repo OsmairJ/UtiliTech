@@ -76,6 +76,7 @@
                         Visibility="{Binding IsChecked, ElementName=ManGroup, Converter={StaticResource BoolToVisibility}}">
               <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Reparos rápidos" Tag="repairs" Checked="Nav_Checked"/>
               <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Limpeza" Tag="cleanup" Checked="Nav_Checked"/>
+              <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Drivers" Tag="drivers" Checked="Nav_Checked"/>
             </StackPanel>
 
             <Border Height="1" Background="{DynamicResource LineBrush}" Margin="22,10,22,6"/>
