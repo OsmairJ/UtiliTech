@@ -18,46 +18,56 @@ public partial class MainWindow : Window
         AdminText.Text = IsAdmin() ? "Executando como administrador" : "Sem privilégio de administrador";
         NavSystem.IsChecked = true;
 
-        // Sensores em segundo plano: rodapé ao vivo e alertas
-        SensorHub.Updated += s => Dispatcher.InvokeAsync(() => UpdateLive(s));
+        VersionValue.Text = Updater.CurrentText;
+
+        // Sensores em segundo plano (alertas) e situação da atualização no rodapé
         AlertWatcher.Raised += a => Dispatcher.InvokeAsync(() => ToastWindow.Show(a));
+        Updater.Checked += (update, error) => Dispatcher.InvokeAsync(() => ShowUpdateState(update, error));
         Closed += (_, _) => SensorHub.Shutdown();
         SourceInitialized += (_, _) => ThemeManager.ApplyTitleBar(this);
         Loaded += async (_, _) =>
         {
             await SensorHub.StartAsync();
-            if (SensorHub.Last is { } last) UpdateLive(last);
             AlertWatcher.Start();
             await CheckUpdatesAsync();
         };
     }
 
-    // Verificação silenciosa ao abrir: só avisa se houver versão nova
+    // Verificação silenciosa ao abrir: o rodapé mostra o resultado e um aviso aparece se houver versão nova
     async Task CheckUpdatesAsync()
     {
         var cfg = AppSettings.Current;
-        if (!cfg.CheckUpdatesOnStart || string.IsNullOrWhiteSpace(cfg.UpdateRepo)) return;
+        if (string.IsNullOrWhiteSpace(cfg.UpdateRepo)) { SetUpdateText("Não configurada", Palette.Muted); return; }
+        if (!cfg.CheckUpdatesOnStart) { SetUpdateText("Verificação desligada", Palette.Muted); return; }
         try
         {
             var update = await Updater.CheckAsync(cfg.UpdateRepo);
             if (update == null) return;
-            AppState.AvailableUpdate = update;
             ToastWindow.Show(new AlertInfo($"UtiliTech {update.Tag} disponível",
-                $"Você está na {Updater.CurrentText}. Abra Configurações para atualizar.", Palette.Accent));
+                $"Você está na {Updater.CurrentText}. Clique na versão, no canto do menu, para atualizar.", Palette.Accent));
         }
         catch (Exception ex) { Logger.Error("Verificação de atualização ao abrir", ex); }
     }
 
-    void UpdateLive(MonitorSnapshot s)
+    void ShowUpdateState(UpdateInfo? update, string? error)
     {
-        SetLive(LiveCpu, s.CpuTemp, s.CpuLoad);
-        SetLive(LiveGpu, s.GpuTemp, s.GpuLoad);
+        AppState.AvailableUpdate = update;
+        if (error != null) SetUpdateText("Sem conexão", Palette.Muted);
+        else if (update != null) SetUpdateText($"{update.Tag} disponível", Palette.Accent);
+        else SetUpdateText("Em dia", Palette.Good);
+        VersionCard.Cursor = update != null ? System.Windows.Input.Cursors.Hand : null;
+        VersionCard.ToolTip = update != null ? "Clique para atualizar em Configurações" : null;
     }
 
-    static void SetLive(TextBlock tb, float? temp, float? load)
+    void SetUpdateText(string text, string color)
     {
-        tb.Text = temp is { } t ? $"{t:0} °C" : load is { } l ? $"{l:0}%" : "—";
-        tb.Foreground = Ui.Hex(temp.HasValue ? HardwareMonitor.TempColor(temp) : Palette.Muted);
+        UpdateValue.Text = text;
+        UpdateValue.Foreground = Ui.Hex(color);
+    }
+
+    void VersionCard_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (AppState.AvailableUpdate != null) NavSettings.IsChecked = true;
     }
 
     void Nav_Checked(object sender, RoutedEventArgs e)

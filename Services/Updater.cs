@@ -36,8 +36,26 @@ public static class Updater
         return http;
     }
 
+    /// <summary>Resultado de cada verificação: (versão nova ou null, mensagem de erro ou null). Chega em thread de fundo.</summary>
+    public static event Action<UpdateInfo?, string?>? Checked;
+
     /// <summary>Procura versão nova; null se já está na última. Lança exceção se o GitHub não responder.</summary>
     public static async Task<UpdateInfo?> CheckAsync(string repo)
+    {
+        try
+        {
+            var update = await CheckCoreAsync(repo);
+            Checked?.Invoke(update, null);
+            return update;
+        }
+        catch (Exception ex)
+        {
+            Checked?.Invoke(null, ex.Message);
+            throw;
+        }
+    }
+
+    static async Task<UpdateInfo?> CheckCoreAsync(string repo)
     {
         repo = repo.Trim().Trim('/');
         if (repo.StartsWith("https://github.com/", StringComparison.OrdinalIgnoreCase)) repo = repo[19..];

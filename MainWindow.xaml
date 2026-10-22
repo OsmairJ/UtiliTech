@@ -31,17 +31,18 @@
         </StackPanel>
 
         <StackPanel DockPanel.Dock="Bottom" Margin="22,12,22,18">
-          <!-- Leitura ao vivo, sempre visível -->
-          <Border Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1"
-                  CornerRadius="8" Padding="10,7" Margin="0,0,0,12">
+          <!-- Versão e situação da atualização; com versão nova, um clique abre Configurações -->
+          <Border x:Name="VersionCard" Background="{DynamicResource CardBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1"
+                  CornerRadius="8" Padding="10,7" Margin="0,0,0,12" MouseLeftButtonUp="VersionCard_Click">
             <UniformGrid Columns="2">
               <StackPanel>
-                <TextBlock Text="CPU" Style="{StaticResource Muted}" FontSize="10" FontWeight="SemiBold"/>
-                <TextBlock x:Name="LiveCpu" Text="—" FontWeight="SemiBold" FontSize="14"/>
+                <TextBlock Text="VERSÃO" Style="{StaticResource Muted}" FontSize="10" FontWeight="SemiBold"/>
+                <TextBlock x:Name="VersionValue" FontWeight="SemiBold" FontSize="14"/>
               </StackPanel>
               <StackPanel>
-                <TextBlock Text="GPU" Style="{StaticResource Muted}" FontSize="10" FontWeight="SemiBold"/>
-                <TextBlock x:Name="LiveGpu" Text="—" FontWeight="SemiBold" FontSize="14"/>
+                <TextBlock Text="ATUALIZAÇÃO" Style="{StaticResource Muted}" FontSize="10" FontWeight="SemiBold"/>
+                <TextBlock x:Name="UpdateValue" Text="Verificando..." FontWeight="SemiBold" FontSize="12" Margin="0,2,0,0"
+                           TextTrimming="CharacterEllipsis"/>
               </StackPanel>
             </UniformGrid>
           </Border>
