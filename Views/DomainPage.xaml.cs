@@ -14,7 +14,6 @@ public partial class DomainPage : UserControl
     {
         InitializeComponent();
         UserBox.Text = AppSettings.Current.LastDomainUser;
-        OuBox.Text = AppSettings.Current.LastDomainOu;
         RefreshCurrent();
         UpdateApplyState();
     }
@@ -141,12 +140,10 @@ public partial class DomainPage : UserControl
         ApplyResult.Text = inDomain ? "Renomeando no domínio..." : "Ingressando no domínio...";
         ApplyResult.Foreground = Ui.Hex(Palette.Accent);
         string password = PassBox.Password;
-        string? ou = OuBox.Text;
         try
         {
-            await Task.Run(() => DomainTools.RenameAndJoin(name, user, password, ou));
+            await Task.Run(() => DomainTools.RenameAndJoin(name, user, password));
             AppSettings.Current.LastDomainUser = UserBox.Text.Trim();
-            if (!inDomain) AppSettings.Current.LastDomainOu = (ou ?? "").Trim();
             AppSettings.Current.Save();
             ApplyResult.Text = $"✓ Feito: o computador vai se chamar {name}" + (inDomain ? "" : $" e já está no domínio {DomainTools.DomainName}") +
                                ". Reinicie o PC para concluir.";

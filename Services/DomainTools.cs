@@ -1,4 +1,6 @@
-using System.DirectoryServices;
+using System.DirectoryServices.Protocols;
+using System.Globalization;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
@@ -57,43 +59,127 @@ public static class DomainTools
     }
 
     /// <summary>
+    /// Credencial com o domínio separado do usuário, como o AD espera de um PC fora do domínio:
+    /// "DOMINIO\usuario" → (usuario, DOMINIO); "usuario@empresa.local" fica como está; "usuario" → (usuario, empresa.local).
+    /// </summary>
+    static NetworkCredential Credential(string user, string password)
+    {
+        user = user.Trim();
+        int slash = user.IndexOf('\\');
+        if (slash > 0)
+        {
+            // "DOMINIO\usuario": de um PC fora do domínio o nome curto (NetBIOS) não serve para o Kerberos;
+            // o nome DNS do domínio (empresa.local) funciona tanto para Kerberos quanto para NTLM
+            string domain = user[..slash];
+            return new NetworkCredential(user[(slash + 1)..], password, domain.Contains('.') ? domain : DomainName);
+        }
+        if (user.Contains('@')) return new NetworkCredential(user, password);
+        return new NetworkCredential(user, password, DomainName);
+    }
+
+    /// <summary>
+    /// Diferença entre o relógio deste PC e o do servidor do AD (lida sem login, no rootDSE).
+    /// O Kerberos recusa o login quando passa de 5 minutos — comum em PC recém-formatado.
+    /// </summary>
+    public static TimeSpan? ClockSkew()
+    {
+        try
+        {
+            using var conn = new LdapConnection(new LdapDirectoryIdentifier(DomainName, 389)) { AuthType = AuthType.Anonymous, Timeout = TimeSpan.FromSeconds(10) };
+            conn.SessionOptions.ProtocolVersion = 3;
+            var response = (SearchResponse)conn.SendRequest(new SearchRequest("", "(objectClass=*)", System.DirectoryServices.Protocols.SearchScope.Base, "currentTime"));
+            var value = response.Entries.Count > 0 && response.Entries[0].Attributes["currentTime"] is { Count: > 0 } a ? a[0]?.ToString() : null;
+            var server = ParseGeneralizedTime(value ?? "");
+            return server == null ? null : DateTime.Now - server.Value;
+        }
+        catch { return null; }
+    }
+
+    /// <summary>
     /// Procura o computador no AD. Sem usuário/senha, usa a conta do Windows (funciona em PC já no domínio).
     /// Devolve null se o nome está livre.
     /// </summary>
     public static AdComputer? FindComputer(string name, string? user, string? password)
     {
         string filter = $"(&(objectCategory=computer)(sAMAccountName={EscapeLdap(name)}$))";
-        string[] props = { "cn", "distinguishedName", "whenCreated", "lastLogonTimestamp", "operatingSystem", "description" };
-        var auth = AuthenticationTypes.Secure | AuthenticationTypes.Sealing | AuthenticationTypes.Signing;
+        string[] attrs = { "cn", "distinguishedName", "whenCreated", "lastLogonTimestamp", "operatingSystem", "description" };
+        var cred = user == null ? null : Credential(user, password ?? "");
 
-        // Catálogo global = a floresta inteira; se a porta do GC estiver fechada, tenta o LDAP do domínio
+        // Catálogo global (porta 3268) = a floresta inteira; se estiver fechado, o LDAP do domínio (389).
+        // Login recusado não tenta de novo: repetir senha errada pode bloquear a conta.
         Exception? last = null;
-        foreach (var root in new[] { $"GC://{DomainName}", $"LDAP://{DomainName}" })
+        foreach (var (port, baseDn) in new[] { (3268, ""), (389, DomainDn) })
         {
             try
             {
-                using var entry = user == null ? new DirectoryEntry(root) { AuthenticationType = auth } : new DirectoryEntry(root, user, password, auth);
-                using var searcher = new DirectorySearcher(entry, filter, props) { SearchScope = SearchScope.Subtree, SizeLimit = 1 };
-                var r = searcher.FindOne();
-                if (r == null) return null;
-                return new AdComputer(
-                    Prop(r, "cn"), Prop(r, "distinguishedName"),
-                    r.Properties["whenCreated"].Count > 0 ? ((DateTime)r.Properties["whenCreated"][0]).ToLocalTime() : null,
-                    r.Properties["lastLogonTimestamp"].Count > 0 && (long)r.Properties["lastLogonTimestamp"][0] > 0
-                        ? DateTime.FromFileTime((long)r.Properties["lastLogonTimestamp"][0]) : null,
-                    Prop(r, "operatingSystem"), Prop(r, "description"));
+                using var conn = new LdapConnection(new LdapDirectoryIdentifier(DomainName, port), cred, AuthType.Negotiate);
+                conn.SessionOptions.ProtocolVersion = 3;
+                conn.SessionOptions.Signing = true;
+                conn.SessionOptions.Sealing = true;
+                conn.Timeout = TimeSpan.FromSeconds(20);
+                conn.Bind();
+
+                var request = new SearchRequest(baseDn, filter, System.DirectoryServices.Protocols.SearchScope.Subtree, attrs) { SizeLimit = 1 };
+                var response = (SearchResponse)conn.SendRequest(request);
+                if (response.Entries.Count == 0) return null;
+                var e = response.Entries[0];
+                string A(string n) => e.Attributes[n] is { Count: > 0 } v ? v[0]?.ToString() ?? "" : "";
+                return new AdComputer(A("cn"), e.DistinguishedName, ParseGeneralizedTime(A("whenCreated")),
+                    long.TryParse(A("lastLogonTimestamp"), out var ft) && ft > 0 ? DateTime.FromFileTime(ft) : null,
+                    A("operatingSystem"), A("description"));
             }
-            catch (COMException ex) when (ex.HResult == unchecked((int)0x8007052E))
+            catch (LdapException ex) when (ex.ErrorCode == 49) // credencial recusada
             {
-                throw new InvalidOperationException("usuário ou senha do domínio incorretos");
+                throw new InvalidOperationException(LoginFailure(ex.ServerErrorMessage, cred));
             }
-            catch (Exception ex) { last = ex; }
+            catch (DirectoryOperationException ex) when (ex.Response?.ResultCode == ResultCode.SizeLimitExceeded)
+            {
+                return null; // não acontece com SizeLimit=1 e resultado vazio, mas não é erro
+            }
+            catch (Exception ex)
+            {
+                last = ex;
+                Logger.Error($"Consulta ao AD na porta {port}", ex);
+            }
         }
-        throw new InvalidOperationException("não foi possível consultar o AD: " + last?.Message, last);
+        throw new InvalidOperationException($"não foi possível falar com o AD {DomainName} ({last?.Message}). O PC está na rede da empresa?", last);
     }
 
-    static string Prop(System.DirectoryServices.SearchResult r, string name) =>
-        r.Properties[name].Count > 0 ? r.Properties[name][0]?.ToString() ?? "" : "";
+    // "DC=pf,DC=gov,DC=br"
+    static string DomainDn => string.Join(",", DomainName.Split('.').Select(p => "DC=" + p));
+
+    // O AD explica a recusa no texto do erro: "... data 52e, ..." (códigos do Windows)
+    static string LoginFailure(string? serverMessage, NetworkCredential? cred)
+    {
+        string who = cred == null ? "a conta do Windows" : string.IsNullOrEmpty(cred.Domain) ? cred.UserName : $@"{cred.Domain}\{cred.UserName}";
+        var code = Regex.Match(serverMessage ?? "", @"data ([0-9a-f]+)", RegexOptions.IgnoreCase).Groups[1].Value.ToLowerInvariant();
+        return code switch
+        {
+            "525" => $"o usuário {who} não existe no domínio (confira o nome da conta)",
+            "52e" => $"senha incorreta para {who}",
+            "530" => $"{who} não pode entrar neste horário",
+            "531" => $"{who} não pode entrar a partir deste computador",
+            "532" or "773" => $"a senha de {who} expirou ou precisa ser trocada; troque num PC do domínio e tente de novo",
+            "533" => $"a conta {who} está desativada",
+            "701" => $"a conta {who} expirou",
+            "775" => $"a conta {who} está bloqueada (muitas tentativas); peça o desbloqueio",
+            _ => $"o AD recusou o login de {who}" + (code.Length > 0 ? $" (código {code})" : "") + ". " + LoginHints(),
+        };
+    }
+
+    // O AD não diz o motivo nesse tipo de login: aponta as causas comuns, começando pelo relógio
+    static string LoginHints()
+    {
+        var skew = ClockSkew();
+        if (skew is { } s && Math.Abs(s.TotalMinutes) >= 5)
+            return $"O RELÓGIO deste PC está {Math.Abs(s.TotalMinutes):0} minutos {(s.Ticks > 0 ? "adiantado" : "atrasado")} em relação ao servidor, " +
+                   "e o domínio recusa o login por isso: acerte data/hora (Manutenção → Reparos rápidos → Sincronizar relógio, ou manualmente) e tente de novo.";
+        return "Confira o nome da conta (o mesmo do login de rede, ex.: DOMINIO\\nome.sobrenome) e a senha; a conta também pode estar bloqueada ou com a senha expirada.";
+    }
+
+    static DateTime? ParseGeneralizedTime(string s) =>
+        DateTime.TryParseExact(s, "yyyyMMddHHmmss.0'Z'", CultureInfo.InvariantCulture,
+            DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var utc) ? utc.ToLocalTime() : null;
 
     static string EscapeLdap(string s) =>
         s.Replace("\\", "\\5c").Replace("*", "\\2a").Replace("(", "\\28").Replace(")", "\\29").Replace("\0", "\\00");
@@ -102,7 +188,7 @@ public static class DomainTools
     /// Renomeia e coloca no domínio numa única reinicialização. Se o PC já está no domínio, só renomeia no AD.
     /// Precisa de administrador; a mudança vale depois de reiniciar.
     /// </summary>
-    public static void RenameAndJoin(string newName, string user, string password, string? ou)
+    public static void RenameAndJoin(string newName, string user, string password)
     {
         var current = Current();
         int err;
@@ -117,7 +203,7 @@ public static class DomainTools
             if (!newName.Equals(current.Name, StringComparison.OrdinalIgnoreCase) &&
                 !SetComputerNameEx(ComputerNamePhysicalDnsHostname, newName))
                 throw new InvalidOperationException("o Windows recusou o nome novo (" + new System.ComponentModel.Win32Exception().Message + ")");
-            err = NetJoinDomain(null, DomainName, string.IsNullOrWhiteSpace(ou) ? null : ou.Trim(), user, password,
+            err = NetJoinDomain(null, DomainName, null, user, password, // conta criada no contêiner padrão do domínio
                 NetsetupJoinDomain | NetsetupAcctCreate | NetsetupJoinWithNewName);
         }
         if (err != 0) throw new InvalidOperationException(Describe(err));

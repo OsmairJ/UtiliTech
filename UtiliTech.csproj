@@ -10,7 +10,7 @@
     <AssemblyName>UtiliTech</AssemblyName>
     <RootNamespace>UtiliTech</RootNamespace>
     <!-- Versão local; nas releases do GitHub ela vem da tag (v0.2.0 → 0.2.0) -->
-    <Version>0.5.0</Version>
+    <Version>0.5.1</Version>
     <Product>UtiliTech</Product>
     <ApplicationIcon>Assets\utilitech.ico</ApplicationIcon>
   </PropertyGroup>
@@ -30,6 +30,7 @@
     <!-- Sensores (MPL 2.0): temperatura/uso/clock; a CPU e a placa-mãe precisam do driver PawnIO -->
     <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.6" />
     <PackageReference Include="System.DirectoryServices" Version="10.0.2" />
+    <PackageReference Include="System.DirectoryServices.Protocols" Version="10.0.2" />
     <PackageReference Include="System.Management" Version="10.0.2" />
     <PackageReference Include="System.Diagnostics.EventLog" Version="10.0.2" />  </ItemGroup>
 

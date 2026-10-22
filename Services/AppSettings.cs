@@ -20,8 +20,6 @@ public class AppSettings
     public string DomainName { get; set; } = "empresa.local";
     /// <summary>Usuário do domínio usado por último (a senha nunca é salva).</summary>
     public string LastDomainUser { get; set; } = "";
-    /// <summary>OU usada por último ao ingressar no domínio.</summary>
-    public string LastDomainOu { get; set; } = "";
 
     public static AppSettings Current { get; } = Load();
 
