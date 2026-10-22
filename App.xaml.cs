@@ -8,6 +8,10 @@ public partial class App : Application
 {
     protected override void OnStartup(StartupEventArgs e)
     {
+        // App todo em português: números e datas no formato brasileiro mesmo num Windows em inglês
+        var pt = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+        System.Globalization.CultureInfo.DefaultThreadCurrentCulture = pt;
+        System.Globalization.CultureInfo.CurrentCulture = pt;
         base.OnStartup(e);
         Logger.Info($"UtiliTech {Updater.CurrentText} iniciado em {Environment.MachineName}");
 
