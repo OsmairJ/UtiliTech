@@ -105,7 +105,7 @@ public partial class CleanupPage : UserControl
             c.Size = await Task.Run(() => Cleaner.Measure(c));
         }
         long gained = drive.AvailableFreeSpace - freeBefore;
-        Logger.Info($"Limpeza: {Fmt.Bytes(Math.Max(freed, gained))} liberados ({string.Join(", ", selected.Select(c => c.Name))})");
+        SessionLog.Add("Limpeza", $"{Fmt.Bytes(Math.Max(freed, gained))} liberados ({string.Join(", ", selected.Select(c => c.Name))})");
 
         ResultText.Text = $"Liberados {Fmt.Bytes(Math.Max(freed, gained))}" +
                           (skipped > 0 ? $" · {skipped:N0} arquivo(s) em uso ficaram para a próxima" : "");

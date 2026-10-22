@@ -55,7 +55,7 @@ public static class RestorePoint
             if (code == 0)
             {
                 _lastCreated = DateTime.Now;
-                Logger.Info($"Ponto de restauração criado: {description}");
+                SessionLog.Add("Ponto de restauração", $"criado antes de: {description}");
                 return new(RestorePointStatus.Created, $"Ponto de restauração criado ({DateTime.Now:HH:mm})");
             }
             // 1058 = serviço desativado: a Proteção do Sistema está desligada

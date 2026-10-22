@@ -171,6 +171,7 @@ public partial class InstallPage : UserControl
             app.Status = r.Message;
             app.StatusColor = r.Success ? Palette.Good : Palette.Bad;
             Log($"{app.Name}: {r.Message}");
+            if (r.Message != "Já instalado") SessionLog.Add("Programa", $"{app.Name}: {r.Message}", r.Success);
             if (app.IsLocal && !r.Success && AppInstaller.FindLocalInstaller(app) == null)
                 Log($"   Coloque o arquivo \"{app.File}\" em {AppInstaller.InstallersFolder}" +
                     (app.Url != null ? $" (download oficial: {app.Url})" : ""));

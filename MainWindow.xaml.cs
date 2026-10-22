@@ -28,6 +28,7 @@ public partial class MainWindow : Window
         SourceInitialized += (_, _) => ThemeManager.ApplyTitleBar(this);
         Loaded += async (_, _) =>
         {
+            _ = Task.Run(SessionLog.CaptureBaseline); // "antes" do relatório: o PC como estava ao abrir o app
             SensorHistory.Start();
             await SensorHub.StartAsync();
             AlertWatcher.Start();

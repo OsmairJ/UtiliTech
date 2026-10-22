@@ -11,7 +11,8 @@ public static class ReportBuilder
     // Mesmo desenho de Assets/utilitech-logo.svg e do LogoMark em Theme.xaml
     const string LogoSvg = """<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="ug" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3B82F6"/><stop offset="1" stop-color="#7C3AED"/></linearGradient></defs><rect width="64" height="64" rx="15" fill="url(#ug)"/><path d="M15 0H49A15 15 0 0 1 64 15V22C44 30 20 30 0 22V15A15 15 0 0 1 15 0Z" fill="#fff" fill-opacity=".1"/><path d="M19.5 19V36A11 11 0 0 0 41.5 36V26" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"/><circle cx="41.5" cy="18" r="5" fill="none" stroke="#fff" stroke-width="3.5"/></svg>""";
 
-    public static string Html(Atendimento at, List<InfoSection> sections, List<DiskReport> disks, BatteryReport battery, string? memoryTest)
+    public static string Html(Atendimento at, List<InfoSection> sections, List<DiskReport> disks, BatteryReport battery, string? memoryTest,
+        SessionReport? session = null)
     {
         static string E(string s) => WebUtility.HtmlEncode(s);
         var sb = new StringBuilder();
@@ -32,6 +33,8 @@ public static class ReportBuilder
               .disk h3 { font-size: 14px; margin: 0 0 6px; }
               .reasons { color: #374151; font-size: 13px; margin: 6px 0 0 0; }
               .obs { white-space: pre-wrap; font-size: 13px; }
+              .ok { color: #16a34a; font-weight: 700; }
+              .fail { color: #dc2626; font-weight: 700; }
               footer { margin-top: 40px; color: #9ca3af; font-size: 11px; text-align: center; }
               header { display: flex; align-items: center; gap: 14px; padding-bottom: 18px; border-bottom: 1px solid #e5e7eb; }
               header svg { width: 52px; height: 52px; flex: none; }
@@ -58,6 +61,23 @@ public static class ReportBuilder
         }
         if (!string.IsNullOrWhiteSpace(at.Observacoes))
             sb.Append($"<h2>Serviço realizado / observações</h2><div class=\"obs\">{E(at.Observacoes)}</div>");
+
+        if (session is { IsEmpty: false })
+        {
+            if (session.Actions.Count > 0)
+            {
+                sb.Append("<h2>Serviços feitos nesta visita</h2><table>");
+                foreach (var a in session.Actions)
+                    sb.Append($"<tr><td>{a.When:HH:mm} · {E(a.Category)}</td><td>" +
+                              $"<span class=\"{(a.Success ? "ok" : "fail")}\">{(a.Success ? "✓" : "✗")}</span> {E(a.Text)}</td></tr>");
+                sb.Append("</table>");
+            }
+            if (session.BeforeAfter.Count > 0)
+            {
+                sb.Append("<h2>Antes e depois</h2>");
+                Table(sb, session.BeforeAfter);
+            }
+        }
 
         foreach (var s in sections)
         {

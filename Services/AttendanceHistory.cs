@@ -22,6 +22,10 @@ public class AttendanceRecord
     public List<string> Discos { get; set; } = new();
     public string Bateria { get; set; } = "";
     public string Testes { get; set; } = "";
+    /// <summary>Ações feitas pelo UtiliTech na visita ("14:32 · Limpeza: 2,1 GB liberados").</summary>
+    public List<string> Servicos { get; set; } = new();
+    /// <summary>Antes × depois ("Espaço livre no disco do Windows: 20 GB → 22 GB (+2 GB)").</summary>
+    public List<string> AntesDepois { get; set; } = new();
     /// <summary>Arquivos guardados na pasta do atendimento (relatório, planilha).</summary>
     public List<string> Arquivos { get; set; } = new();
 
@@ -95,7 +99,7 @@ public static class AttendanceHistory
 
     /// <summary>Monta o registro a partir dos dados do relatório (sem gravar nada).</summary>
     public static AttendanceRecord Build(Atendimento at, List<InfoSection> sections, List<DiskReport> disks, BatteryReport battery,
-        string? tests, DateTime when)
+        string? tests, DateTime when, SessionReport? session = null)
     {
         string Find(string label) =>
             sections.SelectMany(s => s.Items).FirstOrDefault(i => i.Label == label)?.Value?.Trim() ?? "";
@@ -115,6 +119,8 @@ public static class AttendanceHistory
             Discos = disks.Select(d => $"{d.Name}: {d.Verdict}").ToList(),
             Bateria = battery.Present ? battery.Verdict + (battery.HealthPercent is { } h ? $" ({h:0}% de saúde)" : "") : "",
             Testes = tests ?? "",
+            Servicos = session?.Actions.Select(a => a.Line).ToList() ?? new(),
+            AntesDepois = session?.BeforeAfter.Select(i => $"{i.Label}: {i.Value}").ToList() ?? new(),
         };
     }
 

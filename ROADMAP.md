@@ -25,7 +25,7 @@
 
 ## Fase 5 — Atendimento e histórico (em andamento)
 - [x] **Histórico de atendimentos no pendrive**: ao exportar relatório ou planilha na tela Sistema, o "Salvar como" já abre na pasta do atendimento em `atendimentos` ao lado do .exe (se salvar em outro lugar, vai uma cópia) (uma pasta por atendimento, com `atendimento.json`). Tela **Atendimentos** no menu com busca por cliente, OS, nº de série, nome do PC, modelo, técnico ou data, sem diferenciar acentos. Relatório e planilha do mesmo PC, cliente e OS no mesmo dia ficam juntos; o nº de série identifica a máquina mesmo depois de renomeada.
-- [ ] **Relatório "antes e depois"**: limpeza, drivers instalados, reparos feitos e teste de estresse no mesmo HTML.
+- [x] **Relatório "antes e depois"**: o app anota o que faz na visita (limpeza, reparos, drivers, programas, nome e domínio, pontos de restauração) e compara o PC de quando abriu com o de agora (espaço livre e dispositivos com problema). Entra no relatório HTML ("Serviços feitos nesta visita" e "Antes e depois"), na planilha (aba Serviços) e no histórico de atendimentos.
 - [ ] **Inventário em lote**: cada máquina atendida entra numa planilha única do pendrive.
 - [x] **Checklist de pós-formatação** (Pós-formatação → Checklist): Windows ativado, drivers, programas (Google Chrome, Mozilla Firefox e Microsoft 365; outro Office não conta), nome do computador (não o padrão DESKTOP-...), domínio, políticas de grupo, reinício pendente, discos e relatório guardado no histórico. Tudo conferido sozinho a cada vez que a tela abre, com atalho para a ferramenta de cada etapa que falta.
 

@@ -189,6 +189,7 @@ public partial class DomainPage : UserControl
             await Task.Run(() => DomainTools.RenameAndJoin(name, user, password));
             AppSettings.Current.LastDomainUser = UserBox.Text.Trim();
             AppSettings.Current.Save();
+            SessionLog.Add("Nome e domínio", $"{_current.Name} renomeado para {name}" + (inDomain ? "" : $" e ingressado no domínio {DomainTools.DomainName}"));
             ApplyResult.Text = $"✓ Feito: o computador vai se chamar {name}" + (inDomain ? "" : $" e já está no domínio {DomainTools.DomainName}") +
                                ". Reinicie o PC para concluir.";
             ApplyResult.Foreground = Ui.Hex(Palette.Good);

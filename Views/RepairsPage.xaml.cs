@@ -61,12 +61,14 @@ public partial class RepairsPage : UserControl, INotifyPropertyChanged
             repair.Status = (simulate ? "○ " : "✓ ") + result;
             repair.StatusColor = simulate ? Palette.Accent : Palette.Good;
             Log("Concluído: " + result);
+            if (!simulate) SessionLog.Add("Reparo", $"{repair.Title}: {result}");
         }
         catch (Exception ex)
         {
             repair.Status = "Falhou: " + ex.Message;
             repair.StatusColor = Palette.Bad;
             Log("Falhou: " + ex.Message);
+            if (!simulate) SessionLog.Add("Reparo", $"{repair.Title}: {ex.Message}", false);
         }
         finally
         {

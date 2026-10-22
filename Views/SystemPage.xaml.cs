@@ -45,14 +45,14 @@ public partial class SystemPage : UserControl
     }
 
     async void Export_Click(object sender, RoutedEventArgs e) =>
-        await ExportAsync("Página HTML (*.html)|*.html", ".html", (path, at, sections, disks, battery, memory) =>
-            File.WriteAllText(path, ReportBuilder.Html(at, sections, disks, battery, memory), Encoding.UTF8));
+        await ExportAsync("Página HTML (*.html)|*.html", ".html", (path, at, sections, disks, battery, memory, session) =>
+            File.WriteAllText(path, ReportBuilder.Html(at, sections, disks, battery, memory, session), Encoding.UTF8));
 
     async void ExportSheet_Click(object sender, RoutedEventArgs e) =>
         await ExportAsync("Planilha do Excel (*.xlsx)|*.xlsx|Planilha CSV (*.csv)|*.csv", ".xlsx", SpreadsheetExporter.Save);
 
     delegate void ReportWriter(string path, Atendimento at, List<InfoSection> sections, List<DiskReport> disks,
-        BatteryReport battery, string? memoryTest);
+        BatteryReport battery, string? memoryTest, SessionReport? session);
 
     async Task ExportAsync(string filter, string extension, ReportWriter write)
     {
@@ -100,9 +100,10 @@ public partial class SystemPage : UserControl
                 var disks = DiskHealth.Collect();
                 var battery = BatteryInfo.Collect();
                 string? tests = AppState.TestsSummary();
-                write(path, at, sections, disks, battery, tests);
+                var session = SessionLog.Report(); // antes × depois e o que foi feito nesta visita
+                write(path, at, sections, disks, battery, tests, session);
                 // Guarda no histórico (se o arquivo foi salvo em outro lugar, vai uma cópia); se falhar, o arquivo já está salvo
-                try { return AttendanceHistory.Save(AttendanceHistory.Build(at, sections, disks, battery, tests, when), path, folder); }
+                try { return AttendanceHistory.Save(AttendanceHistory.Build(at, sections, disks, battery, tests, when, session), path, folder); }
                 catch (Exception ex)
                 {
                     Logger.Error("Guardar no histórico de atendimentos", ex);

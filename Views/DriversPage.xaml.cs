@@ -135,6 +135,7 @@ public partial class DriversPage : UserControl
         Log("=== Intel Driver & Support Assistant ===");
         var r = await GpuDrivers.InstallIntelAssistantAsync();
         Log("winget: " + r.Message);
+        SessionLog.Add("Drivers", "Intel Driver & Support Assistant: " + r.Message, r.Success);
         if (r.Success)
         {
             card.Status = "✓ Assistente instalado. Ele abriu no navegador: siga por lá para atualizar os drivers Intel.";
@@ -183,6 +184,7 @@ public partial class DriversPage : UserControl
                 }));
             card.Busy = false;
             card.Status = code == 0 ? $"✓ Driver {driver.Version} instalado · reinicie o PC se a imagem ficar estranha" : $"O instalador da NVIDIA terminou com código {code}; veja o registro";
+            SessionLog.Add("Drivers", $"NVIDIA {driver.Name} {driver.Version}" + (code == 0 ? " instalado" : $": código {code}"), code == 0);
             card.StatusColor = code == 0 ? Palette.Good : Palette.Warn;
             if (code == 0) await LoadGpusAsync();
         }
@@ -301,6 +303,8 @@ public partial class DriversPage : UserControl
             SetWuStatus($"{result.Installed} instalado(s)" + (result.Failed > 0 ? $", {result.Failed} com falha" : "") +
                         (result.RebootRequired ? " · reinicie o PC para concluir" : ""),
                 result.Failed > 0 ? Palette.Warn : Palette.Good);
+            foreach (var u in chosen.Where(u => result.PerUpdate.ContainsKey(u.UpdateId)))
+                SessionLog.Add("Drivers", "Windows Update: " + u.Title, result.PerUpdate[u.UpdateId]);
             await ScanProblemsAsync();
         }
         catch (Exception ex)
@@ -361,6 +365,7 @@ public partial class DriversPage : UserControl
         {
             var msg = await DriverManager.InstallFromFolderAsync(dlg.FolderName, m => Dispatcher.InvokeAsync(() => Log(m)));
             FolderStatus.Text = msg;
+            SessionLog.Add("Drivers", $"Pasta {Path.GetFileName(dlg.FolderName.TrimEnd('\\'))}: {msg}", !msg.StartsWith("O pnputil"));
             FolderStatus.Foreground = Ui.Hex(msg.StartsWith("O pnputil") ? Palette.Warn : Palette.Good);
             await ScanProblemsAsync();
         }

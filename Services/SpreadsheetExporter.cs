@@ -17,15 +17,15 @@ public static class SpreadsheetExporter
     record Sheet(string Name, List<Row> Rows);
 
     public static void Save(string path, Atendimento at, List<InfoSection> sections, List<DiskReport> disks,
-        BatteryReport battery, string? memoryTest)
+        BatteryReport battery, string? memoryTest, SessionReport? session = null)
     {
-        var sheets = BuildSheets(at, sections, disks, battery, memoryTest);
+        var sheets = BuildSheets(at, sections, disks, battery, memoryTest, session);
         if (Path.GetExtension(path).Equals(".csv", StringComparison.OrdinalIgnoreCase)) WriteCsv(path, sheets);
         else WriteXlsx(path, sheets);
     }
 
     static List<Sheet> BuildSheets(Atendimento at, List<InfoSection> sections, List<DiskReport> disks,
-        BatteryReport battery, string? memoryTest)
+        BatteryReport battery, string? memoryTest, SessionReport? session)
     {
         var sheets = new List<Sheet>();
 
@@ -47,7 +47,15 @@ public static class SpreadsheetExporter
                 int sep = line.IndexOf(": ", StringComparison.Ordinal);
                 resumo.Add(sep > 0 ? new(new[] { "Teste · " + line[..sep], line[(sep + 2)..] }) : new(new[] { "Testes realizados", line }));
             }
+        if (session != null) resumo.AddRange(session.BeforeAfter.Select(i => new Row(new[] { "Antes e depois · " + i.Label, i.Value })));
         sheets.Add(new("Resumo", resumo));
+
+        if (session is { Actions.Count: > 0 })
+        {
+            var rows = new List<Row> { new(new[] { "Hora", "Tipo", "O que foi feito", "Resultado" }, RowStyle.Header) };
+            rows.AddRange(session.Actions.Select(a => new Row(new[] { a.When.ToString("dd/MM/yyyy HH:mm"), a.Category, a.Text, a.Success ? "OK" : "Falhou" })));
+            sheets.Add(new("Serviços", rows));
+        }
 
         var sistema = new List<Row> { new(new[] { "Seção", "Item", "Valor" }, RowStyle.Header) };
         foreach (var s in sections)
