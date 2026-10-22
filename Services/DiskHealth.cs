@@ -13,6 +13,9 @@ public class DiskReport
     public string ReasonsText => string.Join("\n", Reasons.Select(r => "• " + r));
 }
 
+/// <summary>Contadores S.M.A.R.T. usados no veredito (MSFT_StorageReliabilityCounter).</summary>
+public record SmartCounters(long? Temperature, long? PowerOnHours, long? Wear, long ReadErrorsUncorrected, long WriteErrorsUncorrected);
+
 public record VolumeInfo(string Name, string Detail, double UsedPercent, string BarColor, long FreeBytes = 0, long TotalBytes = 0);
 
 public static class DiskHealth
@@ -39,11 +42,6 @@ public static class DiskHealth
         r.Items.Add(new("Firmware", Wmi.Str(d, "FirmwareVersion")));
         r.Items.Add(new("Status no Windows", health switch { 0 => "Saudável", 1 => "Aviso", 2 => "Não saudável", _ => "Desconhecido" }));
 
-        var bad = new List<string>();
-        var warn = new List<string>();
-        if (health == 2) bad.Add("O Windows marca este disco como NÃO saudável");
-        if (health == 1) warn.Add("O Windows emitiu um aviso para este disco");
-
         ManagementBaseObject? c = null;
         try
         {
@@ -51,44 +49,64 @@ public static class DiskHealth
         }
         catch { }
 
+        SmartCounters? counters = null;
+        if (c != null)
+        {
+            counters = new SmartCounters(Wmi.LongN(c, "Temperature"), Wmi.LongN(c, "PowerOnHours"), Wmi.LongN(c, "Wear"),
+                Wmi.Long(c, "ReadErrorsUncorrected"), Wmi.Long(c, "WriteErrorsUncorrected"));
+            if (counters.Temperature is long temp && temp > 0)
+            {
+                long max = Wmi.Long(c, "TemperatureMax");
+                r.Items.Add(new("Temperatura", $"{temp} °C" + (max > 0 ? $" (limite {max} °C)" : "")));
+            }
+            if (counters.PowerOnHours is { } hours)
+                r.Items.Add(new("Horas ligado", $"{hours:N0} h (~{hours / 24:N0} dias)"));
+            if (Wmi.LongN(c, "StartStopCycleCount") is { } cycles)
+                r.Items.Add(new("Ciclos liga/desliga", $"{cycles:N0}"));
+            if (counters.Wear is { } wear && media == MediaSsd)
+                r.Items.Add(new("Desgaste do SSD", $"{wear}% usado (≈ {100 - wear}% de vida restante)"));
+            r.Items.Add(new("Erros não corrigidos", $"leitura {counters.ReadErrorsUncorrected:N0} · escrita {counters.WriteErrorsUncorrected:N0}"));
+        }
+
+        Judge(r, media, health, counters);
+        r.Items.RemoveAll(i => string.IsNullOrWhiteSpace(i.Value));
+        return r;
+    }
+
+    internal const int MediaHdd = 3, MediaSsd = 4;
+
+    /// <summary>
+    /// Veredito Bom / Atenção / Ruim e os motivos, a partir do status do Windows (HealthStatus: 0 saudável,
+    /// 1 aviso, 2 não saudável) e dos contadores S.M.A.R.T. (null = não disponíveis).
+    /// </summary>
+    internal static void Judge(DiskReport r, int media, int health, SmartCounters? c)
+    {
+        var bad = new List<string>();
+        var warn = new List<string>();
+        if (health == 2) bad.Add("O Windows marca este disco como NÃO saudável");
+        if (health == 1) warn.Add("O Windows emitiu um aviso para este disco");
+
         if (c == null)
         {
             r.Reasons.Add("Contadores S.M.A.R.T. não disponíveis (comum em USB, RAID ou sem administrador)");
         }
         else
         {
-            if (Wmi.LongN(c, "Temperature") is long temp && temp > 0)
+            if (c.Temperature is long temp && temp >= 60) warn.Add($"Temperatura alta ({temp} °C)");
+            if (c.PowerOnHours is { } hours && media == MediaHdd && hours > 35_000) warn.Add($"HD com muitas horas de uso ({hours:N0} h)");
+            if (c.Wear is { } wear && media == MediaSsd)
             {
-                long max = Wmi.Long(c, "TemperatureMax");
-                r.Items.Add(new("Temperatura", $"{temp} °C" + (max > 0 ? $" (limite {max} °C)" : "")));
-                if (temp >= 60) warn.Add($"Temperatura alta ({temp} °C)");
-            }
-            if (Wmi.LongN(c, "PowerOnHours") is { } hours)
-            {
-                r.Items.Add(new("Horas ligado", $"{hours:N0} h (~{hours / 24:N0} dias)"));
-                if (media == 3 && hours > 35_000) warn.Add($"HD com muitas horas de uso ({hours:N0} h)");
-            }
-            if (Wmi.LongN(c, "StartStopCycleCount") is { } cycles)
-                r.Items.Add(new("Ciclos liga/desliga", $"{cycles:N0}"));
-            if (Wmi.LongN(c, "Wear") is { } wear && media == 4)
-            {
-                r.Items.Add(new("Desgaste do SSD", $"{wear}% usado (≈ {100 - wear}% de vida restante)"));
                 if (wear >= 90) bad.Add($"SSD com {wear}% da vida útil gasta");
                 else if (wear >= 70) warn.Add($"SSD com {wear}% da vida útil gasta");
             }
-            long readUnc = Wmi.Long(c, "ReadErrorsUncorrected");
-            long writeUnc = Wmi.Long(c, "WriteErrorsUncorrected");
-            r.Items.Add(new("Erros não corrigidos", $"leitura {readUnc:N0} · escrita {writeUnc:N0}"));
-            if (readUnc > 0) bad.Add($"{readUnc:N0} erro(s) de leitura não corrigidos");
-            if (writeUnc > 0) bad.Add($"{writeUnc:N0} erro(s) de escrita não corrigidos");
+            if (c.ReadErrorsUncorrected > 0) bad.Add($"{c.ReadErrorsUncorrected:N0} erro(s) de leitura não corrigidos");
+            if (c.WriteErrorsUncorrected > 0) bad.Add($"{c.WriteErrorsUncorrected:N0} erro(s) de escrita não corrigidos");
         }
 
         if (bad.Count > 0) { r.Verdict = "Ruim"; r.VerdictColor = Palette.Bad; }
         else if (warn.Count > 0) { r.Verdict = "Atenção"; r.VerdictColor = Palette.Warn; }
         r.Reasons.InsertRange(0, bad.Concat(warn));
         if (r.Reasons.Count == 0) r.Reasons.Add("Nenhum problema encontrado");
-        r.Items.RemoveAll(i => string.IsNullOrWhiteSpace(i.Value));
-        return r;
     }
 
     /// <summary>Previsão de falha do driver (atributo SMART "threshold exceeded").</summary>

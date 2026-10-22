@@ -16,12 +16,12 @@
 - [x] **Registro de erros** do próprio app (pasta `logs`, últimos 10 dias).
 - Assinatura digital do .exe: fora por enquanto (exige certificado pago).
 
-## Fase 4 — Segurança e confiabilidade (em andamento)
+## Fase 4 — Segurança e confiabilidade (concluída)
 - [x] **Ponto de restauração automático** antes de resetar rede, resetar Windows Update e instalar drivers (Windows Update, pasta e NVIDIA). Vem marcado na confirmação (Configurações → Segurança); se a Proteção do Sistema estiver desligada, oferece ligar. Nome e domínio fica de fora de propósito: voltar um ponto depois de ingressar quebra a relação de confiança com o domínio.
 - [x] **Atualização conferida por SHA-256**: o app só troca o .exe se o hash do arquivo baixado bater com o informado pelo GitHub (ou com o `UtiliTech.exe.sha256` que o workflow publica junto).
 - [x] **Confirmações claras**: janela própria que lista o que vai acontecer, avisa o que não tem volta (botão vermelho) e oferece o ponto de restauração.
 - [x] **Modo simulação** em Reparos rápidos (mostra no registro os comandos e arquivos, sem executar) e na Limpeza (gera a lista dos arquivos que seriam apagados, em `logs\`).
-- [ ] **Testes automáticos** (`UtiliTech.Tests`): validação do nome do PC, veredito de S.M.A.R.T./bateria, planilha, comparação de versões e leitura do hash.
+- [x] **Testes automáticos** (`UtiliTech.Tests`, xUnit): veredito de S.M.A.R.T. e bateria, regras do nome do PC e do usuário do domínio, versão das tags e SHA-256, planilha .xlsx/.csv e limpeza/simulação numa pasta temporária. Rodam no GitHub antes de cada release (se falharem, a versão não sai).
 
 ## Fase 5 — Atendimento e histórico
 - [ ] **Histórico de atendimentos no pendrive**: relatórios e planilhas salvos sozinhos, com busca por cliente, OS ou nº de série.

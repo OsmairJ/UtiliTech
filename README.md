@@ -38,6 +38,14 @@ dotnet build
 
 Depois abra `bin\Debug\net8.0-windows\UtiliTech.exe` (ele pede administrador).
 
+## Testes
+
+```
+dotnet test UtiliTech.Tests
+```
+
+Os testes (xUnit) cobrem a lógica que não depende do PC: veredito dos discos e da bateria, regras do nome do computador, versão e SHA-256 das releases, planilha e limpeza (numa pasta temporária). Não precisam de administrador nem de internet. O GitHub roda os testes antes de publicar cada release.
+
 ## Usar no pendrive
 
 1. Dê dois cliques em `publicar.bat`. Ele gera `..\UtiliTech-dist\UtiliTech.exe` (~70 MB), um arquivo único com o .NET embutido.

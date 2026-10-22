@@ -80,8 +80,7 @@ public static class Updater
         using var doc = JsonDocument.Parse(await resp.Content.ReadAsStringAsync());
         var root = doc.RootElement;
         string tag = root.GetProperty("tag_name").GetString() ?? "";
-        if (!Version.TryParse(tag.TrimStart('v', 'V'), out var latest)) throw new InvalidOperationException($"Versão inválida na release: {tag}");
-        latest = new Version(latest.Major, latest.Minor, Math.Max(0, latest.Build));
+        var latest = ParseTag(tag) ?? throw new InvalidOperationException($"Versão inválida na release: {tag}");
 
         var assets = root.GetProperty("assets").EnumerateArray().ToList();
         JsonElement Asset(string name) =>
@@ -92,8 +91,7 @@ public static class Updater
         if (latest <= Current) return null;
 
         // O GitHub informa o SHA-256 de cada arquivo ("digest": "sha256:..."); o .sha256 da release é a segunda opção
-        string? digest = asset.TryGetProperty("digest", out var d) && d.ValueKind == JsonValueKind.String ? d.GetString() : null;
-        string? sha = digest != null && digest.StartsWith("sha256:", StringComparison.OrdinalIgnoreCase) ? digest[7..] : null;
+        string? sha = ParseDigest(asset.TryGetProperty("digest", out var d) && d.ValueKind == JsonValueKind.String ? d.GetString() : null);
         var hashAsset = Asset(HashAssetName);
         string? hashUrl = hashAsset.ValueKind == JsonValueKind.Undefined ? null : hashAsset.GetProperty("browser_download_url").GetString();
 
@@ -161,6 +159,17 @@ public static class Updater
         Logger.Info($"Atualizado de {CurrentText} para {update.Tag}");
         Process.Start(new ProcessStartInfo(exe) { UseShellExecute = true });
     }
+
+    /// <summary>Versão de uma tag ("v0.6.4" → 0.6.4, sem o 4º número); null se não for uma versão.</summary>
+    internal static Version? ParseTag(string tag)
+    {
+        if (!Version.TryParse(tag.Trim().TrimStart('v', 'V'), out var v)) return null;
+        return new Version(v.Major, v.Minor, Math.Max(0, v.Build));
+    }
+
+    /// <summary>Hash do campo "digest" do GitHub ("sha256:abc..."); null se não for SHA-256.</summary>
+    internal static string? ParseDigest(string? digest) =>
+        digest != null && digest.StartsWith("sha256:", StringComparison.OrdinalIgnoreCase) ? ParseHash(digest[7..]) : null;
 
     /// <summary>Lê o hash de um arquivo .sha256 ("hash  nome" ou só o hash); null se não achar.</summary>
     internal static string? ParseHash(string text)

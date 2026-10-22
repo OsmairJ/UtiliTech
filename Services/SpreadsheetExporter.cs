@@ -94,7 +94,7 @@ public static class SpreadsheetExporter
         File.WriteAllText(path, sb.ToString(), new UTF8Encoding(true));
     }
 
-    static string Csv(string v) =>
+    internal static string Csv(string v) =>
         v.IndexOfAny(new[] { ';', '"', '\n', '\r' }) >= 0 ? "\"" + v.Replace("\"", "\"\"") + "\"" : v;
 
     // ---------- XLSX (Open XML mínimo: workbook, estilos e uma planilha por aba) ----------
@@ -168,7 +168,7 @@ public static class SpreadsheetExporter
         return sb.ToString();
     }
 
-    static string ColumnName(int index)
+    internal static string ColumnName(int index)
     {
         var name = "";
         for (int n = index + 1; n > 0; n = (n - 1) / 26) name = (char)('A' + (n - 1) % 26) + name;
@@ -176,7 +176,7 @@ public static class SpreadsheetExporter
     }
 
     // Escapa XML e remove caracteres de controle que o Excel não aceita
-    static string Xml(string s) =>
+    internal static string Xml(string s) =>
         SecurityElement.Escape(new string(s.Where(ch => ch >= 0x20 || ch is '\t' or '\n' or '\r').ToArray())) ?? "";
 
     static void Entry(ZipArchive zip, string name, string content)

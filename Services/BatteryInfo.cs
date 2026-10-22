@@ -58,11 +58,20 @@ public static class BatteryInfo
         long mv = st != null ? Wmi.Long(st, "Voltage") : 0;
         if (mv > 0) r.Items.Add(new("Tensão", $"{mv / 1000.0:0.00} V"));
 
+        Judge(r, design, fullCap, cycles);
+        if (r.HealthPercent is { } health) r.Items.Add(new("Saúde", $"{health:0}% (desgaste {100 - health:0}%)"));
+
+        r.Items.RemoveAll(i => string.IsNullOrWhiteSpace(i.Value));
+        return r;
+    }
+
+    /// <summary>Saúde (capacidade atual × de projeto, em mWh), veredito e motivos. 0 = o Windows não informou.</summary>
+    internal static void Judge(BatteryReport r, long design, long fullCap, long cycles)
+    {
         if (design > 0 && fullCap > 0)
         {
             double health = Math.Min(100, fullCap * 100.0 / design);
             r.HealthPercent = health;
-            r.Items.Add(new("Saúde", $"{health:0}% (desgaste {100 - health:0}%)"));
             if (health >= 80) { r.Verdict = "Bom"; r.VerdictColor = Palette.Good; r.Reasons.Add("Bateria em bom estado"); }
             else if (health >= 60) { r.Verdict = "Atenção"; r.VerdictColor = Palette.Warn; r.Reasons.Add($"Desgaste de {100 - health:0}%: autonomia reduzida"); }
             else { r.Verdict = "Ruim"; r.VerdictColor = Palette.Bad; r.Reasons.Add($"Desgaste de {100 - health:0}%: recomenda-se a troca da bateria"); }
@@ -72,9 +81,6 @@ public static class BatteryInfo
             r.Reasons.Add("O Windows não informou a capacidade da bateria. Gere o relatório do powercfg para mais detalhes.");
         }
         if (cycles > 800) r.Reasons.Add($"Muitos ciclos de carga ({cycles:N0})");
-
-        r.Items.RemoveAll(i => string.IsNullOrWhiteSpace(i.Value));
-        return r;
     }
 
     /// <summary>Gera o relatório completo do Windows (powercfg /batteryreport) e devolve o caminho do HTML.</summary>

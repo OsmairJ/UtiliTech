@@ -19,6 +19,9 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Rodar os testes
+        run: dotnet test UtiliTech.Tests -c Release
+
       - name: Compilar o .exe único
         shell: pwsh
         run: |
