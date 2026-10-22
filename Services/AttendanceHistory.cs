@@ -122,10 +122,10 @@ public static class AttendanceHistory
     /// Guarda o atendimento e uma cópia do arquivo exportado. Se já existe um atendimento do mesmo PC, cliente e OS
     /// no mesmo dia, usa a pasta dele (atualizando os dados). Devolve a pasta do atendimento.
     /// </summary>
-    public static string Save(AttendanceRecord record, string? exportedFile)
+    public static string Save(AttendanceRecord record, string? exportedFile, string? folder = null)
     {
         var existing = LoadAll().FirstOrDefault(r => SameAttendance(r, record));
-        string folder = existing?.Folder ?? NewFolder(record);
+        folder = existing?.Folder ?? folder ?? NewFolder(record);
         Directory.CreateDirectory(folder);
 
         record.Folder = folder;
@@ -142,6 +142,13 @@ public static class AttendanceHistory
         Logger.Info($"Atendimento guardado em {folder}");
         return folder;
     }
+
+    /// <summary>
+    /// Pasta onde este atendimento fica: a do atendimento já guardado (mesmo PC, cliente e OS no dia) ou uma nova,
+    /// ainda não criada. Usada para o "Salvar como" já abrir no lugar certo.
+    /// </summary>
+    public static string FolderFor(AttendanceRecord record) =>
+        LoadAll().FirstOrDefault(r => SameAttendance(r, record))?.Folder ?? NewFolder(record);
 
     static bool SameAttendance(AttendanceRecord a, AttendanceRecord b) =>
         a.Data.Date == b.Data.Date &&

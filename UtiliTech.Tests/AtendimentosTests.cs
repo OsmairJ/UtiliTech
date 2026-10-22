@@ -133,6 +133,26 @@ public sealed class AtendimentosTests : IDisposable
     }
 
     [Fact]
+    public void Pasta_do_atendimento_para_o_salvar_como()
+    {
+        // Novo atendimento: pasta ainda não existe
+        string nova = AttendanceHistory.FolderFor(Registro());
+        Assert.Contains("2026-10-22_1430_PC-SUPORTE-01", nova);
+        Assert.False(Directory.Exists(nova));
+
+        // O diálogo cria a pasta e o arquivo é salvo direto nela: o Save usa essa mesma pasta (sem criar "_2")
+        Directory.CreateDirectory(nova);
+        string relatorio = Path.Combine(nova, "Relatorio.html");
+        File.WriteAllText(relatorio, "<html/>");
+        Assert.Equal(nova, AttendanceHistory.Save(Registro(), relatorio, nova));
+        Assert.Single(Directory.GetDirectories(AttendanceHistory.Folder));
+
+        // Depois, a planilha do mesmo atendimento abre na mesma pasta
+        Assert.Equal(nova, AttendanceHistory.FolderFor(Registro(quando: new DateTime(2026, 10, 22, 17, 0, 0))));
+        Assert.Equal("Relatório", Assert.Single(Assert.Single(AttendanceHistory.LoadAll()).Files).Label);
+    }
+
+    [Fact]
     public void Arquivo_apagado_some_da_lista()
     {
         string pasta = AttendanceHistory.Save(Registro(), Arquivo("Relatorio.html"));

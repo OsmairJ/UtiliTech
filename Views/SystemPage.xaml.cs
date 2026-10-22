@@ -56,20 +56,44 @@ public partial class SystemPage : UserControl
 
     async Task ExportAsync(string filter, string extension, ReportWriter write)
     {
+        var at = new Atendimento(ClienteBox.Text, OsBox.Text, TecnicoBox.Text, ObsBox.Text);
+        var sections = _sections;
+        var when = DateTime.Now;
+
+        // O "Salvar como" já abre na pasta deste atendimento no histórico (atendimentos\ no pendrive).
+        // A pasta é criada para o diálogo poder abrir nela; se o técnico cancelar e ela continuar vazia, é apagada.
+        string? folder = null;
+        bool createdFolder = false;
+        try
+        {
+            folder = AttendanceHistory.FolderFor(AttendanceHistory.Build(at, sections, new(), new BatteryReport(), null, when));
+            createdFolder = !Directory.Exists(folder);
+            Directory.CreateDirectory(folder);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Preparar a pasta do atendimento", ex);
+            folder = null;
+        }
+
         var dlg = new SaveFileDialog
         {
             Filter = filter,
-            FileName = $"Relatorio_{Environment.MachineName}_{DateTime.Now:yyyy-MM-dd}{extension}",
-            InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+            FileName = $"Relatorio_{Environment.MachineName}_{when:yyyy-MM-dd}{extension}",
+            InitialDirectory = folder ?? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
         };
-        if (dlg.ShowDialog() != true) return;
+        if (dlg.ShowDialog() != true)
+        {
+            if (createdFolder && folder != null)
+                try { if (!Directory.EnumerateFileSystemEntries(folder).Any()) Directory.Delete(folder); }
+                catch { }
+            return;
+        }
 
         ExportBtn.IsEnabled = ExportSheetBtn.IsEnabled = false;
         Status.Text = "Gerando relatório (lendo discos e bateria)...";
         try
         {
-            var at = new Atendimento(ClienteBox.Text, OsBox.Text, TecnicoBox.Text, ObsBox.Text);
-            var sections = _sections;
             var path = dlg.FileName;
             string? history = await Task.Run(() =>
             {
@@ -77,15 +101,18 @@ public partial class SystemPage : UserControl
                 var battery = BatteryInfo.Collect();
                 string? tests = AppState.TestsSummary();
                 write(path, at, sections, disks, battery, tests);
-                // Cópia no histórico de atendimentos (pasta atendimentos no pendrive); se falhar, o arquivo exportado já está salvo
-                try { return AttendanceHistory.Save(AttendanceHistory.Build(at, sections, disks, battery, tests, DateTime.Now), path); }
+                // Guarda no histórico (se o arquivo foi salvo em outro lugar, vai uma cópia); se falhar, o arquivo já está salvo
+                try { return AttendanceHistory.Save(AttendanceHistory.Build(at, sections, disks, battery, tests, when), path, folder); }
                 catch (Exception ex)
                 {
                     Logger.Error("Guardar no histórico de atendimentos", ex);
                     return null;
                 }
             });
-            Status.Text = "Relatório salvo em " + path + (history != null ? " · cópia no histórico de atendimentos" : "");
+            bool inHistory = history != null && string.Equals(Path.GetDirectoryName(Path.GetFullPath(path)), Path.GetFullPath(history),
+                StringComparison.OrdinalIgnoreCase);
+            Status.Text = "Relatório salvo em " + path +
+                          (history == null ? "" : inHistory ? " · está no histórico de atendimentos" : " · cópia no histórico de atendimentos");
             try { Ui.Open(path); }
             catch { /* sem programa associado (ex.: PC sem Excel): o arquivo já está salvo */ }
         }
