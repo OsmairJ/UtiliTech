@@ -5,7 +5,9 @@
     <DockPanel DockPanel.Dock="Top" Margin="0,0,0,14">
       <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
         <Button Content="Atualizar" Style="{StaticResource BtnGhost}" Click="Refresh_Click" Margin="0,0,8,0"/>
-        <Button Content="Abrir pasta do histórico" Style="{StaticResource BtnGhost}" Click="OpenFolder_Click"/>
+        <Button Content="Abrir pasta do histórico" Style="{StaticResource BtnGhost}" Click="OpenFolder_Click" Margin="0,0,8,0"/>
+        <Button x:Name="InventoryBtn" Content="Inventário (planilha)" Style="{StaticResource Btn}" Click="Inventory_Click"
+                ToolTip="Planilha única com todas as máquinas atendidas: atendimentos\inventario.xlsx"/>
       </StackPanel>
       <StackPanel>
         <TextBlock Text="Atendimentos" Style="{StaticResource H1}"/>

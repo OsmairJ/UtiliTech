@@ -23,10 +23,10 @@
 - [x] **Modo simulação** em Reparos rápidos (mostra no registro os comandos e arquivos, sem executar) e na Limpeza (gera a lista dos arquivos que seriam apagados, em `logs\`).
 - [x] **Testes automáticos** (`UtiliTech.Tests`, xUnit): veredito de S.M.A.R.T. e bateria, regras do nome do PC e do usuário do domínio, versão das tags e SHA-256, planilha .xlsx/.csv e limpeza/simulação numa pasta temporária. Rodam no GitHub antes de cada release (se falharem, a versão não sai).
 
-## Fase 5 — Atendimento e histórico (em andamento)
+## Fase 5 — Atendimento e histórico (concluída)
 - [x] **Histórico de atendimentos no pendrive**: ao exportar relatório ou planilha na tela Sistema, o "Salvar como" já abre na pasta do atendimento em `atendimentos` ao lado do .exe (se salvar em outro lugar, vai uma cópia) (uma pasta por atendimento, com `atendimento.json`). Tela **Atendimentos** no menu com busca por cliente, OS, nº de série, nome do PC, modelo, técnico ou data, sem diferenciar acentos. Relatório e planilha do mesmo PC, cliente e OS no mesmo dia ficam juntos; o nº de série identifica a máquina mesmo depois de renomeada.
 - [x] **Relatório "antes e depois"**: o app anota o que faz na visita (limpeza, reparos, drivers, programas, nome e domínio, pontos de restauração) e compara o PC de quando abriu com o de agora (espaço livre e dispositivos com problema). Entra no relatório HTML ("Serviços feitos nesta visita" e "Antes e depois"), na planilha (aba Serviços) e no histórico de atendimentos.
-- [ ] **Inventário em lote**: cada máquina atendida entra numa planilha única do pendrive.
+- [x] **Inventário em lote**: `atendimentosinventario.xlsx` no pendrive, refeito sozinho a cada atendimento guardado (ou pelo botão "Inventário" na tela Atendimentos). Aba **Máquinas** (uma linha por máquina, pelo nº de série: modelo, processador, memória, discos, Windows, MAC/IP, saúde, primeiro e último atendimento, clientes) e aba **Atendimentos** (um por linha). Se estiver aberta no Excel, avisa e mantém a anterior.
 - [x] **Checklist de pós-formatação** (Pós-formatação → Checklist): Windows ativado, drivers, programas (Google Chrome, Mozilla Firefox e Microsoft 365; outro Office não conta), nome do computador (não o padrão DESKTOP-...), domínio, políticas de grupo, reinício pendente, discos e relatório guardado no histórico. Tudo conferido sozinho a cada vez que a tela abre, com atalho para a ferramenta de cada etapa que falta.
 
 ## Fase 6 — Novas ferramentas

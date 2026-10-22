@@ -35,7 +35,7 @@ public partial class AttendancePage : UserControl
         int machines = _all.Select(r => r.NumeroSerie.Length > 0 ? r.NumeroSerie : r.Computador).Distinct(StringComparer.OrdinalIgnoreCase).Count();
         Status.Text = _all.Count == 0
             ? "Cada relatório ou planilha exportado na tela Sistema fica guardado aqui, na pasta atendimentos do pendrive."
-            : $"{_all.Count} atendimento(s) de {machines} computador(es)" +
+            : $"{_all.Count} atendimento(s) de {machines} computador(es) · inventário em inventario.xlsx" +
               (SearchBox.Text.Trim().Length > 0 ? $" · {shown.Count} encontrado(s)" : "") + $" · {AttendanceHistory.Folder}";
 
         EmptyBox.Visibility = shown.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -52,6 +52,29 @@ public partial class AttendancePage : UserControl
     {
         Directory.CreateDirectory(AttendanceHistory.Folder);
         Ui.Open(AttendanceHistory.Folder);
+    }
+
+    /// <summary>Refaz o inventario.xlsx (ele também é refeito sozinho a cada atendimento guardado) e abre.</summary>
+    async void Inventory_Click(object sender, RoutedEventArgs e)
+    {
+        if (_all.Count == 0)
+        {
+            Ui.Error("Ainda não há atendimentos no histórico para montar o inventário.");
+            return;
+        }
+        InventoryBtn.IsEnabled = false;
+        try
+        {
+            string? error = await Task.Run(AttendanceHistory.UpdateInventory);
+            if (error != null)
+            {
+                Ui.Error("Não foi possível atualizar o inventário: " + error);
+                return;
+            }
+            try { Ui.Open(AttendanceHistory.InventoryPath); }
+            catch { Ui.Open(AttendanceHistory.Folder); } // PC sem Excel: mostra a pasta com a planilha
+        }
+        finally { InventoryBtn.IsEnabled = true; }
     }
 
     void OpenFile_Click(object sender, RoutedEventArgs e)

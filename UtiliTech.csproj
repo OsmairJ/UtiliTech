@@ -10,7 +10,7 @@
     <AssemblyName>UtiliTech</AssemblyName>
     <RootNamespace>UtiliTech</RootNamespace>
     <!-- Versão local; nas releases do GitHub ela vem da tag (v0.2.0 → 0.2.0) -->
-    <Version>0.6.11</Version>
+    <Version>0.6.12</Version>
     <Product>UtiliTech</Product>
     <ApplicationIcon>Assets\utilitech.ico</ApplicationIcon>
     <!-- Os testes ficam numa subpasta com projeto próprio: fora da compilação do app -->

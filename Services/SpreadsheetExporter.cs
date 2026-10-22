@@ -87,6 +87,15 @@ public static class SpreadsheetExporter
         return sheets;
     }
 
+    /// <summary>Grava abas genéricas (nome, cabeçalho, linhas) em .xlsx ou .csv. Usado pelo inventário.</summary>
+    public static void SaveTables(string path, IEnumerable<(string Name, string[] Header, IEnumerable<string[]> Rows)> tables)
+    {
+        var sheets = tables.Select(t => new Sheet(t.Name,
+            new[] { new Row(t.Header, RowStyle.Header) }.Concat(t.Rows.Select(r => new Row(r))).ToList())).ToList();
+        if (Path.GetExtension(path).Equals(".csv", StringComparison.OrdinalIgnoreCase)) WriteCsv(path, sheets);
+        else WriteXlsx(path, sheets);
+    }
+
     // ---------- CSV ----------
 
     static void WriteCsv(string path, List<Sheet> sheets)

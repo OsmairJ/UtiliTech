@@ -18,6 +18,12 @@ public class AttendanceRecord
     public string Modelo { get; set; } = "";
     public string NumeroSerie { get; set; } = "";
     public string Windows { get; set; } = "";
+    public string Processador { get; set; } = "";
+    public string Memoria { get; set; } = "";
+    /// <summary>Discos físicos com capacidade ("Samsung SSD 980 (500 GB)").</summary>
+    public string Armazenamento { get; set; } = "";
+    /// <summary>Placas de rede ativas ("MAC 00-11-22-33-44-55 · IP 10.0.0.5").</summary>
+    public string Rede { get; set; } = "";
     /// <summary>Veredito de cada disco ("Samsung SSD 980: Bom").</summary>
     public List<string> Discos { get; set; } = new();
     public string Bateria { get; set; } = "";
@@ -103,6 +109,20 @@ public static class AttendanceHistory
     {
         string Find(string label) =>
             sections.SelectMany(s => s.Items).FirstOrDefault(i => i.Label == label)?.Value?.Trim() ?? "";
+        List<InfoItem> Section(string title) => sections.FirstOrDefault(s => s.Title == title)?.Items ?? new();
+        string InSection(string title, string label) => Section(title).FirstOrDefault(i => i.Label == label)?.Value?.Trim() ?? "";
+
+        // Armazenamento: "Modelo" = "256 GB · SCSI · S/N ..."; as linhas "Unidade C:" são partições, ficam de fora
+        string storage = string.Join("; ", Section("Armazenamento").Where(i => !i.Label.StartsWith("Unidade "))
+            .Select(i => $"{i.Label.Trim()} ({i.Value.Split(" · ")[0].Trim()})"));
+        // Rede: só MAC e IP de cada placa ativa
+        string network = string.Join("; ", Section("Rede").Select(i =>
+        {
+            var parts = i.Value.Split(" · ");
+            string mac = parts.FirstOrDefault(p => p.StartsWith("MAC "))?.Trim() ?? "";
+            string ip = parts.FirstOrDefault(p => p.StartsWith("IP "))?.Split(" (")[0].Trim() ?? "";
+            return string.Join(" · ", new[] { mac, ip }.Where(s => s.Length > 0 && s != "IP"));
+        }).Where(s => s.Length > 0));
 
         return new AttendanceRecord
         {
@@ -116,6 +136,10 @@ public static class AttendanceHistory
             Modelo = Find("Modelo"),
             NumeroSerie = Find("Número de série"),
             Windows = $"{Find("Sistema")} {Find("Versão")}".Trim(),
+            Processador = InSection("Processador", "Modelo"),
+            Memoria = InSection("Memória RAM", "Instalada"),
+            Armazenamento = storage,
+            Rede = network,
             Discos = disks.Select(d => $"{d.Name}: {d.Verdict}").ToList(),
             Bateria = battery.Present ? battery.Verdict + (battery.HealthPercent is { } h ? $" ({h:0}% de saúde)" : "") : "",
             Testes = tests ?? "",
@@ -146,7 +170,36 @@ public static class AttendanceHistory
         }
         File.WriteAllText(Path.Combine(folder, RecordFile), JsonSerializer.Serialize(record, Json), Encoding.UTF8);
         Logger.Info($"Atendimento guardado em {folder}");
+        UpdateInventory();
         return folder;
+    }
+
+    /// <summary>Planilha única com todas as máquinas atendidas (atendimentos\inventario.xlsx).</summary>
+    public static string InventoryPath => Path.Combine(Folder, "inventario.xlsx");
+
+    /// <summary>
+    /// Refaz o inventario.xlsx a partir do histórico. Devolve null se deu certo, ou o motivo
+    /// (ex.: planilha aberta no Excel). Nunca lança exceção: o atendimento já está guardado.
+    /// </summary>
+    public static string? UpdateInventory()
+    {
+        try
+        {
+            Directory.CreateDirectory(Folder);
+            Inventory.Save(InventoryPath, LoadAll());
+            return null;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            // Excel com a planilha aberta: a troca do arquivo dá "em uso" ou "acesso negado"
+            Logger.Error("Inventário: planilha aberta em outro programa?", ex);
+            return "Feche o inventario.xlsx no Excel e tente de novo.";
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Inventário", ex);
+            return ex.Message;
+        }
     }
 
     /// <summary>
@@ -163,7 +216,7 @@ public static class AttendanceHistory
         string.Equals(a.OrdemServico, b.OrdemServico, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>O que identifica a máquina: o nº de série (sobrevive à formatação) ou, sem ele, o nome do PC.</summary>
-    static string Key(AttendanceRecord r) => r.NumeroSerie.Length > 0 ? r.NumeroSerie : r.Computador;
+    internal static string Key(AttendanceRecord r) => r.NumeroSerie.Length > 0 ? r.NumeroSerie : r.Computador;
 
     static string NewFolder(AttendanceRecord r)
     {
