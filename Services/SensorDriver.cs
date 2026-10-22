@@ -34,8 +34,11 @@ public static class SensorDriver
     /// <summary>Resumo para a tela.</summary>
     public static string State { get; private set; } = "não verificado";
 
-    /// <summary>O dispositivo do driver responde (é o que a biblioteca de sensores abre).</summary>
-    public static bool IsRunning => DeviceResponds();
+    /// <summary>
+    /// Resultado do último carregamento. Não reabre o driver: com os sensores abertos, uma segunda
+    /// abertura pode falhar mesmo com tudo funcionando.
+    /// </summary>
+    public static bool IsRunning { get; private set; }
 
     /// <summary>Garante o driver funcionando. Nunca lança exceção: sem ele os outros sensores funcionam do mesmo jeito.</summary>
     public static bool EnsureLoaded()
@@ -51,6 +54,7 @@ public static class SensorDriver
                     if (registryOurs && !LoadedByUs) Logger.Info("PawnIO funcionando sem a chave do instalador; criada temporariamente");
                     State = LoadedByUs ? "carregado pelo UtiliTech (sai do PC ao fechar)" : "já instalado no PC";
                     Logger.Info("Driver PawnIO: " + State);
+                    IsRunning = true;
                     return true;
                 }
 
@@ -61,10 +65,12 @@ public static class SensorDriver
                 if (!WaitForDevice()) throw new InvalidOperationException("o driver foi instalado mas não respondeu");
                 State = "carregado pelo UtiliTech (sai do PC ao fechar)";
                 Logger.Info("Driver PawnIO instalado temporariamente");
+                IsRunning = true;
                 return true;
             }
             catch (Exception ex)
             {
+                IsRunning = false;
                 State = "não foi possível carregar: " + ex.Message;
                 Logger.Error("Carregar driver PawnIO", ex);
                 Unload(); // não deixa nada pela metade
@@ -88,6 +94,7 @@ public static class SensorDriver
             catch { } // arquivo ainda em uso: a pasta temporária do Windows é limpa depois
             Marker = false;
             LoadedByUs = false;
+            IsRunning = false;
             Logger.Info("Driver PawnIO removido do PC");
         }
     }

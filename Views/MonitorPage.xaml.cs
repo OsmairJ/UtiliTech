@@ -58,6 +58,8 @@ public partial class MonitorPage : UserControl
     void Render(MonitorSnapshot s)
     {
         SensorHub.Monitor?.RefreshRows();
+        // Temperatura da CPU chegando = driver funcionando: o aviso não faz sentido
+        if (s.CpuTemp.HasValue) DriverBanner.Visibility = Visibility.Collapsed;
 
         CpuTitle.Text = s.CpuName.ToUpperInvariant();
         SetMain(CpuValue, s.CpuTemp, s.CpuLoad);
