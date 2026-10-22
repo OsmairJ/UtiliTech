@@ -92,6 +92,7 @@
             <ToggleButton x:Name="PosGroup" Style="{StaticResource NavGroup}" Content="PÓS-FORMATAÇÃO"/>
             <StackPanel x:Name="PosItems"
                         Visibility="{Binding IsChecked, ElementName=PosGroup, Converter={StaticResource BoolToVisibility}}">
+              <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Checklist" Tag="checklist" v:NavIcon.Glyph="&#xE9D5;" Checked="Nav_Checked"/>
               <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Instalar apps" Tag="install" v:NavIcon.Glyph="&#xE896;" Checked="Nav_Checked"/>
               <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Inicialização" Tag="startup" v:NavIcon.Glyph="&#xE7E8;" Checked="Nav_Checked"/>
               <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Nome e domínio" Tag="domain" v:NavIcon.Glyph="&#xE968;" Checked="Nav_Checked"/>

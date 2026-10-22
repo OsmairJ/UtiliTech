@@ -82,7 +82,7 @@ public static class SystemInfo
         return Section("Sistema operacional", items);
     }
 
-    static string Activation()
+    public static string Activation()
     {
         // ApplicationID do Windows; PartialProductKey filtra só a licença em uso
         var p = Wmi.Query("SELECT LicenseStatus FROM SoftwareLicensingProduct WHERE ApplicationID='55c92734-d682-4d71-983e-d6ec3f16059f' AND PartialProductKey IS NOT NULL").FirstOrDefault();

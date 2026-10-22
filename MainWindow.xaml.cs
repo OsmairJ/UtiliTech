@@ -134,6 +134,7 @@ public partial class MainWindow : Window
                 "memory" => new MemoryPage(),
                 "stress" => new StressPage(),
                 "alerts" => new AlertsPage(),
+                "checklist" => new ChecklistPage(),
                 "install" => new InstallPage(),
                 "startup" => new StartupPage(),
                 "domain" => new DomainPage(),
