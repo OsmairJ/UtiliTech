@@ -71,8 +71,21 @@ public partial class SystemPage : UserControl
             var at = new Atendimento(ClienteBox.Text, OsBox.Text, TecnicoBox.Text, ObsBox.Text);
             var sections = _sections;
             var path = dlg.FileName;
-            await Task.Run(() => write(path, at, sections, DiskHealth.Collect(), BatteryInfo.Collect(), AppState.TestsSummary()));
-            Status.Text = "Relatório salvo em " + path;
+            string? history = await Task.Run(() =>
+            {
+                var disks = DiskHealth.Collect();
+                var battery = BatteryInfo.Collect();
+                string? tests = AppState.TestsSummary();
+                write(path, at, sections, disks, battery, tests);
+                // Cópia no histórico de atendimentos (pasta atendimentos no pendrive); se falhar, o arquivo exportado já está salvo
+                try { return AttendanceHistory.Save(AttendanceHistory.Build(at, sections, disks, battery, tests, DateTime.Now), path); }
+                catch (Exception ex)
+                {
+                    Logger.Error("Guardar no histórico de atendimentos", ex);
+                    return null;
+                }
+            });
+            Status.Text = "Relatório salvo em " + path + (history != null ? " · cópia no histórico de atendimentos" : "");
             try { Ui.Open(path); }
             catch { /* sem programa associado (ex.: PC sem Excel): o arquivo já está salvo */ }
         }

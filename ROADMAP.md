@@ -23,8 +23,8 @@
 - [x] **Modo simulação** em Reparos rápidos (mostra no registro os comandos e arquivos, sem executar) e na Limpeza (gera a lista dos arquivos que seriam apagados, em `logs\`).
 - [x] **Testes automáticos** (`UtiliTech.Tests`, xUnit): veredito de S.M.A.R.T. e bateria, regras do nome do PC e do usuário do domínio, versão das tags e SHA-256, planilha .xlsx/.csv e limpeza/simulação numa pasta temporária. Rodam no GitHub antes de cada release (se falharem, a versão não sai).
 
-## Fase 5 — Atendimento e histórico
-- [ ] **Histórico de atendimentos no pendrive**: relatórios e planilhas salvos sozinhos, com busca por cliente, OS ou nº de série.
+## Fase 5 — Atendimento e histórico (em andamento)
+- [x] **Histórico de atendimentos no pendrive**: ao exportar relatório ou planilha na tela Sistema, uma cópia vai para `atendimentos` ao lado do .exe (uma pasta por atendimento, com `atendimento.json`). Tela **Atendimentos** no menu com busca por cliente, OS, nº de série, nome do PC, modelo, técnico ou data, sem diferenciar acentos. Relatório e planilha do mesmo PC, cliente e OS no mesmo dia ficam juntos; o nº de série identifica a máquina mesmo depois de renomeada.
 - [ ] **Relatório "antes e depois"**: limpeza, drivers instalados, reparos feitos e teste de estresse no mesmo HTML.
 - [ ] **Inventário em lote**: cada máquina atendida entra numa planilha única do pendrive.
 - [ ] **Checklist de pós-formatação**: apps → drivers → nome/domínio → políticas → relatório, mostrando o que falta.

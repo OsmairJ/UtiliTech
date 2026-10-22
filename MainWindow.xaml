@@ -74,6 +74,8 @@
           <StackPanel>
             <RadioButton x:Name="NavOverview" GroupName="Nav" Style="{StaticResource NavItem}" Content="Visão geral" Tag="overview"
                          v:NavIcon.Glyph="&#xE80F;" Checked="Nav_Checked"/>
+            <RadioButton x:Name="NavAttendance" GroupName="Nav" Style="{StaticResource NavItem}" Content="Atendimentos" Tag="attendance"
+                         v:NavIcon.Glyph="&#xE81C;" Checked="Nav_Checked"/>
 
             <ToggleButton x:Name="DiagGroup" Style="{StaticResource NavGroup}" Content="DIAGNÓSTICO"/>
             <StackPanel x:Name="DiagItems"

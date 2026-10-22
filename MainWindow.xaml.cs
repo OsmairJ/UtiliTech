@@ -114,6 +114,7 @@ public partial class MainWindow : Window
                 }
         if (key == "settings") w.NavSettings.IsChecked = true;
         if (key == "overview") w.NavOverview.IsChecked = true;
+        if (key == "attendance") w.NavAttendance.IsChecked = true;
     }
 
     void Nav_Checked(object sender, RoutedEventArgs e)
@@ -125,6 +126,7 @@ public partial class MainWindow : Window
             page = key switch
             {
                 "overview" => new OverviewPage(),
+                "attendance" => new AttendancePage(),
                 "system" => new SystemPage(),
                 "monitor" => new MonitorPage(),
                 "disks" => new DisksPage(),
