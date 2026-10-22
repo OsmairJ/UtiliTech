@@ -27,7 +27,7 @@
 - [x] **Histórico de atendimentos no pendrive**: ao exportar relatório ou planilha na tela Sistema, o "Salvar como" já abre na pasta do atendimento em `atendimentos` ao lado do .exe (se salvar em outro lugar, vai uma cópia) (uma pasta por atendimento, com `atendimento.json`). Tela **Atendimentos** no menu com busca por cliente, OS, nº de série, nome do PC, modelo, técnico ou data, sem diferenciar acentos. Relatório e planilha do mesmo PC, cliente e OS no mesmo dia ficam juntos; o nº de série identifica a máquina mesmo depois de renomeada.
 - [ ] **Relatório "antes e depois"**: limpeza, drivers instalados, reparos feitos e teste de estresse no mesmo HTML.
 - [ ] **Inventário em lote**: cada máquina atendida entra numa planilha única do pendrive.
-- [x] **Checklist de pós-formatação** (Pós-formatação → Checklist): Windows ativado, drivers, programas da lista, nome do computador (não o padrão DESKTOP-...), domínio, políticas de grupo, reinício pendente, discos e relatório guardado no histórico. Tudo conferido sozinho a cada vez que a tela abre, com atalho para a ferramenta de cada etapa que falta.
+- [x] **Checklist de pós-formatação** (Pós-formatação → Checklist): Windows ativado, drivers, programas (Google Chrome, Mozilla Firefox e Microsoft 365; outro Office não conta), nome do computador (não o padrão DESKTOP-...), domínio, políticas de grupo, reinício pendente, discos e relatório guardado no histórico. Tudo conferido sozinho a cada vez que a tela abre, com atalho para a ferramenta de cada etapa que falta.
 
 ## Fase 6 — Novas ferramentas
 - [ ] **Rede**: ping/traceroute, teste de DNS, IP/gateway, velocidade da placa, Wi-Fi e mapeamento de unidades e impressoras de rede.

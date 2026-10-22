@@ -10,7 +10,6 @@ public class ChecklistTests
     {
         Activation = "Ativado",
         ProblemDevices = 0,
-        AppsTotal = 10,
         ComputerName = "PC-SUPORTE-01",
         PartOfDomain = true,
         MachineDomain = "empresa.local",
@@ -59,19 +58,60 @@ public class ChecklistTests
     }
 
     [Fact]
-    public void Programas_que_faltam_aparecem_pelo_nome()
+    public void Programas_exigidos_sao_Chrome_Firefox_e_Microsoft_365()
     {
-        var faltando = new List<string> { "Chrome", "7-Zip", "VLC", "Zoom", "AnyDesk", "Notepad++", "LibreOffice" };
-        var e = Etapa(Pronto() with { MissingApps = faltando }, "Programas");
-        Assert.Equal(StepState.Pending, e.State);
-        Assert.StartsWith("Faltam 7 de 10: Chrome, 7-Zip, VLC, Zoom, AnyDesk", e.Detail);
-        Assert.EndsWith("e mais 2", e.Detail);
+        Assert.Equal(new[] { "Google Chrome", "Mozilla Firefox", "Microsoft 365" }, PostFormatChecklist.RequiredApps.Select(a => a.Name));
+        var e = Etapa(Pronto(), "Programas");
+        Assert.Equal("Google Chrome, Mozilla Firefox e Microsoft 365 instalados", e.Detail);
     }
 
     [Fact]
-    public void Lista_de_programas_vazia_nao_se_aplica()
+    public void Detecta_pelos_nomes_de_Aplicativos_instalados()
     {
-        Assert.Equal(StepState.NotApplicable, Etapa(Pronto() with { AppsTotal = 0 }, "Programas").State);
+        var instalados = new List<string>
+        {
+            "Google Chrome", "Mozilla Firefox (x64 pt-BR)", "Microsoft 365 Apps for enterprise - pt-br", "7-Zip 24.08 (x64)",
+        };
+        Assert.Empty(PostFormatChecklist.Missing(instalados));
+        Assert.Empty(PostFormatChecklist.Missing(new[] { "Google Chrome", "Mozilla Firefox (x64 en-US)", "Microsoft Office 365 ProPlus - pt-br" }));
+    }
+
+    [Fact]
+    public void Office_que_nao_e_365_nao_conta_e_aparece_no_aviso()
+    {
+        var instalados = new List<string>
+        {
+            "Google Chrome", "Mozilla Firefox (x64 pt-BR)", "Microsoft Office LTSC Professional Plus 2021 - pt-br",
+            "Office 16 Click-to-Run Extensibility Component",
+        };
+        Assert.Equal(new[] { "Microsoft 365" }, PostFormatChecklist.Missing(instalados));
+        Assert.Equal("Microsoft Office LTSC Professional Plus 2021", PostFormatChecklist.OtherOffice(instalados));
+
+        var e = Etapa(Pronto() with
+        {
+            MissingApps = PostFormatChecklist.Missing(instalados),
+            OtherOffice = PostFormatChecklist.OtherOffice(instalados),
+        }, "Programas");
+        Assert.Equal(StepState.Pending, e.State);
+        Assert.Equal("Falta: Microsoft 365 (este PC tem o Microsoft Office LTSC Professional Plus 2021, que não é o 365)", e.Detail);
+    }
+
+    [Fact]
+    public void Programas_que_faltam_aparecem_pelo_nome()
+    {
+        var faltando = PostFormatChecklist.Missing(new[] { "7-Zip 24.08 (x64)" });
+        Assert.Equal(3, faltando.Count);
+        var e = Etapa(Pronto() with { MissingApps = faltando }, "Programas");
+        Assert.Equal("Falta: Google Chrome, Mozilla Firefox e Microsoft 365", e.Detail);
+        Assert.True(e.HasAction);
+    }
+
+    [Fact]
+    public void Sem_Office_nenhum_nao_menciona_outro_Office()
+    {
+        Assert.Equal("", PostFormatChecklist.OtherOffice(new[] { "Google Chrome", "Office 16 Click-to-Run Licensing Component" }));
+        var e = Etapa(Pronto() with { MissingApps = new() { "Microsoft 365" } }, "Programas");
+        Assert.Equal("Falta: Microsoft 365", e.Detail);
     }
 
     [Theory]

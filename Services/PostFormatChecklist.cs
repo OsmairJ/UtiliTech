@@ -37,8 +37,10 @@ public record ChecklistFacts
 {
     public string Activation { get; init; } = "";
     public int ProblemDevices { get; init; }
-    public int AppsTotal { get; init; }
+    /// <summary>Programas obrigatórios (RequiredApps) que não estão instalados.</summary>
     public List<string> MissingApps { get; init; } = new();
+    /// <summary>Outro Office instalado que não é o 365 (ex.: "Microsoft Office LTSC Professional Plus 2021"); vazio = nenhum.</summary>
+    public string OtherOffice { get; init; } = "";
     public string ComputerName { get; init; } = "";
     /// <summary>Nome novo que só vale depois de reiniciar (null = nenhum).</summary>
     public string? PendingName { get; init; }
@@ -67,6 +69,39 @@ public static class PostFormatChecklist
 
     public static bool IsDefaultName(string name) => DefaultName.IsMatch(name.Trim());
 
+    const string Office365 = "Microsoft 365";
+
+    /// <summary>
+    /// Programas que o checklist exige, com o trecho do nome em "Aplicativos instalados" (alternativas separadas por |).
+    /// Office: só conta o 365 (Microsoft 365 Apps / Office 365); Office 2016/2019/2021/LTSC não.
+    /// </summary>
+    public static readonly IReadOnlyList<(string Name, string Match)> RequiredApps = new[]
+    {
+        ("Google Chrome", "Google Chrome"),
+        ("Mozilla Firefox", "Mozilla Firefox"),
+        (Office365, "Microsoft 365|Office 365"),
+    };
+
+    /// <summary>Quais dos programas obrigatórios não aparecem na lista de instalados.</summary>
+    public static List<string> Missing(IReadOnlyCollection<string> installedNames) =>
+        RequiredApps.Where(a => !a.Match.Split('|').Any(m => installedNames.Any(n => n.Contains(m, StringComparison.OrdinalIgnoreCase))))
+                    .Select(a => a.Name).ToList();
+
+    /// <summary>Office que não é o 365 (para avisar o técnico); vazio se não houver.</summary>
+    public static string OtherOffice(IEnumerable<string> installedNames) =>
+        installedNames.Select(n => n.Trim())
+            .Where(n => n.StartsWith("Microsoft Office", StringComparison.OrdinalIgnoreCase) &&
+                        !n.Contains("365") && !n.Contains("Click-to-Run", StringComparison.OrdinalIgnoreCase))
+            .Select(n => n.Split(" - ")[0]) // tira o idioma ("- pt-br")
+            .FirstOrDefault() ?? "";
+
+    /// <summary>"A, B e C".</summary>
+    static string Join(IEnumerable<string> items)
+    {
+        var l = items.ToList();
+        return l.Count <= 1 ? string.Concat(l) : string.Join(", ", l.Take(l.Count - 1)) + " e " + l[^1];
+    }
+
     public static List<ChecklistStep> Evaluate(ChecklistFacts f, DateTime now)
     {
         var steps = new List<ChecklistStep>();
@@ -84,16 +119,19 @@ public static class PostFormatChecklist
             : new("Drivers", "Nenhum dispositivo com problema no Gerenciador de Dispositivos.", StepState.Pending,
                 $"{f.ProblemDevices} dispositivo(s) sem driver ou com erro", "drivers", "Abrir Drivers"));
 
-        // 3. Programas da lista do técnico
-        string appsDesc = "Programas da lista de Instalar apps.";
-        if (f.AppsTotal == 0)
-            steps.Add(new("Programas", appsDesc, StepState.NotApplicable, "Lista de programas vazia", "install", ""));
-        else if (f.MissingApps.Count == 0)
-            steps.Add(new("Programas", appsDesc, StepState.Done, $"Os {f.AppsTotal} programas da lista estão instalados", "install", ""));
+        // 3. Programas obrigatórios
+        string appsDesc = Join(RequiredApps.Select(a => a.Name)) + ".";
+        if (f.MissingApps.Count == 0)
+        {
+            steps.Add(new("Programas", appsDesc, StepState.Done, Join(RequiredApps.Select(a => a.Name)) + " instalados", "install", ""));
+        }
         else
-            steps.Add(new("Programas", appsDesc, StepState.Pending,
-                $"Faltam {f.MissingApps.Count} de {f.AppsTotal}: " + string.Join(", ", f.MissingApps.Take(5)) +
-                (f.MissingApps.Count > 5 ? $" e mais {f.MissingApps.Count - 5}" : ""), "install", "Abrir Instalar apps"));
+        {
+            string detail = "Falta: " + Join(f.MissingApps);
+            if (f.MissingApps.Contains(Office365) && f.OtherOffice.Length > 0)
+                detail += $" (este PC tem o {f.OtherOffice}, que não é o 365)";
+            steps.Add(new("Programas", appsDesc, StepState.Pending, detail, "install", "Abrir Instalar apps"));
+        }
 
         // 4. Nome do computador
         string nameDesc = "Nome definitivo, não o que o Windows inventa na instalação.";
@@ -164,7 +202,6 @@ public static class PostFormatChecklist
     {
         var machine = DomainTools.Current();
         var installed = AppInstaller.InstalledNames();
-        var catalog = AppInstaller.LoadCatalog();
         string serial = Wmi.Query("SELECT SerialNumber FROM Win32_BIOS").Select(b => Wmi.Str(b, "SerialNumber")).FirstOrDefault() ?? "";
         var disks = DiskHealth.Collect();
 
@@ -172,8 +209,8 @@ public static class PostFormatChecklist
         {
             Activation = SystemInfo.Activation(),
             ProblemDevices = DriverManager.ScanProblems().Count(p => !p.IsDisabled),
-            AppsTotal = catalog.Count,
-            MissingApps = catalog.Where(a => !AppInstaller.IsInstalled(a, installed)).Select(a => a.Name).ToList(),
+            MissingApps = Missing(installed),
+            OtherOffice = OtherOffice(installed),
             ComputerName = machine.Name,
             PendingName = PendingComputerName(machine.Name),
             PartOfDomain = machine.PartOfDomain,
