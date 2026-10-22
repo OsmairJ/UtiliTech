@@ -16,9 +16,10 @@ public partial class MainWindow : Window
         InitializeComponent();
         MachineText.Text = Environment.MachineName;
         AdminText.Text = IsAdmin() ? "Executando como administrador" : "Sem privilégio de administrador";
-        NavSystem.IsChecked = true;
+        NavOverview.IsChecked = true;
 
         VersionValue.Text = Updater.CurrentText;
+        StateChanged += (_, _) => UpdateMaximized();
 
         // Sensores em segundo plano (alertas) e situação da atualização no rodapé
         AlertWatcher.Raised += a => Dispatcher.InvokeAsync(() => ToastWindow.Show(a));
@@ -27,6 +28,7 @@ public partial class MainWindow : Window
         SourceInitialized += (_, _) => ThemeManager.ApplyTitleBar(this);
         Loaded += async (_, _) =>
         {
+            SensorHistory.Start();
             await SensorHub.StartAsync();
             AlertWatcher.Start();
             await CheckUpdatesAsync();
@@ -37,8 +39,8 @@ public partial class MainWindow : Window
     async Task CheckUpdatesAsync()
     {
         var cfg = AppSettings.Current;
-        if (string.IsNullOrWhiteSpace(cfg.UpdateRepo)) { SetUpdateText("Não configurada", Palette.Muted); return; }
-        if (!cfg.CheckUpdatesOnStart) { SetUpdateText("Verificação desligada", Palette.Muted); return; }
+        if (string.IsNullOrWhiteSpace(cfg.UpdateRepo)) { SetUpdateText("—", Palette.Muted); return; }
+        if (!cfg.CheckUpdatesOnStart) { SetUpdateText("desligada", Palette.Muted); return; }
         try
         {
             var update = await Updater.CheckAsync(cfg.UpdateRepo);
@@ -52,9 +54,9 @@ public partial class MainWindow : Window
     void ShowUpdateState(UpdateInfo? update, string? error)
     {
         AppState.AvailableUpdate = update;
-        if (error != null) SetUpdateText("Sem conexão", Palette.Muted);
-        else if (update != null) SetUpdateText($"{update.Tag} disponível", Palette.Accent);
-        else SetUpdateText("Em dia", Palette.Good);
+        if (error != null) SetUpdateText("sem conexão", Palette.Muted);
+        else if (update != null) SetUpdateText($"{update.Tag} nova", Palette.Warn);
+        else SetUpdateText("em dia", Palette.Good);
         VersionCard.Cursor = update != null ? System.Windows.Input.Cursors.Hand : null;
         VersionCard.ToolTip = update != null ? "Clique para atualizar em Configurações" : null;
     }
@@ -70,13 +72,59 @@ public partial class MainWindow : Window
         if (AppState.AvailableUpdate != null) NavSettings.IsChecked = true;
     }
 
+    // ---------- Barra de título ----------
+
+    void Theme_Click(object sender, RoutedEventArgs e)
+    {
+        bool light = !ThemeManager.IsLight;
+        ThemeManager.Apply(light);
+        AppSettings.Current.LightTheme = light;
+        AppSettings.Current.Save();
+    }
+
+    void Minimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+
+    void Maximize_Click(object sender, RoutedEventArgs e) =>
+        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+
+    void Close_Click(object sender, RoutedEventArgs e) => Close();
+
+    // Maximizada, a janela sem borda passa um pouco das bordas da tela: compensa com margem
+    void UpdateMaximized()
+    {
+        bool max = WindowState == WindowState.Maximized;
+        Root.Margin = max ? new Thickness(7) : new Thickness(0);
+        MaxBtn.Content = max ? "" : "";
+        MaxBtn.ToolTip = max ? "Restaurar" : "Maximizar";
+    }
+
+    // ---------- Navegação ----------
+
+    /// <summary>Abre uma tela pelo nome (Tag do item do menu), abrindo o grupo dela. Usado pela Visão geral.</summary>
+    public static void Navigate(string key)
+    {
+        if (Application.Current.MainWindow is not MainWindow w) return;
+        foreach (var (group, items) in new[] { (w.DiagGroup, w.DiagItems), (w.PosGroup, w.PosItems), (w.ManGroup, w.ManItems) })
+            foreach (var rb in items.Children.OfType<RadioButton>())
+                if ((string)rb.Tag == key)
+                {
+                    group.IsChecked = true;
+                    rb.IsChecked = true;
+                    return;
+                }
+        if (key == "settings") w.NavSettings.IsChecked = true;
+        if (key == "overview") w.NavOverview.IsChecked = true;
+    }
+
     void Nav_Checked(object sender, RoutedEventArgs e)
     {
-        if (sender is not RadioButton { Tag: string key }) return;
+        if (sender is not RadioButton { Tag: string key } nav) return;
+        PageTitle.Text = nav.Content as string;
         if (!_pages.TryGetValue(key, out var page))
         {
             page = key switch
             {
+                "overview" => new OverviewPage(),
                 "system" => new SystemPage(),
                 "monitor" => new MonitorPage(),
                 "disks" => new DisksPage(),

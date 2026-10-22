@@ -20,7 +20,6 @@ public partial class StressPage : UserControl
     public StressPage()
     {
         InitializeComponent();
-        TempSpark.SetColor("#F59E0B");
         Application.Current.Exit += (_, _) => _test?.Stop();
         IsVisibleChanged += (_, _) => UpdateFastMode();
         Loaded += async (_, _) =>

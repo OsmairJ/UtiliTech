@@ -12,20 +12,23 @@ namespace UtiliTech.Views;
 /// </summary>
 public static class ThemeManager
 {
+    // Preto e branco: o destaque é a própria cor do texto (botão principal branco no escuro, preto no claro)
     static readonly Dictionary<string, string> Dark = new()
     {
-        ["BgBrush"] = "#0F1115", ["PanelBrush"] = "#161920", ["CardBrush"] = "#1D2129", ["InputBrush"] = "#12151B",
-        ["LineBrush"] = "#2A2F3A", ["HoverBrush"] = "#262B35", ["TextBrush"] = "#E6E8EC", ["MutedBrush"] = "#8B93A1",
-        ["AccentBrush"] = "#3B82F6", ["DangerBrush"] = "#DC2626",
-        ["ScrollThumbBrush"] = "#3A404C", ["ScrollThumbHoverBrush"] = "#4F5768", ["ScrollThumbDragBrush"] = "#646E82",
+        ["BgBrush"] = "#000000", ["PanelBrush"] = "#0B0B0C", ["CardBrush"] = "#111113", ["InputBrush"] = "#0B0B0C",
+        ["LineBrush"] = "#26262A", ["HoverBrush"] = "#1C1C1F", ["SelectedBrush"] = "#222226",
+        ["TextBrush"] = "#F2F2F2", ["MutedBrush"] = "#8C8C93",
+        ["AccentBrush"] = "#F2F2F2", ["AccentTextBrush"] = "#0A0A0A", ["DangerBrush"] = "#DC2626",
+        ["ScrollThumbBrush"] = "#2E2E33", ["ScrollThumbHoverBrush"] = "#46464D", ["ScrollThumbDragBrush"] = "#5E5E66",
     };
 
     static readonly Dictionary<string, string> Light = new()
     {
-        ["BgBrush"] = "#F3F5F8", ["PanelBrush"] = "#FFFFFF", ["CardBrush"] = "#FFFFFF", ["InputBrush"] = "#F7F9FB",
-        ["LineBrush"] = "#DFE3E8", ["HoverBrush"] = "#EDF0F4", ["TextBrush"] = "#1E2330", ["MutedBrush"] = "#667085",
-        ["AccentBrush"] = "#2563EB", ["DangerBrush"] = "#DC2626",
-        ["ScrollThumbBrush"] = "#C5CBD3", ["ScrollThumbHoverBrush"] = "#A9B0BA", ["ScrollThumbDragBrush"] = "#8C94A0",
+        ["BgBrush"] = "#F2F2F4", ["PanelBrush"] = "#FFFFFF", ["CardBrush"] = "#FFFFFF", ["InputBrush"] = "#F7F7F8",
+        ["LineBrush"] = "#E3E3E7", ["HoverBrush"] = "#EEEEF1", ["SelectedBrush"] = "#E6E6EA",
+        ["TextBrush"] = "#111113", ["MutedBrush"] = "#6B6B73",
+        ["AccentBrush"] = "#111113", ["AccentTextBrush"] = "#FFFFFF", ["DangerBrush"] = "#DC2626",
+        ["ScrollThumbBrush"] = "#CFCFD6", ["ScrollThumbHoverBrush"] = "#B1B1BA", ["ScrollThumbDragBrush"] = "#93939C",
     };
 
     public static bool IsLight { get; private set; }
@@ -41,6 +44,7 @@ public static class ThemeManager
             resources[key] = brush;
         }
         Palette.Text = (light ? Light : Dark)["TextBrush"];
+        Palette.Accent = Palette.Text; // destaque monocromático: "em andamento" na cor do texto
         foreach (Window w in Application.Current.Windows) ApplyTitleBar(w);
     }
 

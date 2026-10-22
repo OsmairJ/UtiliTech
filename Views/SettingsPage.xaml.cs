@@ -20,6 +20,7 @@ public partial class SettingsPage : UserControl
         IsVisibleChanged += (_, _) =>
         {
             if (!IsVisible) return;
+            UpdateThemeButtons(); // o tema pode ter mudado pelo botão da barra de título
             RefreshLogInfo();
             RefreshAbout();
         };
@@ -43,6 +44,7 @@ public partial class SettingsPage : UserControl
 
     void UpdateThemeButtons()
     {
+        if (DarkBtn == null) return;
         DarkBtn.Style = (Style)FindResource(ThemeManager.IsLight ? "BtnGhost" : "Btn");
         LightBtn.Style = (Style)FindResource(ThemeManager.IsLight ? "Btn" : "BtnGhost");
     }

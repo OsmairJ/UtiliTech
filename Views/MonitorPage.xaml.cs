@@ -14,10 +14,9 @@ public partial class MonitorPage : UserControl
     public MonitorPage()
     {
         InitializeComponent();
-        CpuSpark.SetColor("#3B82F6");
-        GpuSpark.SetColor("#A78BFA");
-        RamSpark.SetColor("#22D3EE");
-        DiskSpark.SetColor("#F59E0B");
+        // CPU e RAM na cor do texto; GPU e disco em cinza (preto e branco)
+        GpuSpark.SetColor("#8C8C93");
+        DiskSpark.SetColor("#8C8C93");
 
         // Leitura a cada 1 s só enquanto a tela está à vista
         IsVisibleChanged += (_, _) =>

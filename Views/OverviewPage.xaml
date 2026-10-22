@@ -1,0 +1,226 @@
+<UserControl x:Class="UtiliTech.Views.OverviewPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:v="clr-namespace:UtiliTech.Views">
+  <UserControl.Resources>
+    <!-- Colunas da tabela de componentes (cabeçalho e linhas iguais) -->
+    <Style x:Key="Cell" TargetType="TextBlock">
+      <Setter Property="FontFamily" Value="{StaticResource NumberFont}"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+    </Style>
+    <Style x:Key="BigCardTitle" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="18"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+      <Setter Property="Margin" Value="0,0,0,12"/>
+    </Style>
+  </UserControl.Resources>
+
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="0,0,12,12">
+      <Grid Margin="0,0,0,12">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="2*"/>
+          <ColumnDefinition Width="12"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Gráfico CPU × GPU -->
+        <Border Style="{StaticResource Card}" Margin="0">
+          <StackPanel>
+            <DockPanel>
+              <StackPanel DockPanel.Dock="Right" HorizontalAlignment="Right">
+                <TextBlock Text="GPU" Style="{StaticResource Caption}" HorizontalAlignment="Right"/>
+                <TextBlock x:Name="GpuBig" Text="—" Style="{StaticResource Cell}" FontWeight="Bold" FontSize="15" HorizontalAlignment="Right" Margin="0,4,0,0"/>
+              </StackPanel>
+              <StackPanel>
+                <TextBlock x:Name="ChartCaption" Text="CPU · TEMPERATURA" Style="{StaticResource Caption}"/>
+                <TextBlock x:Name="CpuSubtitle" Style="{StaticResource Muted}" FontSize="12" Margin="0,2,0,0"/>
+                <TextBlock x:Name="CpuBig" Text="—" Style="{StaticResource BigNumber}" Margin="0,8,0,0"/>
+              </StackPanel>
+            </DockPanel>
+            <DockPanel Margin="0,14,0,0">
+              <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <RadioButton x:Name="MetricTemp" Style="{StaticResource Pill}" GroupName="Metric" Content="Temperatura" Tag="temp" Checked="Option_Checked"/>
+                <RadioButton Style="{StaticResource Pill}" GroupName="Metric" Content="Carga" Tag="load" Checked="Option_Checked"/>
+                <RadioButton Style="{StaticResource Pill}" GroupName="Metric" Content="Consumo" Tag="power" Checked="Option_Checked" Margin="0"/>
+              </StackPanel>
+              <StackPanel Orientation="Horizontal">
+                <RadioButton Style="{StaticResource Pill}" GroupName="Span" Content="1 MIN" Tag="1" Checked="Option_Checked"/>
+                <RadioButton x:Name="Span5" Style="{StaticResource Pill}" GroupName="Span" Content="5 MIN" Tag="5" Checked="Option_Checked"/>
+                <RadioButton Style="{StaticResource Pill}" GroupName="Span" Content="15 MIN" Tag="15" Checked="Option_Checked"/>
+              </StackPanel>
+            </DockPanel>
+            <v:LineChart x:Name="Chart" Height="200" Margin="0,16,0,0"/>
+            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+              <Rectangle Width="14" Height="2" Fill="{DynamicResource TextBrush}" VerticalAlignment="Center"/>
+              <TextBlock Text="CPU" Style="{StaticResource Muted}" FontSize="11" Margin="6,0,16,0"/>
+              <Line X1="0" X2="14" Stroke="{DynamicResource MutedBrush}" StrokeThickness="1.4" StrokeDashArray="3 2" VerticalAlignment="Center"/>
+              <TextBlock Text="GPU" Style="{StaticResource Muted}" FontSize="11" Margin="6,0,0,0"/>
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <!-- Resumo do PC -->
+        <Border Grid.Column="2" Style="{StaticResource Card}" Margin="0">
+          <DockPanel>
+            <Button DockPanel.Dock="Bottom" Content="GERAR RELATÓRIO" Style="{StaticResource Btn}" Padding="12,11" Margin="0,14,0,0"
+                    Click="Report_Click"/>
+            <StackPanel>
+              <TextBlock Text="RESUMO DO PC" Style="{StaticResource Caption}"/>
+              <TextBlock x:Name="ModelText" Text="—" FontSize="19" FontWeight="Bold" TextWrapping="Wrap" Margin="0,8,0,0"/>
+              <TextBlock x:Name="SerialText" Style="{StaticResource Muted}" FontSize="12" Margin="0,4,0,0"/>
+              <Border Height="1" Background="{DynamicResource LineBrush}" Margin="0,14,0,10"/>
+              <ItemsControl x:Name="SummaryList">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <DockPanel Margin="0,4">
+                      <TextBlock DockPanel.Dock="Right" Text="{Binding Value}" TextAlignment="Right" TextTrimming="CharacterEllipsis" MaxWidth="190"/>
+                      <TextBlock Text="{Binding Label}" Foreground="{DynamicResource MutedBrush}"/>
+                    </DockPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <Border Margin="0,12,0,0" Padding="14,6" CornerRadius="12" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1"
+                      Background="{DynamicResource PanelBrush}">
+                <StackPanel>
+                  <DockPanel Margin="0,6">
+                    <TextBlock x:Name="CpuNameText" DockPanel.Dock="Right" TextAlignment="Right" TextTrimming="CharacterEllipsis" MaxWidth="200"/>
+                    <TextBlock Text="CPU" Foreground="{DynamicResource MutedBrush}"/>
+                  </DockPanel>
+                  <Border Height="1" Background="{DynamicResource LineBrush}"/>
+                  <DockPanel Margin="0,6">
+                    <TextBlock x:Name="GpuNameText" DockPanel.Dock="Right" TextAlignment="Right" TextTrimming="CharacterEllipsis" MaxWidth="200"/>
+                    <TextBlock Text="GPU" Foreground="{DynamicResource MutedBrush}"/>
+                  </DockPanel>
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </DockPanel>
+        </Border>
+      </Grid>
+
+      <!-- Tabela de componentes -->
+      <Border Style="{StaticResource Card}" Padding="20,14,20,6">
+        <StackPanel>
+          <Grid Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="2.4*"/>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="1.4*"/>
+              <ColumnDefinition Width="40"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="COMPONENTE" Style="{StaticResource Caption}"/>
+            <TextBlock Grid.Column="1" Text="TEMPERATURA" Style="{StaticResource Caption}"/>
+            <TextBlock Grid.Column="2" Text="CARGA" Style="{StaticResource Caption}"/>
+            <TextBlock Grid.Column="3" Text="CLOCK" Style="{StaticResource Caption}"/>
+            <TextBlock Grid.Column="4" Text="CONSUMO / USO" Style="{StaticResource Caption}"/>
+            <TextBlock Grid.Column="5" Text="VER" Style="{StaticResource Caption}" HorizontalAlignment="Right"/>
+          </Grid>
+          <ItemsControl x:Name="ComponentList">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border BorderBrush="{DynamicResource LineBrush}" BorderThickness="0,1,0,0" Padding="0,12">
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="2.4*"/>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="1.4*"/>
+                      <ColumnDefinition Width="40"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal">
+                      <Border Width="30" Height="30" CornerRadius="8" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Margin="0,0,12,0">
+                        <TextBlock Text="{Binding Glyph}" Style="{StaticResource Icon}" FontSize="14" HorizontalAlignment="Center"/>
+                      </Border>
+                      <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding Sub}" Style="{StaticResource Muted}" FontSize="11" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+                      </StackPanel>
+                    </StackPanel>
+                    <TextBlock Grid.Column="1" Text="{Binding Temp}" Foreground="{Binding TempColor}" Style="{StaticResource Cell}"/>
+                    <TextBlock Grid.Column="2" Text="{Binding Load}" Style="{StaticResource Cell}"/>
+                    <TextBlock Grid.Column="3" Text="{Binding Clock}" Style="{StaticResource Cell}"/>
+                    <TextBlock Grid.Column="4" Text="{Binding Usage}" Style="{StaticResource Cell}"/>
+                    <Button Grid.Column="5" Content="&#xE72A;" Style="{StaticResource TitleBtn}" Width="34" Height="30" FontSize="13"
+                            HorizontalAlignment="Right" Click="Row_Click" ToolTip="Abrir"/>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <!-- Memória e disco · Eventos recentes · Saúde do PC -->
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition/>
+          <ColumnDefinition Width="12"/>
+          <ColumnDefinition/>
+          <ColumnDefinition Width="12"/>
+          <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+
+        <Border Style="{StaticResource Card}" Margin="0">
+          <StackPanel>
+            <TextBlock Text="MEMÓRIA E DISCO" Style="{StaticResource Caption}"/>
+            <TextBlock x:Name="RamBig" Text="—" Style="{StaticResource BigNumber}" Margin="0,8,0,0"/>
+            <TextBlock x:Name="RamDetail" Style="{StaticResource Muted}" FontSize="12"/>
+            <ProgressBar x:Name="RamBar" Maximum="100" Margin="0,8,0,16"/>
+            <DockPanel>
+              <TextBlock x:Name="DiskPct" DockPanel.Dock="Right" Style="{StaticResource Cell}" FontSize="12"/>
+              <TextBlock x:Name="DiskText" FontWeight="SemiBold"/>
+            </DockPanel>
+            <TextBlock x:Name="DiskDetail" Style="{StaticResource Muted}" FontSize="12"/>
+            <ProgressBar x:Name="DiskBar" Maximum="100" Margin="0,8,0,0"/>
+          </StackPanel>
+        </Border>
+
+        <Border Grid.Column="2" Style="{StaticResource Card}" Margin="0">
+          <StackPanel>
+            <TextBlock Text="Eventos recentes" Style="{StaticResource BigCardTitle}"/>
+            <TextBlock x:Name="EventsEmpty" Style="{StaticResource Muted}" FontSize="12"
+                       Text="Nada ainda. Alertas, testes de RAM e de estresse aparecem aqui."/>
+            <ItemsControl x:Name="EventList">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <DockPanel Margin="0,0,0,10">
+                    <Ellipse DockPanel.Dock="Left" Width="7" Height="7" Fill="{Binding Color}" VerticalAlignment="Top" Margin="0,6,10,0"/>
+                    <StackPanel>
+                      <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                      <TextBlock Text="{Binding Detail}" Style="{StaticResource Muted}" FontSize="11"/>
+                    </StackPanel>
+                  </DockPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+
+        <Border Grid.Column="4" Style="{StaticResource Card}" Margin="0">
+          <StackPanel>
+            <TextBlock Text="Saúde do PC" Style="{StaticResource BigCardTitle}"/>
+            <TextBlock x:Name="HealthLoading" Text="Verificando discos, bateria e drivers..." Style="{StaticResource Muted}" FontSize="12"/>
+            <ItemsControl x:Name="HealthList">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <DockPanel Margin="0,0,0,10">
+                    <Ellipse DockPanel.Dock="Left" Width="7" Height="7" Fill="{Binding Color}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <TextBlock DockPanel.Dock="Right" Text="{Binding Value}" Foreground="{Binding Color}" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding Label}"/>
+                  </DockPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+      </Grid>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

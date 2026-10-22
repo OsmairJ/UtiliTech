@@ -13,7 +13,8 @@ public static class Palette
     public const string Warn = "#F59E0B";
     public const string Bad = "#EF4444";
     public const string Muted = "#8B93A1";
-    public const string Accent = "#3B82F6";
+    /// <summary>Destaque ("em andamento", versão nova...): segue o tema, preto e branco.</summary>
+    public static string Accent { get; set; } = "#F2F2F2";
     /// <summary>Cor do texto principal do tema atual (muda com o tema claro/escuro).</summary>
     public static string Text { get; set; } = "#E6E8EC";
 }

@@ -10,7 +10,8 @@ public class Sparkline : FrameworkElement
 
     public int Capacity { get; set; } = 60;
     public double Maximum { get; set; } = 100;
-    public Brush Stroke { get; set; } = new SolidColorBrush(Color.FromRgb(0x3B, 0x82, 0xF6));
+    /// <summary>Cor da linha; vazio = cor do texto do tema (preto e branco).</summary>
+    public Brush? Stroke { get; set; }
 
     public void Push(double? value)
     {
@@ -67,9 +68,10 @@ public class Sparkline : FrameworkElement
             ctx.PolyLineTo(pts.Append(new Point(pts[^1].X, h)).ToList(), false, true);
         }
 
-        var color = (Stroke as SolidColorBrush)?.Color ?? Colors.DodgerBlue;
+        var stroke = Stroke ?? TryFindResource("TextBrush") as Brush ?? Brushes.White;
+        var color = (stroke as SolidColorBrush)?.Color ?? Colors.White;
         var fill = new LinearGradientBrush(Color.FromArgb(0x55, color.R, color.G, color.B), Color.FromArgb(0x00, color.R, color.G, color.B), 90);
         dc.DrawGeometry(fill, null, area);
-        dc.DrawGeometry(null, new Pen(Stroke, 1.6) { LineJoin = PenLineJoin.Round }, line);
+        dc.DrawGeometry(null, new Pen(stroke, 1.6) { LineJoin = PenLineJoin.Round }, line);
     }
 }

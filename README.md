@@ -5,6 +5,8 @@ Ferramenta de bancada para técnico de informática (WPF .NET 8), inspirada no
 
 ## Módulos
 
+**Visão geral** (tela inicial): gráfico de temperatura/carga/consumo da CPU e da GPU (1, 5 ou 15 min), resumo do PC (modelo, nº de série, Windows), tabela de componentes (temperatura, carga, clock, consumo) com atalho para cada tela, memória e disco, eventos recentes e saúde do PC (discos, bateria, drivers).
+
 **Diagnóstico**
 - **Sistema**: fabricante, modelo, número de série, BIOS, placa-mãe, Windows (versão, ativação, chave OEM da BIOS, último boot), CPU, RAM por módulo, vídeo, discos, unidades e rede. Campos de atendimento (cliente, OS, técnico, observações) e **Exportar relatório** em HTML para entregar ao cliente (abre no navegador; imprima ou salve em PDF). **Exportar planilha** gera um Excel (.xlsx) com as abas Resumo, Sistema, Discos e Bateria, ou um CSV (separado por `;`), bom para controle de atendimentos e inventário de máquinas.
 - **Monitor em tempo real**: cartões de CPU, GPU, RAM e discos (temperatura, uso, clock, consumo, VRAM) com gráfico dos últimos 60 s, e a lista completa de sensores de cada componente com atual/mínimo/máximo, atualizada a cada 1 s (estilo HWMonitor). Usa a [LibreHardwareMonitorLib](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor) (MPL 2.0). Temperatura da CPU e da placa-mãe usam o driver **PawnIO**, que vai embutido no .exe e é carregado só enquanto o app está aberto (como o AIDA64): nada fica instalado no PC do cliente. Detalhes e licença em `Assets/Drivers/LEIA-ME.txt`.
@@ -61,4 +63,4 @@ O repositório precisa ser **público** para o app conseguir ler as releases sem
 
 - `Services/`: a lógica (WMI, sensores, winget, testes, reparos, limpeza, atualização, relatório), sem dependência da interface.
 - `Views/`: uma tela por módulo.
-- `Theme.xaml`: cores e estilos; o tema claro troca os pincéis na hora (`Views/ThemeManager.cs`).
+- `Theme.xaml`: visual preto e branco (inspirado no ResetExplode), com barra de título própria e ícones Segoe Fluent no menu; o tema claro troca os pincéis na hora (`Views/ThemeManager.cs`).
