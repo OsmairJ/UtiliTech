@@ -46,7 +46,8 @@
           <StackPanel>
             <TextBlock Text="Temperatura da CPU e da placa-mãe indisponível" FontWeight="SemiBold" Foreground="#F59E0B"/>
             <TextBlock Style="{StaticResource Muted}" Margin="0,2,0,0"
-                       Text="Para ler esses sensores o Windows precisa do driver PawnIO (gratuito, assinado, o mesmo usado pelo LibreHardwareMonitor). GPU, RAM e discos já aparecem sem ele."/>
+                       Text="O UtiliTech carrega o driver PawnIO sozinho ao abrir e remove ao fechar, mas aqui não conseguiu (precisa abrir como administrador). Como alternativa, instale o PawnIO de forma permanente. GPU, RAM e discos aparecem sem ele."/>
+            <TextBlock x:Name="DriverStateText" Style="{StaticResource Muted}" FontSize="11" Margin="0,4,0,0"/>
           </StackPanel>
         </DockPanel>
       </Border>

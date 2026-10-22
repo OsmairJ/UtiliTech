@@ -25,13 +25,19 @@ public static class SensorHub
 
     static HardwareMonitor? Open()
     {
+        // Driver de passagem para CPU/placa-mãe; sem ele os outros sensores funcionam do mesmo jeito
+        SensorDriver.EnsureLoaded();
         HardwareMonitor m;
         try
         {
             m = new HardwareMonitor();
             m.Open();
         }
-        catch { return null; }
+        catch (Exception ex)
+        {
+            Logger.Error("Abrir sensores", ex);
+            return null;
+        }
 
         Monitor = m;
         Last = m.Snapshot();
@@ -86,6 +92,7 @@ public static class SensorHub
             Monitor = null;
             Last = null;
             _opening = null;
+            SensorDriver.Unload(); // só remove se foi o UtiliTech que carregou
         }
     }
 }

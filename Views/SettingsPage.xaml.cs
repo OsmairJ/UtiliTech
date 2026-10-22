@@ -16,12 +16,13 @@ public partial class SettingsPage : UserControl
         VersionText.Text = $"UtiliTech {Updater.CurrentText}";
         RepoBox.Text = cfg.UpdateRepo;
         AutoCheckBox.IsChecked = cfg.CheckUpdatesOnStart;
-        AboutText.Text =
-            $"UtiliTech {Updater.CurrentText} · ferramentas do técnico\n" +
-            "Sensores: LibreHardwareMonitorLib (MPL 2.0) com o driver PawnIO.\n" +
-            $"Configurações: {Path.Combine(AppContext.BaseDirectory, "settings.json")}";
         UpdateThemeButtons();
-        IsVisibleChanged += (_, _) => { if (IsVisible) RefreshLogInfo(); };
+        IsVisibleChanged += (_, _) =>
+        {
+            if (!IsVisible) return;
+            RefreshLogInfo();
+            RefreshAbout();
+        };
 
         // Se a verificação ao abrir o app já achou versão nova, mostra direto
         if (AppState.AvailableUpdate is { } pending) ShowUpdate(pending);
@@ -111,6 +112,8 @@ public partial class SettingsPage : UserControl
         SetStatus("Baixando...", Palette.Accent);
         try
         {
+            // Fecha os sensores (e o driver de passagem) antes: a versão nova vai carregar o dela
+            SensorHub.Shutdown();
             await Updater.InstallAsync(_update, new Progress<double>(p =>
             {
                 DownloadBar.Value = p;
@@ -132,6 +135,13 @@ public partial class SettingsPage : UserControl
         UpdateStatus.Text = text;
         UpdateStatus.Foreground = Ui.Hex(color);
     }
+
+    void RefreshAbout() =>
+        AboutText.Text =
+            $"UtiliTech {Updater.CurrentText} · ferramentas do técnico\n" +
+            "Sensores: LibreHardwareMonitorLib (MPL 2.0) e driver PawnIO 2.2.0 (GPL 2.0, licença em Licencas\\PawnIO).\n" +
+            $"Driver de sensores: {SensorDriver.State}\n" +
+            $"Configurações: {Path.Combine(AppContext.BaseDirectory, "settings.json")}";
 
     // ---------- Registro de erros ----------
 

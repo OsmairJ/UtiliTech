@@ -28,4 +28,11 @@ public partial class App : Application
         ThemeManager.Apply(AppSettings.Current.LightTheme);
         Updater.CleanupPreviousVersion();
     }
+
+    // Garante que o driver de passagem sai do PC mesmo se o app fechar por outro caminho
+    protected override void OnExit(ExitEventArgs e)
+    {
+        SensorHub.Shutdown();
+        base.OnExit(e);
+    }
 }

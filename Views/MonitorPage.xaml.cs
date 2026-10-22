@@ -41,9 +41,11 @@ public partial class MonitorPage : UserControl
 
     async Task OpenAsync(Task<HardwareMonitor?> opening)
     {
-        DriverBanner.Visibility = HardwareMonitor.PawnIoInstalled ? Visibility.Collapsed : Visibility.Visible;
         Status.Text = "Abrindo sensores...";
         var monitor = await opening;
+        // O driver é carregado sozinho ao abrir; o aviso só aparece se isso falhou (ex.: sem administrador)
+        DriverBanner.Visibility = SensorDriver.IsRunning ? Visibility.Collapsed : Visibility.Visible;
+        DriverStateText.Text = "Driver de sensores: " + SensorDriver.State;
         if (monitor == null)
         {
             Status.Text = "Não foi possível abrir os sensores.";
@@ -165,7 +167,7 @@ public partial class MonitorPage : UserControl
             return;
         }
 
-        // Reabre os sensores para já usar o driver
+        // Reabre os sensores para já usar o driver instalado
         GroupList.ItemsSource = null;
         await OpenAsync(SensorHub.RestartAsync());
     }

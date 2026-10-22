@@ -1,0 +1,12 @@
+PawnIO — driver usado para ler temperatura, clock e consumo da CPU e os sensores da placa-mãe.
+
+Arquivos: PawnIO.sys, PawnIO.inf e PawnIO.cat (pacote original, sem alterações)
+Versão: PawnIO 2.2.0 (assinado pela Microsoft — Windows Hardware Compatibility Publisher)
+Autor: namazso — https://github.com/namazso/PawnIO
+Licença: GNU GPL 2.0 (texto completo em PawnIO-COPYING.txt)
+Código-fonte desta versão: https://github.com/namazso/PawnIO/tree/2.2.0
+
+Como o UtiliTech usa: igual ao AIDA64/HWiNFO, só enquanto o app está aberto. Ao abrir, se o PC não tem
+o PawnIO funcionando, ele cria o dispositivo virtual Root\PawnIO e instala o driver nele; ao fechar, remove
+o dispositivo, o pacote do driver, o serviço e o registro. O driver sai da memória no próximo reinício.
+Se o PawnIO já estiver instalado no PC (pelo instalador oficial), o UtiliTech usa o que está lá e não mexe nele.
