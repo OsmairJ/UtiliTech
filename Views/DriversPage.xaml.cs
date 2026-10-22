@@ -18,8 +18,171 @@ public partial class DriversPage : UserControl
         {
             if (_loaded) return;
             _loaded = true;
-            await ScanProblemsAsync();
+            await Task.WhenAll(ScanProblemsAsync(), LoadGpusAsync());
         };
+    }
+
+    // ---------- Placa de vídeo ----------
+
+    async Task LoadGpusAsync()
+    {
+        var gpus = await Task.Run(() => GpuDrivers.Detect());
+        var cards = gpus.Select(ToCard).ToList();
+        GpuList.ItemsSource = cards;
+        foreach (var c in cards.Where(c => c.Info.Vendor == GpuVendor.Nvidia)) _ = CheckNvidiaAsync(c);
+    }
+
+    static GpuCard ToCard(GpuInfo g)
+    {
+        string vendor = g.Vendor switch { GpuVendor.Nvidia => "NVIDIA", GpuVendor.Amd => "AMD", GpuVendor.Intel => "Intel", _ => "Outro fabricante" };
+        string driver = g.HasVendorDriver
+            ? $"driver {g.VendorVersion}" + (g.DriverDate is { } d ? $" de {d:dd/MM/yyyy}" : "")
+            : "SEM DRIVER DO FABRICANTE";
+        var card = new GpuCard
+        {
+            Info = g,
+            Detail = $"{vendor} · {driver}",
+            SitePage = g.Vendor switch
+            {
+                GpuVendor.Nvidia => GpuDrivers.NvidiaPage,
+                GpuVendor.Amd => GpuDrivers.AmdPage,
+                GpuVendor.Intel => GpuDrivers.IntelDsaPage,
+                _ => "https://www.catalog.update.microsoft.com",
+            },
+        };
+        switch (g.Vendor)
+        {
+            case GpuVendor.Nvidia:
+                card.Status = "Consultando a versão mais nova na NVIDIA...";
+                break;
+            case GpuVendor.Amd:
+                card.Status = "A AMD não informa a versão mais nova para outros programas. A detecção automática do site reconhece a placa e baixa o driver certo.";
+                card.ActionText = "Detectar no site da AMD";
+                card.ActionVisible = true;
+                break;
+            case GpuVendor.Intel:
+                card.Status = (g.HasVendorDriver ? "" : "Sem driver: o Windows Update abaixo costuma ter um. ") +
+                              "Para a versão mais nova, use o assistente oficial da Intel.";
+                card.StatusColor = g.HasVendorDriver ? Palette.Muted : Palette.Warn;
+                card.ActionText = "Instalar assistente da Intel";
+                card.ActionVisible = true;
+                break;
+            default:
+                card.Status = "Use a busca do Windows Update abaixo.";
+                break;
+        }
+        return card;
+    }
+
+    async Task CheckNvidiaAsync(GpuCard card)
+    {
+        card.Status = "Consultando a versão mais nova na NVIDIA...";
+        card.StatusColor = Palette.Muted;
+        card.ActionVisible = false;
+        try
+        {
+            var latest = await GpuDrivers.LatestNvidiaAsync(card.Info.Name);
+            card.Latest = latest;
+            string when = latest.ReleaseDate.Length > 0 ? $", lançado em {latest.ReleaseDate}" : "";
+            if (!card.Info.HasVendorDriver || GpuDrivers.IsNewer(latest.Version, card.Info.VendorVersion))
+            {
+                card.Status = $"Versão nova disponível: {latest.Version}{when} · {Fmt.Bytes(latest.Size)}";
+                card.StatusColor = Palette.Accent;
+                card.ActionText = $"Baixar e instalar {latest.Version}";
+                card.ActionVisible = true;
+            }
+            else
+            {
+                card.Status = $"✓ Driver em dia (o mais novo é o {latest.Version}{when})";
+                card.StatusColor = Palette.Good;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Consulta do driver NVIDIA", ex);
+            card.Status = "Não foi possível consultar a NVIDIA (" + ex.Message + "). A rede pode estar bloqueando o site: use o Site oficial.";
+            card.StatusColor = Palette.Warn;
+        }
+    }
+
+    void GpuSite_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { DataContext: GpuCard card }) Ui.Open(card.SitePage);
+    }
+
+    async void GpuAction_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { DataContext: GpuCard card }) return;
+        switch (card.Info.Vendor)
+        {
+            case GpuVendor.Amd:
+                Ui.Open(GpuDrivers.AmdPage);
+                break;
+            case GpuVendor.Intel:
+                await InstallIntelAssistantAsync(card);
+                break;
+            case GpuVendor.Nvidia when card.Latest != null:
+                await InstallNvidiaAsync(card, card.Latest);
+                break;
+        }
+    }
+
+    async Task InstallIntelAssistantAsync(GpuCard card)
+    {
+        card.ActionVisible = false;
+        card.Status = "Instalando o Intel Driver & Support Assistant (winget)...";
+        card.StatusColor = Palette.Accent;
+        Log("=== Intel Driver & Support Assistant ===");
+        var r = await GpuDrivers.InstallIntelAssistantAsync();
+        Log("winget: " + r.Message);
+        if (r.Success)
+        {
+            card.Status = "✓ Assistente instalado. Ele abriu no navegador: siga por lá para atualizar os drivers Intel.";
+            card.StatusColor = Palette.Good;
+            Ui.Open(GpuDrivers.IntelDsaPage);
+        }
+        else
+        {
+            card.Status = "Não foi possível instalar pelo winget (" + r.Message + "). Use o Site oficial.";
+            card.StatusColor = Palette.Warn;
+            card.ActionVisible = true;
+        }
+    }
+
+    async Task InstallNvidiaAsync(GpuCard card, NvidiaDriver driver)
+    {
+        if (MessageBox.Show($"Baixar e instalar o {driver.Name} {driver.Version} ({Fmt.Bytes(driver.Size)})?\n\n" +
+                            "A instalação é silenciosa; a tela vai piscar algumas vezes. Feche jogos e programas de vídeo antes.",
+                "UtiliTech", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+
+        card.ActionVisible = false;
+        card.Busy = true;
+        card.Progress = 0;
+        card.Status = "Baixando...";
+        card.StatusColor = Palette.Accent;
+        Log($"=== Driver NVIDIA {driver.Version} ===");
+        try
+        {
+            int code = await GpuDrivers.InstallNvidiaAsync(driver,
+                new Progress<double>(p => { card.Progress = p; card.Status = $"Baixando... {p:0}%"; }),
+                m => Dispatcher.InvokeAsync(() =>
+                {
+                    Log(m);
+                    if (m.StartsWith("Instalando")) { card.Status = "Instalando... (a tela pode piscar)"; card.Busy = false; }
+                }));
+            card.Busy = false;
+            card.Status = code == 0 ? $"✓ Driver {driver.Version} instalado · reinicie o PC se a imagem ficar estranha" : $"O instalador da NVIDIA terminou com código {code}; veja o registro";
+            card.StatusColor = code == 0 ? Palette.Good : Palette.Warn;
+            if (code == 0) await LoadGpusAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Instalação do driver NVIDIA", ex);
+            card.Busy = false;
+            card.Status = "Falhou: " + ex.Message;
+            card.StatusColor = Palette.Bad;
+            card.ActionVisible = true;
+        }
     }
 
     async Task ScanProblemsAsync()

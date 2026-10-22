@@ -30,7 +30,11 @@ public static class Updater
 
     static HttpClient Client()
     {
-        var http = new HttpClient { Timeout = TimeSpan.FromMinutes(5) };
+        // Proxy de empresa: manda as credenciais do Windows, como o navegador
+        var http = new HttpClient(new HttpClientHandler { DefaultProxyCredentials = System.Net.CredentialCache.DefaultCredentials })
+        {
+            Timeout = TimeSpan.FromMinutes(5)
+        };
         http.DefaultRequestHeaders.UserAgent.ParseAdd("UtiliTech/" + Current.ToString(3));
         http.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
         return http;

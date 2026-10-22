@@ -19,7 +19,7 @@ Ferramenta de bancada para técnico de informática (WPF .NET 8), inspirada no
 **Manutenção**
 - **Reparos rápidos**: fila de impressão, DNS, IP, rede, Windows Update, relógio e Explorer, com 1 clique.
 - **Limpeza**: mostra quanto cada categoria ocupa e apaga só o que for marcado.
-- **Drivers**: lista os dispositivos com problema (sem driver, código 28, 43...), procura no Windows Update os drivers que faltam ou estão desatualizados e instala os marcados, e instala pacotes de driver de uma pasta (ex.: `InstaladoresDrivers` no pendrive), sem internet.
+- **Drivers**: lista os dispositivos com problema (sem driver, código 28, 43...), procura no Windows Update os drivers que faltam ou estão desatualizados e instala os marcados, e instala pacotes de driver de uma pasta (ex.: `InstaladoresDrivers` no pendrive), sem internet. **Placa de vídeo**: NVIDIA consulta o driver mais novo no site da NVIDIA, baixa, confere a assinatura digital e instala em silêncio; AMD abre a detecção automática do site da AMD; Intel instala o Intel Driver & Support Assistant.
 
 ## Requisitos
 
