@@ -1,0 +1,81 @@
+<UserControl x:Class="UtiliTech.Views.DomainPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="0,0,12,0">
+      <StackPanel Margin="0,0,0,18">
+        <TextBlock Text="Nome e domínio" Style="{StaticResource H1}"/>
+        <TextBlock x:Name="Status" Style="{StaticResource Muted}"/>
+      </StackPanel>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Situação atual" Style="{StaticResource H2}"/>
+          <ItemsControl x:Name="CurrentList" ItemTemplate="{StaticResource InfoRow}"/>
+        </StackPanel>
+      </Border>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="1. Novo nome" Style="{StaticResource H2}"/>
+          <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,10"
+                     Text="Até 15 caracteres: letras sem acento, números e hífen. Antes de usar, o UtiliTech confere se o nome já existe no AD."/>
+          <DockPanel>
+            <Button x:Name="CheckBtn" DockPanel.Dock="Right" Content="Verificar no AD" Style="{StaticResource Btn}" Click="Check_Click" Margin="8,0,0,0"/>
+            <TextBox x:Name="NameBox" Style="{StaticResource Input}" FontSize="16" MaxLength="15" CharacterCasing="Upper"
+                     VerticalContentAlignment="Center" TextChanged="NameBox_TextChanged"/>
+          </DockPanel>
+          <TextBlock x:Name="NameHint" Style="{StaticResource Muted}" FontSize="11" Margin="0,4,0,0"/>
+
+          <Border x:Name="ResultBox" Margin="0,12,0,0" Padding="14,12" CornerRadius="8" BorderThickness="1" Visibility="Collapsed">
+            <StackPanel>
+              <TextBlock x:Name="ResultTitle" FontWeight="SemiBold" FontSize="15" TextWrapping="Wrap"/>
+              <TextBlock x:Name="ResultText" Style="{StaticResource Muted}" Margin="0,4,0,0"/>
+              <ItemsControl x:Name="ResultDetails" ItemTemplate="{StaticResource InfoRow}" Margin="0,8,0,0"/>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Border>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock x:Name="CredTitle" Text="2. Conta do domínio" Style="{StaticResource H2}"/>
+          <TextBlock x:Name="CredHint" Style="{StaticResource Muted}" Margin="0,0,0,10"/>
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition/>
+              <ColumnDefinition Width="12"/>
+              <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+              <TextBlock Text="Usuário (ex.: DOMINIO\seu.usuario)" Style="{StaticResource Label}"/>
+              <TextBox x:Name="UserBox" Style="{StaticResource Input}"/>
+            </StackPanel>
+            <StackPanel Grid.Column="2">
+              <TextBlock Text="Senha (não é salva)" Style="{StaticResource Label}"/>
+              <PasswordBox x:Name="PassBox" Padding="6,5" Background="{DynamicResource InputBrush}" Foreground="{DynamicResource TextBrush}"
+                           BorderBrush="{DynamicResource LineBrush}" CaretBrush="{DynamicResource TextBrush}"/>
+            </StackPanel>
+          </Grid>
+          <TextBlock Text="OU onde criar o computador (opcional)" Style="{StaticResource Label}" Margin="0,10,0,4"/>
+          <TextBox x:Name="OuBox" Style="{StaticResource Input}"
+                   ToolTip="Ex.: OU=Computadores,OU=SR-PR,DC=pf,DC=gov,DC=br · vazio = contêiner padrão (Computers)"/>
+          <TextBlock Style="{StaticResource Muted}" FontSize="11" Margin="0,4,0,0"
+                     Text="Ex.: OU=Computadores,OU=Unidade,DC=pf,DC=gov,DC=br. Deixe vazio para usar o padrão do domínio. Só vale ao ingressar (não muda a OU de quem já está no domínio)."/>
+        </StackPanel>
+      </Border>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="3. Aplicar" Style="{StaticResource H2}"/>
+          <TextBlock x:Name="ApplyHint" Style="{StaticResource Muted}" Margin="0,0,0,12"/>
+          <StackPanel Orientation="Horizontal">
+            <Button x:Name="ApplyBtn" Style="{StaticResource Btn}" Click="Apply_Click" IsEnabled="False" Margin="0,0,8,0"/>
+            <Button x:Name="RestartBtn" Content="Reiniciar agora" Style="{StaticResource BtnDanger}" Click="Restart_Click" Visibility="Collapsed"/>
+          </StackPanel>
+          <TextBlock x:Name="ApplyResult" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,12,0,0"/>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

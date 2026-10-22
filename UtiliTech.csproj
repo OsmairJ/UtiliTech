@@ -10,7 +10,7 @@
     <AssemblyName>UtiliTech</AssemblyName>
     <RootNamespace>UtiliTech</RootNamespace>
     <!-- Versão local; nas releases do GitHub ela vem da tag (v0.2.0 → 0.2.0) -->
-    <Version>0.4.1</Version>
+    <Version>0.5.0</Version>
     <Product>UtiliTech</Product>
     <ApplicationIcon>Assets\utilitech.ico</ApplicationIcon>
   </PropertyGroup>
@@ -22,15 +22,14 @@
     <EmbeddedResource Include="Assets\Drivers\PawnIO.inf" LogicalName="UtiliTech.Drivers.PawnIO.inf" />
     <EmbeddedResource Include="Assets\Drivers\PawnIO.cat" LogicalName="UtiliTech.Drivers.PawnIO.cat" />
     <!-- Licença do PawnIO (GPL 2.0) vai ao lado do .exe -->
-    <None Include="Assets\Drivers\LEIA-ME.txt" Link="Licencas\PawnIO\LEIA-ME.txt" CopyToOutputDirectory="PreserveNewest"
-          CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
-    <None Include="Assets\Drivers\PawnIO-COPYING.txt" Link="Licencas\PawnIO\PawnIO-COPYING.txt" CopyToOutputDirectory="PreserveNewest"
-          CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+    <None Include="Assets\Drivers\LEIA-ME.txt" Link="Licencas\PawnIO\LEIA-ME.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+    <None Include="Assets\Drivers\PawnIO-COPYING.txt" Link="Licencas\PawnIO\PawnIO-COPYING.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
   </ItemGroup>
 
   <ItemGroup>
     <!-- Sensores (MPL 2.0): temperatura/uso/clock; a CPU e a placa-mãe precisam do driver PawnIO -->
     <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.6" />
+    <PackageReference Include="System.DirectoryServices" Version="10.0.2" />
     <PackageReference Include="System.Management" Version="10.0.2" />
     <PackageReference Include="System.Diagnostics.EventLog" Version="10.0.2" />  </ItemGroup>
 

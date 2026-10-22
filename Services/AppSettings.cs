@@ -16,6 +16,12 @@ public class AppSettings
     /// <summary>Repositório do GitHub onde saem as versões (usuário/nome); vazio = não procura atualização.</summary>
     public string UpdateRepo { get; set; } = "OsmairJ/UtiliTech";
     public bool CheckUpdatesOnStart { get; set; } = true;
+    /// <summary>Domínio usado na ferramenta Nome e domínio.</summary>
+    public string DomainName { get; set; } = "empresa.local";
+    /// <summary>Usuário do domínio usado por último (a senha nunca é salva).</summary>
+    public string LastDomainUser { get; set; } = "";
+    /// <summary>OU usada por último ao ingressar no domínio.</summary>
+    public string LastDomainOu { get; set; } = "";
 
     public static AppSettings Current { get; } = Load();
 

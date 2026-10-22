@@ -69,6 +69,7 @@
                         Visibility="{Binding IsChecked, ElementName=PosGroup, Converter={StaticResource BoolToVisibility}}">
               <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Instalar apps" Tag="install" Checked="Nav_Checked"/>
               <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Inicialização" Tag="startup" Checked="Nav_Checked"/>
+              <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Nome e domínio" Tag="domain" Checked="Nav_Checked"/>
             </StackPanel>
 
             <ToggleButton x:Name="ManGroup" Style="{StaticResource NavGroup}" Content="MANUTENÇÃO"/>

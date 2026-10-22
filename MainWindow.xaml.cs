@@ -86,6 +86,7 @@ public partial class MainWindow : Window
                 "alerts" => new AlertsPage(),
                 "install" => new InstallPage(),
                 "startup" => new StartupPage(),
+                "domain" => new DomainPage(),
                 "repairs" => new RepairsPage(),
                 "cleanup" => new CleanupPage(),
                 "drivers" => new DriversPage(),

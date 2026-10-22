@@ -15,6 +15,7 @@ Ferramenta de bancada para técnico de informática (WPF .NET 8), inspirada no
 **Pós-formatação**
 - **Instalar apps**: a lista de programas do técnico, instalados pelo winget em silêncio e um por vez. Detecta o que já está instalado. A lista é editável na própria tela: busca no winget e **Adicionar**, **×** para tirar, **Restaurar lista padrão**. Fica salva em `apps.json` ao lado do .exe (vai junto no pendrive) ou, se a pasta não aceitar escrita, em `%AppData%\UtiliTech`. Lista padrão: Chrome, Firefox, 7-Zip, WinRAR, Acrobat Reader, LibreOffice, VLC, AnyDesk, TeamViewer, Zoom, NAPS2, runtimes (Java, VC++, .NET), Notepad++ e CrystalDiskInfo, mais os instaladores do pendrive (pasta `Instaladores`): PJe Office Pro e os drivers das impressoras Lexmark.
 - **Inicialização**: lista os programas que abrem com o Windows (registro do usuário, de todos os usuários, 32 bits e pastas Inicializar) e ativa/desativa igual ao Gerenciador de Tarefas.
+- **Nome e domínio**: confere no AD (empresa.local, catálogo global) se o nome novo já existe — se existir, alerta com a OU, criação e último logon do objeto e bloqueia; se estiver livre, renomeia e ingressa no domínio com uma única reinicialização (ou só renomeia, se o PC já estiver no domínio). Valida as regras do nome (até 15 caracteres) e lembra o usuário e a OU usados (a senha nunca é salva).
 
 **Manutenção**
 - **Reparos rápidos**: fila de impressão, DNS, IP, rede, Windows Update, relógio e Explorer, com 1 clique.
