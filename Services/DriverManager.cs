@@ -32,6 +32,9 @@ public class DriverUpdate : Observable
 
 public record DriverInstallResult(int Installed, int Failed, bool RebootRequired, Dictionary<string, bool> PerUpdate);
 
+/// <summary>Andamento da instalação: qual driver (1 de N), em que etapa e o total em %.</summary>
+public record DriverInstallProgress(string UpdateId, int Index, int Count, string Title, string Phase, double Percent, bool? Success = null);
+
 /// <summary>
 /// Verificação e instalação de drivers só com ferramentas do próprio Windows:
 /// dispositivos com problema (WMI), catálogo de drivers do Windows Update (API do Windows Update)
@@ -142,41 +145,65 @@ public static class DriverManager
         return list;
     });
 
-    /// <summary>Baixa e instala os drivers escolhidos da última busca.</summary>
-    public static Task<DriverInstallResult> InstallWindowsUpdateAsync(IEnumerable<string> updateIds, Action<string> log) => Wua.Run(() =>
+    /// <summary>
+    /// Baixa e instala os drivers escolhidos da última busca, um por vez, para a tela mostrar qual está
+    /// em andamento. O total em % é pesado pelo tamanho de cada driver (baixar = 80% do peso, instalar = 20%).
+    /// </summary>
+    public static Task<DriverInstallResult> InstallWindowsUpdateAsync(IEnumerable<string> updateIds,
+        IProgress<DriverInstallProgress> progress, Action<string> log) => Wua.Run(() =>
     {
         if (_session == null) throw new InvalidOperationException("Faça a busca antes de instalar.");
-        dynamic collection = Activator.CreateInstance(Type.GetTypeFromProgID("Microsoft.Update.UpdateColl")!)!;
-        var ids = new List<string>();
-        foreach (var id in updateIds)
-        {
-            if (!Found.TryGetValue(id, out var u)) continue;
-            if (!(bool)u.EulaAccepted) u.AcceptEula();
-            collection.Add(u);
-            ids.Add(id);
-        }
-        if (ids.Count == 0) throw new InvalidOperationException("Nenhum driver selecionado.");
+        var chosen = updateIds.Where(Found.ContainsKey).Select(id => (Id: id, Update: Found[id])).ToList();
+        if (chosen.Count == 0) throw new InvalidOperationException("Nenhum driver selecionado.");
 
-        log($"Baixando {ids.Count} driver(s)...");
-        dynamic downloader = _session.CreateUpdateDownloader();
-        downloader.Updates = collection;
-        downloader.Download();
-
-        log("Instalando...");
-        dynamic installer = _session.CreateUpdateInstaller();
-        installer.Updates = collection;
-        dynamic result = installer.Install();
+        // Drivers pequenos (só .inf) contam no mínimo 1 MB, para a barra andar também com eles
+        var weights = chosen.Select(c => Math.Max(1_000_000d, Safe<double>(() => Convert.ToDouble((object)c.Update.MaxDownloadSize)))).ToList();
+        double total = weights.Sum(), done = 0;
 
         var per = new Dictionary<string, bool>();
         int ok = 0, failed = 0;
-        for (int i = 0; i < ids.Count; i++)
+        bool reboot = false;
+        for (int i = 0; i < chosen.Count; i++)
         {
-            int code = (int)result.GetUpdateResult(i).ResultCode; // 2 = sucesso, 3 = sucesso com erros
-            bool success = code is 2 or 3;
-            per[ids[i]] = success;
+            var (id, u) = chosen[i];
+            string title = Safe(() => (string)u.DriverModel);
+            if (title.Length == 0) title = (string)u.Title;
+            void Report(string phase, double fraction, bool? success = null) =>
+                progress.Report(new DriverInstallProgress(id, i + 1, chosen.Count, title, phase,
+                    Math.Min(100, (done + weights[i] * fraction) * 100 / total), success));
+
+            bool success = false;
+            try
+            {
+                if (!(bool)u.EulaAccepted) u.AcceptEula();
+                dynamic one = Activator.CreateInstance(Type.GetTypeFromProgID("Microsoft.Update.UpdateColl")!)!;
+                one.Add(u);
+
+                Report("Baixando", 0);
+                log($"[{i + 1}/{chosen.Count}] Baixando {title}...");
+                dynamic downloader = _session.CreateUpdateDownloader();
+                downloader.Updates = one;
+                int downloadCode = (int)downloader.Download().ResultCode;
+                if (downloadCode is not (2 or 3)) throw new InvalidOperationException($"download falhou (código {downloadCode})");
+
+                Report("Instalando", 0.8);
+                log($"[{i + 1}/{chosen.Count}] Instalando {title}...");
+                dynamic installer = _session.CreateUpdateInstaller();
+                installer.Updates = one;
+                dynamic result = installer.Install();
+                int code = (int)result.ResultCode; // 2 = sucesso, 3 = sucesso com erros
+                success = code is 2 or 3;
+                if ((bool)result.RebootRequired) reboot = true;
+                log($"[{i + 1}/{chosen.Count}] {title}: {(success ? "instalado" : $"falhou (código {code})")}");
+            }
+            catch (Exception ex) { log($"[{i + 1}/{chosen.Count}] {title}: falhou ({ex.Message})"); }
+
+            per[id] = success;
             if (success) ok++; else failed++;
+            done += weights[i];
+            Report(success ? "Instalado" : "Falhou", 0, success);
         }
-        return new DriverInstallResult(ok, failed, (bool)result.RebootRequired, per);
+        return new DriverInstallResult(ok, failed, reboot, per);
     });
 
     static T Safe<T>(Func<T> get)

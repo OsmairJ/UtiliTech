@@ -254,20 +254,31 @@ public partial class DriversPage : UserControl
         if (MessageBox.Show($"Baixar e instalar {chosen.Count} driver(s) do Windows Update?\n\nA tela de algum dispositivo (vídeo, rede) pode piscar durante a instalação.",
                 "UtiliTech", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
 
-        foreach (var u in chosen) { u.Status = "Na fila..."; u.StatusColor = Palette.Accent; }
-        SetWuBusy(true, $"Baixando e instalando {chosen.Count} driver(s)...");
+        foreach (var u in chosen) { u.Status = "Na fila"; u.StatusColor = Palette.Muted; }
+        SetWuBusy(true, $"Preparando {chosen.Count} driver(s)...");
+        WuBar.IsIndeterminate = false;
+        WuBar.Value = 0;
         Log("=== Instalação de drivers do Windows Update ===");
+        var byId = chosen.ToDictionary(u => u.UpdateId);
+        var progress = new Progress<DriverInstallProgress>(p =>
+        {
+            WuBar.Value = p.Percent;
+            SetWuStatus($"{p.Percent:0}% · {p.Index} de {p.Count} · {p.Phase} {p.Title}", Palette.Accent);
+            if (!byId.TryGetValue(p.UpdateId, out var item)) return;
+            item.Status = p.Success switch
+            {
+                true => "✓ Instalado",
+                false => "Falhou",
+                null => p.Phase + "...",
+            };
+            item.StatusColor = p.Success switch { true => Palette.Good, false => Palette.Bad, null => Palette.Accent };
+            if (p.Success == true) item.Selected = false;
+        });
         try
         {
-            var result = await DriverManager.InstallWindowsUpdateAsync(chosen.Select(u => u.UpdateId), m => Dispatcher.InvokeAsync(() => Log(m)));
-            foreach (var u in chosen)
-            {
-                bool ok = result.PerUpdate.TryGetValue(u.UpdateId, out var s) && s;
-                u.Status = ok ? "✓ Instalado" : "Falhou";
-                u.StatusColor = ok ? Palette.Good : Palette.Bad;
-                if (ok) u.Selected = false;
-                Log($"  {u.Title}: {(ok ? "instalado" : "falhou")}");
-            }
+            var result = await DriverManager.InstallWindowsUpdateAsync(chosen.Select(u => u.UpdateId), progress,
+                m => Dispatcher.InvokeAsync(() => Log(m)));
+            WuBar.Value = 100;
             SetWuStatus($"{result.Installed} instalado(s)" + (result.Failed > 0 ? $", {result.Failed} com falha" : "") +
                         (result.RebootRequired ? " · reinicie o PC para concluir" : ""),
                 result.Failed > 0 ? Palette.Warn : Palette.Good);
@@ -276,7 +287,7 @@ public partial class DriversPage : UserControl
         catch (Exception ex)
         {
             Logger.Error("Instalação de drivers do Windows Update", ex);
-            foreach (var u in chosen.Where(u => u.Status == "Na fila...")) { u.Status = "Falhou"; u.StatusColor = Palette.Bad; }
+            foreach (var u in chosen.Where(u => !u.Status.StartsWith("✓"))) { u.Status = "Falhou"; u.StatusColor = Palette.Bad; }
             SetWuStatus("A instalação falhou: " + ex.Message, Palette.Bad);
             Log("Falhou: " + ex.Message);
         }
@@ -287,6 +298,7 @@ public partial class DriversPage : UserControl
     {
         SearchBtn.IsEnabled = InstallBtn.IsEnabled = FolderBtn.IsEnabled = !busy;
         WuBar.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
+        WuBar.IsIndeterminate = true; // a busca não tem %; a instalação troca para a barra com %
         if (message != null) SetWuStatus(message, Palette.Accent);
     }
 
