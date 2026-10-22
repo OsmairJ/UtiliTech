@@ -29,8 +29,8 @@
 - [x] **Inventário em lote**: `atendimentos\inventario.xlsx` no pendrive, refeito sozinho a cada atendimento guardado (ou pelo botão "Inventário" na tela Atendimentos). Aba **Máquinas** (uma linha por máquina, pelo nº de série: modelo, processador, memória, discos, Windows, MAC/IP, saúde, primeiro e último atendimento, clientes) e aba **Atendimentos** (um por linha). Se estiver aberta no Excel, avisa e mantém a anterior.
 - [x] **Checklist de pós-formatação** (Pós-formatação → Checklist): Windows ativado, drivers, programas (Google Chrome, Mozilla Firefox e Microsoft 365; outro Office não conta), nome do computador (não o padrão DESKTOP-...), domínio, políticas de grupo, reinício pendente, discos e relatório guardado no histórico. Tudo conferido sozinho a cada vez que a tela abre, com atalho para a ferramenta de cada etapa que falta.
 
-## Fase 6 — Novas ferramentas
-- [ ] **Rede**: ping/traceroute, teste de DNS, IP/gateway, velocidade da placa, Wi-Fi e mapeamento de unidades e impressoras de rede.
+## Fase 6 — Novas ferramentas (em andamento)
+- [x] **Rede** (Diagnóstico → Rede): teste de conexão em etapas (IP → gateway → DNS → internet) com o diagnóstico em português e o que fazer; placas conectadas (IP, gateway, DNS, MAC, velocidade do link, aviso de cabo abaixo de 1 Gbps); Wi-Fi (rede, sinal, banda, canal); ping, rastrear rota e resolver nome; unidades de rede mapeadas e se estão acessíveis. Mapear unidades e impressoras de rede fica para a ferramenta de Impressoras.
 - [ ] **Impressoras**: listar, remover filas fantasmas, página de teste e instalar por IP.
 - [ ] **Usuários e perfis**: listar, apagar perfis antigos e copiar dados de um perfil para outro.
 - [ ] **Segurança do Windows**: Defender, BitLocker (com chave de recuperação), firewall, Secure Boot, TPM e atualizações pendentes.

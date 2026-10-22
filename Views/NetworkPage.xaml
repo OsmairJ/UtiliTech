@@ -1,0 +1,96 @@
+<UserControl x:Class="UtiliTech.Views.NetworkPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="0,0,12,0">
+      <DockPanel Margin="0,0,0,18">
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+          <Button Content="Atualizar" Style="{StaticResource BtnGhost}" Click="Refresh_Click" Margin="0,0,8,0"/>
+          <Button x:Name="TestBtn" Content="Testar conexão" Style="{StaticResource Btn}" Click="Test_Click"/>
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Text="Rede" Style="{StaticResource H1}"/>
+          <TextBlock x:Name="Status" Style="{StaticResource Muted}" Text="Placas, Wi-Fi, teste de conexão e unidades de rede."/>
+        </StackPanel>
+      </DockPanel>
+
+      <!-- Teste de conexão -->
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Teste de conexão" Style="{StaticResource H2}"/>
+          <TextBlock x:Name="DiagnosisText" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,0,0,10"
+                     Text="Clique em Testar conexão: confere IP, roteador, DNS e internet, nessa ordem, e diz onde está o problema."/>
+          <ItemsControl x:Name="StepList">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <DockPanel Margin="0,4">
+                  <TextBlock DockPanel.Dock="Left" Text="{Binding Glyph}" Style="{StaticResource Icon}" Foreground="{Binding Color}"
+                             Width="24" VerticalAlignment="Top" Margin="0,2,8,0"/>
+                  <TextBlock DockPanel.Dock="Left" Text="{Binding Name}" FontWeight="SemiBold" Width="190"/>
+                  <TextBlock Text="{Binding Detail}" Style="{StaticResource Muted}" TextWrapping="Wrap"/>
+                </DockPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <!-- Placas -->
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Placas de rede conectadas" Style="{StaticResource H2}"/>
+          <Border x:Name="WifiBox" CornerRadius="8" Padding="12,9" Margin="0,0,0,10" Background="{DynamicResource PanelBrush}" Visibility="Collapsed">
+            <TextBlock x:Name="WifiText" TextWrapping="Wrap"/>
+          </Border>
+          <TextBlock x:Name="NoAdapters" Style="{StaticResource Muted}" Text="Nenhuma placa de rede conectada." Visibility="Collapsed"/>
+          <ItemsControl x:Name="AdapterList">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <StackPanel Margin="0,0,0,12">
+                  <TextBlock Text="{Binding Title}" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                  <ItemsControl ItemsSource="{Binding Items}" ItemTemplate="{StaticResource InfoRow}"/>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <!-- Ferramentas -->
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Ferramentas" Style="{StaticResource H2}"/>
+          <DockPanel Margin="0,0,0,10">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+              <Button x:Name="PingBtn" Content="Ping" Style="{StaticResource BtnGhost}" Click="Ping_Click" Margin="8,0,0,0"/>
+              <Button x:Name="TraceBtn" Content="Rastrear rota" Style="{StaticResource BtnGhost}" Click="Trace_Click" Margin="8,0,0,0"/>
+              <Button x:Name="ResolveBtn" Content="Resolver nome" Style="{StaticResource BtnGhost}" Click="Resolve_Click" Margin="8,0,0,0"/>
+            </StackPanel>
+            <TextBox x:Name="HostBox" Style="{StaticResource Input}" VerticalContentAlignment="Center"
+                     ToolTip="Endereço IP ou nome (ex.: 192.168.0.1, servidor, www.exemplo.com.br)"/>
+          </DockPanel>
+          <TextBox x:Name="LogBox" Style="{StaticResource LogBox}" Height="170"/>
+        </StackPanel>
+      </Border>
+
+      <!-- Unidades mapeadas -->
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Unidades de rede mapeadas" Style="{StaticResource H2}"/>
+          <TextBlock x:Name="NoDrives" Style="{StaticResource Muted}" TextWrapping="Wrap"
+                     Text="Nenhuma unidade de rede mapeada para este usuário." Visibility="Collapsed"/>
+          <ItemsControl x:Name="DriveList">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <DockPanel Margin="0,3">
+                  <TextBlock DockPanel.Dock="Right" Text="{Binding State}" Foreground="{Binding Color}" FontWeight="SemiBold"/>
+                  <TextBlock Text="{Binding Title}"/>
+                </DockPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

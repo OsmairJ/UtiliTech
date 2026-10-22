@@ -86,6 +86,7 @@
               <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Bateria" Tag="battery" v:NavIcon.Glyph="&#xE83F;" Checked="Nav_Checked"/>
               <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Memória RAM" Tag="memory" v:NavIcon.Glyph="&#xE964;" Checked="Nav_Checked"/>
               <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Teste de estresse" Tag="stress" v:NavIcon.Glyph="&#xE945;" Checked="Nav_Checked"/>
+              <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Rede" Tag="network" v:NavIcon.Glyph="&#xE839;" Checked="Nav_Checked"/>
               <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Alertas" Tag="alerts" v:NavIcon.Glyph="&#xEA8F;" Checked="Nav_Checked"/>
             </StackPanel>
 
