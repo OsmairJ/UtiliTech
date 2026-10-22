@@ -36,6 +36,12 @@ public static class Repairs
         },
         new()
         {
+            Title = "Atualizar políticas de grupo",
+            Description = "Baixa de novo as políticas do domínio (gpupdate /force): mapeamentos de rede, impressoras, proxy e configurações da empresa. Use depois de ingressar no domínio ou quando uma política nova não chegou.",
+            Run = UpdateGroupPolicy,
+        },
+        new()
+        {
             Title = "Limpar cache DNS",
             Description = "Esquece os endereços de sites guardados. Resolve site que não abre só neste PC ou que abre a página antiga.",
             Run = async log => { await Step(log, "ipconfig", "/flushdns"); return "Cache DNS limpo"; },
@@ -106,6 +112,20 @@ public static class Repairs
         return removed > 0 ? $"Fila limpa ({removed / 2} trabalho(s) removido(s))" : "Spooler reiniciado (fila já estava vazia)";
     }
 
+    static async Task<string> UpdateGroupPolicy(Action<string> log)
+    {
+        var machine = DomainTools.Current();
+        if (!machine.PartOfDomain)
+            return "Este PC não está em um domínio: não há políticas de grupo para baixar";
+
+        // O gpupdate pode perguntar se faz logoff/reinicia (S/N); a entrada vai fechada, então ele não espera
+        // resposta. Se alguma política só vale no próximo logon/reinício, ele avisa no texto e o técnico decide.
+        int code = await Step(log, "gpupdate.exe", "/force /wait:300", timeoutMinutes: 6);
+        return code == 0
+            ? $"Políticas do domínio {machine.Domain} atualizadas"
+            : $"gpupdate terminou com código {code}: o PC está na rede da empresa? (veja o registro)";
+    }
+
     static async Task<string> ResetWindowsUpdate(Action<string> log)
     {
         string[] services = { "wuauserv", "bits", "cryptsvc", "msiserver" };
@@ -144,8 +164,12 @@ public static class Repairs
     static string ServiceState(string name) =>
         Wmi.Query($"SELECT State FROM Win32_Service WHERE Name='{name}'").Select(s => Wmi.Str(s, "State")).FirstOrDefault() ?? "";
 
-    /// <summary>Roda um comando do Windows, registra a saída e devolve o código de saída.</summary>
-    internal static async Task<int> Step(Action<string> log, string file, string args)
+    /// <summary>
+    /// Roda um comando do Windows, registra a saída linha a linha e devolve o código de saída.
+    /// Não espera a saída "fechar": alguns comandos (ex.: gpupdate) deixam processos em segundo plano
+    /// segurando a saída, e esperar por ela travaria o app. Passado o limite de tempo, encerra o comando.
+    /// </summary>
+    internal static async Task<int> Step(Action<string> log, string file, string args, int timeoutMinutes = 10)
     {
         log($"> {file} {args}");
         // Comandos de console (net, ipconfig, netsh) escrevem na página de código OEM (850 em português)
@@ -156,15 +180,36 @@ public static class Repairs
             CreateNoWindow = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
+            RedirectStandardInput = true,
             StandardOutputEncoding = oem,
             StandardErrorEncoding = oem,
         };
-        using var p = Process.Start(psi) ?? throw new InvalidOperationException($"Não foi possível executar {file}");
-        var stdout = p.StandardOutput.ReadToEndAsync();
-        var stderr = p.StandardError.ReadToEndAsync();
-        await p.WaitForExitAsync();
-        foreach (var line in (await stdout + "\n" + await stderr).Split('\n').Select(l => l.Trim()).Where(l => l.Length > 0))
-            log("  " + line);
+        using var p = new Process { StartInfo = psi };
+        void OnLine(object _, DataReceivedEventArgs e)
+        {
+            if (!string.IsNullOrWhiteSpace(e.Data)) log("  " + e.Data.Trim());
+        }
+        p.OutputDataReceived += OnLine;
+        p.ErrorDataReceived += OnLine;
+        if (!p.Start()) throw new InvalidOperationException($"Não foi possível executar {file}");
+        p.BeginOutputReadLine();
+        p.BeginErrorReadLine();
+        p.StandardInput.Close(); // nenhum comando fica esperando resposta do teclado
+
+        // HasExited olha só o processo; WaitForExitAsync também esperaria a saída fechar (e travaria)
+        var limit = DateTime.Now.AddMinutes(timeoutMinutes);
+        while (!p.HasExited)
+        {
+            if (DateTime.Now > limit)
+            {
+                try { p.Kill(entireProcessTree: true); }
+                catch { }
+                log($"  (encerrado após {timeoutMinutes} min sem terminar)");
+                return -1;
+            }
+            await Task.Delay(200);
+        }
+        await Task.Delay(300); // últimas linhas que ainda estavam a caminho
         return p.ExitCode;
     }
 }

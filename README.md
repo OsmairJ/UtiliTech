@@ -20,7 +20,7 @@ Ferramenta de bancada para técnico de informática (WPF .NET 8), inspirada no
 - **Nome e domínio**: confere no AD (empresa.local, catálogo global) se o nome novo já existe — se existir, alerta com a OU, criação e último logon do objeto e bloqueia; se estiver livre, renomeia e ingressa no domínio com uma única reinicialização (ou só renomeia, se o PC já estiver no domínio). Valida as regras do nome (até 15 caracteres) e lembra o usuário usado (a senha nunca é salva). Se o login for recusado, confere se o relógio do PC está diferente do servidor (causa comum em PC recém-formatado).
 
 **Manutenção**
-- **Reparos rápidos**: fila de impressão, DNS, IP, rede, Windows Update, relógio e Explorer, com 1 clique.
+- **Reparos rápidos**: atualizar políticas de grupo (gpupdate /force), fila de impressão, DNS, IP, rede, Windows Update, relógio e Explorer, com 1 clique.
 - **Limpeza**: mostra quanto cada categoria ocupa e apaga só o que for marcado.
 - **Drivers**: lista os dispositivos com problema (sem driver, código 28, 43...), procura no Windows Update os drivers que faltam ou estão desatualizados e instala os marcados, e instala pacotes de driver de uma pasta (ex.: `InstaladoresDrivers` no pendrive), sem internet. **Placa de vídeo**: NVIDIA consulta o driver mais novo no site da NVIDIA, baixa, confere a assinatura digital e instala em silêncio; AMD abre a detecção automática do site da AMD; Intel instala o Intel Driver & Support Assistant.
 
