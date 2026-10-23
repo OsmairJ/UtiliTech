@@ -20,6 +20,42 @@
 
   <ScrollViewer VerticalScrollBarVisibility="Auto">
     <StackPanel Margin="0,0,12,12">
+      <!-- Problemas encontrados: o que as ferramentas acharam, com o botão que resolve -->
+      <Border Style="{StaticResource Card}" Margin="0,0,0,12" Padding="20,14">
+        <StackPanel>
+          <DockPanel>
+            <Button x:Name="IssuesRefresh" DockPanel.Dock="Right" Content="Verificar de novo" Style="{StaticResource BtnGhost}" Padding="10,4"
+                    FontSize="12" VerticalAlignment="Center" Click="IssuesRefresh_Click"/>
+            <TextBlock x:Name="IssuesIcon" DockPanel.Dock="Left" Style="{StaticResource Icon}" FontSize="18" VerticalAlignment="Center" Margin="0,0,10,0"
+                       Text="&#xE9F5;" Foreground="{DynamicResource MutedBrush}"/>
+            <StackPanel VerticalAlignment="Center">
+              <TextBlock x:Name="IssuesTitle" Text="Procurando problemas..." FontSize="16" FontWeight="SemiBold"/>
+              <TextBlock x:Name="IssuesSubtitle" Style="{StaticResource Muted}" FontSize="12" Margin="0,2,0,0"
+                         Text="Discos, espaço, drivers, bateria, segurança e eventos dos últimos 30 dias"/>
+            </StackPanel>
+          </DockPanel>
+          <ItemsControl x:Name="IssueList" Margin="0,8,0,0">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border Margin="0,6,0,0" Padding="12,8" CornerRadius="8" Background="{DynamicResource PanelBrush}">
+                  <DockPanel>
+                    <Button DockPanel.Dock="Right" Content="{Binding Action}" Tag="{Binding Page}" Style="{StaticResource BtnGhost}" Padding="12,5"
+                            VerticalAlignment="Center" Margin="12,0,0,0" Click="Issue_Click"
+                            Visibility="{Binding HasAction, Converter={StaticResource BoolToVisibility}}"/>
+                    <TextBlock DockPanel.Dock="Left" Text="{Binding Glyph}" Style="{StaticResource Icon}" Foreground="{Binding Color}"
+                               VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <StackPanel VerticalAlignment="Center">
+                      <TextBlock Text="{Binding Title}" FontWeight="SemiBold"/>
+                      <TextBlock Text="{Binding Detail}" Style="{StaticResource Muted}" FontSize="12" TextWrapping="Wrap" Margin="0,1,0,0"/>
+                    </StackPanel>
+                  </DockPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
       <Grid Margin="0,0,0,12">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="2*"/>

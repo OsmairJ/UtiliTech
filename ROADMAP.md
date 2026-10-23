@@ -39,7 +39,7 @@
 
 ## Fase 7 — Interface e usabilidade (em andamento)
 - [x] **Busca no menu (Ctrl+K)**: Ctrl+K em qualquer tela (ou o botão Buscar na barra de título) abre a busca; acha as 23 telas e ~40 ferramentas dentro delas (reparos, chave do BitLocker, mapear unidade, instalar impressora pelo IP...) pelo nome ou por sinônimo (bsod, gpupdate, spooler, service tag), sem diferenciar acentos; setas escolhem, Enter abre, Esc fecha.
-- [ ] **"Problemas encontrados"** na Visão geral, com o botão que resolve.
+- [x] **"Problemas encontrados"** no topo da Visão geral: junta discos com falha, pouco espaço, drivers e vídeo sem driver, bateria gasta, segurança (antivírus/firewall/assinaturas/atualizações), eventos dos últimos 30 dias (telas azuis, erros de disco, desligamentos repetidos, vídeo, WHEA), Windows não ativado e reinício pendente, graves primeiro, cada um com o botão que leva à ferramenta.
 - [ ] **Telas pequenas e DPI** (notebooks 1366×768) e atalhos de teclado.
 - [ ] **Notas da versão** ao abrir depois de atualizar.
 

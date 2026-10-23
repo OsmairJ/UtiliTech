@@ -59,6 +59,7 @@ public partial class OverviewPage : UserControl
             SensorHub.Updated += s => Dispatcher.InvokeAsync(() => { if (IsVisible) Render(s); });
             _ = LoadSummaryAsync();
             _ = LoadHealthAsync();
+            _ = LoadIssuesAsync();
             RefreshEvents();
             await SensorHub.StartAsync();
             if (SensorHub.Last is { } last) Render(last);
@@ -217,6 +218,57 @@ public partial class OverviewPage : UserControl
         });
         HealthList.ItemsSource = items;
         HealthLoading.Visibility = Visibility.Collapsed;
+    }
+
+    // ---------- Problemas encontrados ----------
+
+    bool _issuesBusy;
+
+    async Task LoadIssuesAsync()
+    {
+        if (_issuesBusy) return;
+        _issuesBusy = true;
+        IssuesRefresh.IsEnabled = false;
+        IssuesTitle.Text = "Procurando problemas...";
+        IssuesIcon.Text = "";
+        IssuesIcon.Foreground = Ui.Hex(Palette.Muted);
+        try
+        {
+            var issues = await Task.Run(() => PcIssues.Build(PcIssues.Gather()));
+            IssueList.ItemsSource = issues;
+            int serious = issues.Count(i => i.Serious);
+            if (issues.Count == 0)
+            {
+                IssuesTitle.Text = "Nenhum problema encontrado";
+                IssuesIcon.Text = "";
+                IssuesIcon.Foreground = Ui.Hex(Palette.Good);
+            }
+            else
+            {
+                IssuesTitle.Text = $"{issues.Count} problema(s) encontrado(s)" + (serious > 0 ? $" · {serious} grave(s)" : "");
+                IssuesIcon.Text = serious > 0 ? "" : "";
+                IssuesIcon.Foreground = Ui.Hex(serious > 0 ? Palette.Bad : Palette.Warn);
+            }
+            IssuesSubtitle.Text = $"Discos, espaço, drivers, bateria, segurança e eventos dos últimos {PcIssues.EventDays} dias · verificado às {DateTime.Now:HH:mm}";
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Problemas encontrados", ex);
+            IssuesTitle.Text = "Não foi possível verificar";
+            IssuesSubtitle.Text = ex.Message;
+        }
+        finally
+        {
+            _issuesBusy = false;
+            IssuesRefresh.IsEnabled = true;
+        }
+    }
+
+    async void IssuesRefresh_Click(object sender, RoutedEventArgs e) => await LoadIssuesAsync();
+
+    void Issue_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: string page } && page.Length > 0) MainWindow.Navigate(page);
     }
 
     // ---------- Eventos recentes ----------

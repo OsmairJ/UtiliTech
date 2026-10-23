@@ -5,7 +5,7 @@ Ferramenta de bancada para técnico de informática (WPF .NET 8), inspirada no
 
 ## Módulos
 
-**Visão geral** (tela inicial): gráfico de temperatura/carga/consumo da CPU e da GPU (1, 5 ou 15 min), resumo do PC (modelo, nº de série, Windows), tabela de componentes (temperatura, carga, clock, consumo) com atalho para cada tela, memória e disco, eventos recentes e saúde do PC (discos, bateria, drivers).
+**Visão geral** (tela inicial): no topo, **Problemas encontrados** junta o que as ferramentas acham (disco com falha, pouco espaço, drivers, bateria gasta, antivírus/firewall, telas azuis e erros de disco dos últimos 30 dias, Windows não ativado, reinício pendente), graves primeiro, cada um com o botão que leva à tela que resolve. Depois, gráfico de temperatura/carga/consumo da CPU e da GPU (1, 5 ou 15 min), resumo do PC (modelo, nº de série, Windows), tabela de componentes (temperatura, carga, clock, consumo) com atalho para cada tela, memória e disco, eventos recentes e saúde do PC (discos, bateria, drivers).
 
 **Busca rápida (Ctrl+K)**: em qualquer tela, Ctrl+K (ou o botão Buscar na barra de título) abre a busca. Digite o que precisa, como "tela azul", "bitlocker", "gpupdate", "impressora" ou "perfil antigo": aparecem as telas e as ferramentas dentro delas, sem diferenciar acentos. Setas escolhem, Enter abre, Esc fecha.
 
