@@ -131,6 +131,7 @@ public partial class MainWindow : Window
                 "system" => new SystemPage(),
                 "monitor" => new MonitorPage(),
                 "disks" => new DisksPage(),
+                "diskspeed" => new DiskSpeedPage(),
                 "battery" => new BatteryPage(),
                 "memory" => new MemoryPage(),
                 "stress" => new StressPage(),

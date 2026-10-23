@@ -83,6 +83,7 @@
               <RadioButton x:Name="NavSystem" GroupName="Nav" Style="{StaticResource NavItem}" Content="Sistema" Tag="system" v:NavIcon.Glyph="&#xE770;" Checked="Nav_Checked"/>
               <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Monitor" Tag="monitor" v:NavIcon.Glyph="&#xE9D9;" Checked="Nav_Checked"/>
               <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Discos (S.M.A.R.T.)" Tag="disks" v:NavIcon.Glyph="&#xEDA2;" Checked="Nav_Checked"/>
+              <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Velocidade do disco" Tag="diskspeed" v:NavIcon.Glyph="&#xEC4A;" Checked="Nav_Checked"/>
               <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Bateria" Tag="battery" v:NavIcon.Glyph="&#xE83F;" Checked="Nav_Checked"/>
               <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Memória RAM" Tag="memory" v:NavIcon.Glyph="&#xE964;" Checked="Nav_Checked"/>
               <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Teste de estresse" Tag="stress" v:NavIcon.Glyph="&#xE945;" Checked="Nav_Checked"/>

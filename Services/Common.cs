@@ -24,6 +24,7 @@ public static class AppState
 {
     public static string? LastMemoryTest { get; set; }
     public static string? LastStressTest { get; set; }
+    public static string? LastDiskSpeed { get; set; }
     /// <summary>Versão nova encontrada ao abrir o app (null = nenhuma ou não verificado).</summary>
     public static UpdateInfo? AvailableUpdate { get; set; }
 
@@ -33,6 +34,7 @@ public static class AppState
         var lines = new List<string>();
         if (LastMemoryTest != null) lines.Add("Memória RAM: " + LastMemoryTest);
         if (LastStressTest != null) lines.Add("Estresse da CPU: " + LastStressTest);
+        if (LastDiskSpeed != null) lines.Add("Velocidade do disco: " + LastDiskSpeed);
         return lines.Count > 0 ? string.Join("\n", lines) : null;
     }
 }

@@ -1,0 +1,84 @@
+<UserControl x:Class="UtiliTech.Views.DiskSpeedPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="0,0,12,0">
+      <StackPanel Margin="0,0,0,18">
+        <TextBlock Text="Velocidade do disco" Style="{StaticResource H1}"/>
+        <TextBlock x:Name="Status" Style="{StaticResource Muted}"
+                   Text="Mede leitura e gravação de verdade (sem o cache do Windows), como o CrystalDiskMark. Leva de 20 segundos a 2 minutos."/>
+      </StackPanel>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <Grid Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition/>
+              <ColumnDefinition Width="12"/>
+              <ColumnDefinition Width="150"/>
+              <ColumnDefinition Width="12"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+              <TextBlock Text="Unidade" Style="{StaticResource Label}"/>
+              <ComboBox x:Name="DriveBox" Padding="8,6"/>
+            </StackPanel>
+            <StackPanel Grid.Column="2">
+              <TextBlock Text="Tamanho do teste" Style="{StaticResource Label}"/>
+              <ComboBox x:Name="SizeBox" Padding="8,6" DisplayMemberPath="Label" SelectedIndex="1"/>
+            </StackPanel>
+            <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Bottom">
+              <Button x:Name="StopBtn" Content="Parar" Style="{StaticResource BtnGhost}" Click="Stop_Click" Margin="0,0,8,0" Visibility="Collapsed"/>
+              <Button x:Name="StartBtn" Content="Testar velocidade" Style="{StaticResource Btn}" Click="Start_Click"/>
+            </StackPanel>
+          </Grid>
+          <TextBlock x:Name="ProgressText" Style="{StaticResource Muted}" FontSize="12" Margin="0,0,0,10" TextWrapping="Wrap"
+                     Text="Grava um arquivo temporário na unidade escolhida e apaga no fim. Feche programas pesados antes para o resultado ser fiel."/>
+
+          <!-- Resultados -->
+          <UniformGrid Columns="4" Margin="0,0,0,12">
+            <Border Margin="0,0,8,0" Padding="14,12" CornerRadius="10" Background="{DynamicResource PanelBrush}">
+              <StackPanel>
+                <TextBlock Text="LEITURA SEQUENCIAL" Style="{StaticResource Caption}"/>
+                <TextBlock x:Name="SeqReadText" Text="—" Style="{StaticResource BigNumber}"/>
+                <TextBlock Text="MB/s · arquivos grandes" Style="{StaticResource Muted}" FontSize="11"/>
+              </StackPanel>
+            </Border>
+            <Border Margin="0,0,8,0" Padding="14,12" CornerRadius="10" Background="{DynamicResource PanelBrush}">
+              <StackPanel>
+                <TextBlock Text="GRAVAÇÃO SEQUENCIAL" Style="{StaticResource Caption}"/>
+                <TextBlock x:Name="SeqWriteText" Text="—" Style="{StaticResource BigNumber}"/>
+                <TextBlock Text="MB/s · copiar arquivos grandes" Style="{StaticResource Muted}" FontSize="11"/>
+              </StackPanel>
+            </Border>
+            <Border Margin="0,0,8,0" Padding="14,12" CornerRadius="10" Background="{DynamicResource PanelBrush}">
+              <StackPanel>
+                <TextBlock Text="LEITURA ALEATÓRIA 4K" Style="{StaticResource Caption}"/>
+                <TextBlock x:Name="RandReadText" Text="—" Style="{StaticResource BigNumber}"/>
+                <TextBlock x:Name="RandReadIops" Text="MB/s · abrir Windows e programas" Style="{StaticResource Muted}" FontSize="11"/>
+              </StackPanel>
+            </Border>
+            <Border Padding="14,12" CornerRadius="10" Background="{DynamicResource PanelBrush}">
+              <StackPanel>
+                <TextBlock Text="GRAVAÇÃO ALEATÓRIA 4K" Style="{StaticResource Caption}"/>
+                <TextBlock x:Name="RandWriteText" Text="—" Style="{StaticResource BigNumber}"/>
+                <TextBlock x:Name="RandWriteIops" Text="MB/s · salvar, atualizar, instalar" Style="{StaticResource Muted}" FontSize="11"/>
+              </StackPanel>
+            </Border>
+          </UniformGrid>
+
+          <TextBlock x:Name="VerdictText" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Visibility="Collapsed"/>
+          <TextBlock x:Name="AdviceText" Style="{StaticResource Muted}" Margin="0,4,0,0" TextWrapping="Wrap" Visibility="Collapsed"/>
+        </StackPanel>
+      </Border>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Para comparar" Style="{StaticResource H2}"/>
+          <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" LineHeight="20"
+                     Text="HD mecânico: 100 a 200 MB/s sequencial e só 0,5 a 2 MB/s em 4K · SSD SATA: 450 a 550 MB/s e 20 a 50 MB/s em 4K · SSD NVMe: 1.500 a 7.000 MB/s e 40 a 90 MB/s em 4K · Pendrive USB 2.0: até 35 MB/s."/>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>
