@@ -1,0 +1,195 @@
+using System.Diagnostics;
+using System.Management;
+using System.Net;
+using System.Text.RegularExpressions;
+
+namespace UtiliTech.Services;
+
+/// <summary>Uma impressora instalada no PC.</summary>
+public class PrinterInfo : Observable
+{
+    public string Name { get; init; } = "";
+    public string Driver { get; init; } = "";
+    public string Port { get; init; } = "";
+    /// <summary>IP/nome da impressora (porta TCP/IP) ou servidor (impressora compartilhada); vazio se local.</summary>
+    public string Host { get; init; } = "";
+    public bool IsDefault { get; init; }
+    public bool Offline { get; init; }
+    /// <summary>Conexão a uma impressora compartilhada (\\servidor\impressora).</summary>
+    public bool IsShared { get; init; }
+    public int Jobs { get; init; }
+
+    public bool IsVirtual => PrinterTools.IsVirtual(Port, Driver);
+    public bool CanSetDefault => !IsDefault;
+    public bool HasJobs => Jobs > 0;
+    public bool IsGhost => PrinterTools.IsGhost(Name);
+
+    public string Detail => string.Join(" · ", new[]
+    {
+        Driver,
+        Host.Length > 0 ? (IsShared ? $"servidor {Host}" : $"IP {Host}") : Port,
+        Jobs > 0 ? $"{Jobs} documento(s) na fila" : "",
+    }.Where(s => s.Length > 0));
+
+    public string Badges => string.Join("  ", new[]
+    {
+        IsDefault ? "PADRÃO" : "",
+        IsGhost ? "CÓPIA (fila fantasma?)" : "",
+        Offline ? "OFFLINE" : "",
+        IsVirtual ? "virtual" : "",
+    }.Where(s => s.Length > 0));
+
+    public string BadgeColor => IsGhost || Offline ? Palette.Warn : IsDefault ? Palette.Accent : Palette.Muted;
+
+    string _reach = "";
+    /// <summary>Resultado do ping no IP/servidor ("responde" / "não responde").</summary>
+    public string Reach { get => _reach; set => SetField(ref _reach, value); }
+
+    string _reachColor = Palette.Muted;
+    public string ReachColor { get => _reachColor; set => SetField(ref _reachColor, value); }
+}
+
+/// <summary>
+/// Impressoras: lista (porta, IP, fila, padrão, offline, cópias fantasmas), página de teste, padrão,
+/// limpar fila, remover, instalar por IP e conectar impressora compartilhada.
+/// </summary>
+public static class PrinterTools
+{
+    // ---------- Lista ----------
+
+    public static List<PrinterInfo> List()
+    {
+        var ports = Wmi.Query("SELECT Name, HostAddress FROM Win32_TCPIPPrinterPort")
+            .ToDictionary(p => Wmi.Str(p, "Name"), p => Wmi.Str(p, "HostAddress"), StringComparer.OrdinalIgnoreCase);
+        var jobs = Wmi.Query("SELECT Name FROM Win32_PrintJob")
+            .GroupBy(j => JobPrinter(Wmi.Str(j, "Name")), StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase);
+
+        return Wmi.Query("SELECT Name, DriverName, PortName, Default, WorkOffline, ServerName FROM Win32_Printer")
+            .Select(p =>
+            {
+                string name = Wmi.Str(p, "Name"), port = Wmi.Str(p, "PortName"), server = Wmi.Str(p, "ServerName").TrimStart('\\');
+                return new PrinterInfo
+                {
+                    Name = name,
+                    Driver = Wmi.Str(p, "DriverName"),
+                    Port = port,
+                    Host = server.Length > 0 ? server : ports.GetValueOrDefault(port, ""),
+                    IsShared = server.Length > 0,
+                    IsDefault = Wmi.Get(p, "Default") is true,
+                    Offline = Wmi.Get(p, "WorkOffline") is true,
+                    Jobs = jobs.GetValueOrDefault(name),
+                };
+            })
+            .OrderByDescending(p => p.IsDefault).ThenBy(p => p.IsVirtual).ThenBy(p => p.Name)
+            .ToList();
+    }
+
+    /// <summary>Win32_PrintJob.Name vem como "Nome da impressora, 12": tira o número do trabalho.</summary>
+    public static string JobPrinter(string jobName)
+    {
+        int i = jobName.LastIndexOf(", ", StringComparison.Ordinal);
+        return i > 0 ? jobName[..i] : jobName;
+    }
+
+    /// <summary>"HP Universal (Cópia 1)" / "(Copy 2)": o Windows cria quando o driver é instalado de novo por cima.</summary>
+    public static bool IsGhost(string name) => Regex.IsMatch(name, @"\((Cópia|Copia|Copy) \d+\)", RegexOptions.IgnoreCase);
+
+    /// <summary>Impressoras que não imprimem em papel (PDF, OneNote, XPS, Fax).</summary>
+    public static bool IsVirtual(string port, string driver) =>
+        port.Equals("nul:", StringComparison.OrdinalIgnoreCase) || port.Equals("PORTPROMPT:", StringComparison.OrdinalIgnoreCase) ||
+        port.StartsWith("SHRFAX", StringComparison.OrdinalIgnoreCase) ||
+        new[] { "PDF", "OneNote", "XPS", "Fax" }.Any(k => driver.Contains(k, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>Drivers de impressora instalados ("Nome,4,Windows x64" vira "Nome"), sem repetir.</summary>
+    public static List<string> Drivers() =>
+        Wmi.Query("SELECT Name FROM Win32_PrinterDriver").Select(d => DriverName(Wmi.Str(d, "Name")))
+            .Where(n => n.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(n => n).ToList();
+
+    public static string DriverName(string wmiName)
+    {
+        int i = wmiName.IndexOf(',');
+        return (i >= 0 ? wmiName[..i] : wmiName).Trim();
+    }
+
+    // ---------- Ações ----------
+
+    static ManagementObject? Find(string name) =>
+        Wmi.Query($"SELECT * FROM Win32_Printer WHERE Name='{WmiEscape(name)}'").FirstOrDefault();
+
+    public static string WmiEscape(string s) => s.Replace("\\", "\\\\").Replace("'", "\\'");
+
+    static uint Invoke(string name, string method)
+    {
+        using var p = Find(name) ?? throw new InvalidOperationException($"A impressora \"{name}\" não foi encontrada.");
+        return Convert.ToUInt32(p.InvokeMethod(method, null) ?? 0u);
+    }
+
+    public static string PrintTestPage(string name)
+    {
+        uint code = Invoke(name, "PrintTestPage");
+        return code == 0 ? "Página de teste enviada" : $"O Windows recusou a página de teste (código {code})";
+    }
+
+    public static string SetDefault(string name)
+    {
+        uint code = Invoke(name, "SetDefaultPrinter");
+        return code == 0 ? "Definida como padrão" : $"Não foi possível definir como padrão (código {code})";
+    }
+
+    /// <summary>Cancela os documentos da fila desta impressora. Devolve quantos saíram.</summary>
+    public static int ClearQueue(string name)
+    {
+        int removed = 0;
+        foreach (var job in Wmi.Query("SELECT * FROM Win32_PrintJob"))
+        {
+            if (!JobPrinter(Wmi.Str(job, "Name")).Equals(name, StringComparison.OrdinalIgnoreCase)) continue;
+            try { job.Delete(); removed++; }
+            catch { }
+        }
+        return removed;
+    }
+
+    public static void Remove(string name)
+    {
+        using var p = Find(name) ?? throw new InvalidOperationException($"A impressora \"{name}\" não foi encontrada.");
+        p.Delete();
+    }
+
+    public static void OpenQueue(string name) =>
+        Process.Start(new ProcessStartInfo("rundll32.exe", $"printui.dll,PrintUIEntry /o /n \"{name}\"") { UseShellExecute = false });
+
+    // ---------- Instalar ----------
+
+    public static bool IsValidIp(string ip) =>
+        Regex.IsMatch(ip, @"^\d{1,3}(\.\d{1,3}){3}$") && IPAddress.TryParse(ip, out var a) &&
+        ip.Split('.').All(p => int.Parse(p) <= 255) && !ip.StartsWith("0.") && ip != "255.255.255.255";
+
+    /// <summary>Nome da impressora: sem aspas, barras nem caracteres de controle (vai num comando do PowerShell).</summary>
+    public static bool IsValidPrinterName(string name) =>
+        name.Trim().Length is > 0 and <= 80 && !name.Any(c => c is '"' or '\\' or '/' or ',' or '`' or '$' || char.IsControl(c));
+
+    /// <summary>\\servidor\impressora</summary>
+    public static bool IsValidSharePath(string path) =>
+        Regex.IsMatch(path, @"^\\\\[A-Za-z0-9._-]+\\[^\\""`$\r\n]+$");
+
+    /// <summary>Texto entre aspas simples do PowerShell (aspas simples viram duas).</summary>
+    public static string PsQuote(string s) => "'" + s.Replace("'", "''") + "'";
+
+    /// <summary>Script que cria a porta TCP/IP (se ainda não existe) e a impressora.</summary>
+    public static string InstallScript(string ip, string name, string driver)
+    {
+        string port = PsQuote("IP_" + ip);
+        return $"$ErrorActionPreference='Stop'; " +
+               $"if (-not (Get-PrinterPort -Name {port} -ErrorAction SilentlyContinue)) {{ Add-PrinterPort -Name {port} -PrinterHostAddress {PsQuote(ip)} }}; " +
+               $"Add-Printer -Name {PsQuote(name.Trim())} -DriverName {PsQuote(driver)} -PortName {port}; " +
+               $"Write-Output 'Impressora criada'";
+    }
+
+    public static string ConnectScript(string sharePath) =>
+        $"$ErrorActionPreference='Stop'; Add-Printer -ConnectionName {PsQuote(sharePath)}; Write-Output 'Impressora conectada'";
+
+    /// <summary>Roda um script do PowerShell com a saída no registro. Devolve o código de saída.</summary>
+    public static Task<int> RunPowerShell(string script, Action<string> log) =>
+        Repairs.Step(log, "powershell.exe", $"-NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"{script}\"", timeoutMinutes: 3);
+}

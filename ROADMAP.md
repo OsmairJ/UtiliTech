@@ -31,7 +31,7 @@
 
 ## Fase 6 — Novas ferramentas (em andamento)
 - [x] **Rede** (Diagnóstico → Rede): teste de conexão em etapas (IP → gateway → DNS → internet) com o diagnóstico em português e o que fazer; placas conectadas (IP, gateway, DNS, MAC, velocidade do link, aviso de cabo abaixo de 1 Gbps); Wi-Fi (rede, sinal, banda, canal); ping, rastrear rota e resolver nome; unidades de rede mapeadas e se estão acessíveis. Mapear unidades e impressoras de rede fica para a ferramenta de Impressoras.
-- [ ] **Impressoras**: listar, remover filas fantasmas, página de teste e instalar por IP.
+- [x] **Impressoras** (Manutenção → Impressoras): lista com driver, IP/servidor e se responde, fila, padrão, offline e cópias fantasmas ("Cópia 1"); página de teste, definir padrão, limpar fila, abrir fila e remover (com confirmação); instalar pelo IP escolhendo o driver instalado (porta TCP/IP + impressora) e conectar impressora compartilhada (\\servidor\impressora). Na tela Rede: mapear unidade de rede (net use, persistente).
 - [ ] **Usuários e perfis**: listar, apagar perfis antigos e copiar dados de um perfil para outro.
 - [ ] **Segurança do Windows**: Defender, BitLocker (com chave de recuperação), firewall, Secure Boot, TPM e atualizações pendentes.
 - [ ] **Eventos simplificados**: telas azuis (minidump), desligamentos inesperados e erros de disco explicados em português.

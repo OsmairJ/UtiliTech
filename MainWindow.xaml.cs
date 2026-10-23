@@ -143,6 +143,7 @@ public partial class MainWindow : Window
                 "repairs" => new RepairsPage(),
                 "cleanup" => new CleanupPage(),
                 "drivers" => new DriversPage(),
+                "printers" => new PrintersPage(),
                 "settings" => new SettingsPage(),
                 _ => throw new ArgumentOutOfRangeException(nameof(key), key, null)
             };

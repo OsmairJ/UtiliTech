@@ -89,6 +89,14 @@
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
+          <TextBlock Text="Mapear nova unidade" Style="{StaticResource Label}" Margin="0,14,0,4"/>
+          <DockPanel>
+            <ComboBox x:Name="LetterBox" DockPanel.Dock="Left" Width="64" Margin="0,0,8,0" Padding="8,6"/>
+            <Button x:Name="MapBtn" DockPanel.Dock="Right" Content="Mapear" Style="{StaticResource Btn}" Click="Map_Click" Margin="8,0,0,0"/>
+            <TextBox x:Name="SharePathBox" Style="{StaticResource Input}" VerticalContentAlignment="Center" ToolTip="Ex.: \\servidor\arquivos"/>
+          </DockPanel>
+          <TextBlock Style="{StaticResource Muted}" FontSize="11" Margin="0,6,0,0" TextWrapping="Wrap"
+                     Text="Formato \\servidor\pasta. Fica gravada para o usuário e aparece no Explorer depois de sair e entrar de novo no Windows (o UtiliTech roda como administrador, numa sessão separada)."/>
         </StackPanel>
       </Border>
     </StackPanel>

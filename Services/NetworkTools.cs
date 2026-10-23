@@ -303,6 +303,27 @@ public static class NetworkTools
         return list;
     }
 
+    /// <summary>Letras livres para mapear (D a Z), sem as usadas por discos, pendrives e unidades já mapeadas.</summary>
+    public static List<string> FreeLetters(IEnumerable<MappedDrive> mapped)
+    {
+        var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        try { foreach (var d in DriveInfo.GetDrives()) used.Add(d.Name[..1]); }
+        catch { }
+        foreach (var m in mapped) used.Add(m.Letter);
+        return FreeLetters(used);
+    }
+
+    public static List<string> FreeLetters(ISet<string> used) =>
+        Enumerable.Range('D', 'Z' - 'D' + 1).Select(c => ((char)c).ToString()).Where(l => !used.Contains(l)).ToList();
+
+    /// <summary>\\servidor\pasta (com subpastas); sem aspas nem caracteres que mudem a linha de comando.</summary>
+    public static bool IsValidUncPath(string path) =>
+        System.Text.RegularExpressions.Regex.IsMatch(path, @"^\\\\[A-Za-z0-9._-]+(\\[^\\""<>|*?\r\n%&^]+)+$");
+
+    /// <summary>net use X: \\servidor\pasta /persistent:yes (grava para o usuário).</summary>
+    public static Task<int> MapDriveAsync(string letter, string path, Action<string> log) =>
+        Repairs.Step(log, "net", $"use {letter}: \"{path}\" /persistent:yes", timeoutMinutes: 1);
+
     /// <summary>O caminho de rede responde? (até 4 s, para servidor fora do ar não travar a tela)</summary>
     public static async Task<bool> ReachableAsync(string uncPath)
     {

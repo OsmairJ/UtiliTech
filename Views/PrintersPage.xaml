@@ -1,0 +1,103 @@
+<UserControl x:Class="UtiliTech.Views.PrintersPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="0,0,12,0">
+      <DockPanel Margin="0,0,0,18">
+        <Button DockPanel.Dock="Right" Content="Atualizar" Style="{StaticResource BtnGhost}" VerticalAlignment="Center" Click="Refresh_Click"/>
+        <StackPanel>
+          <TextBlock Text="Impressoras" Style="{StaticResource H1}"/>
+          <TextBlock x:Name="Status" Style="{StaticResource Muted}" Text="Lendo as impressoras..."/>
+        </StackPanel>
+      </DockPanel>
+
+      <!-- Impressoras instaladas -->
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Instaladas neste PC" Style="{StaticResource H2}"/>
+          <TextBlock Style="{StaticResource Muted}" FontSize="11" Margin="0,0,0,10" TextWrapping="Wrap"
+                     Text="Nada sai em nenhuma impressora? Use Reparos → Destravar fila de impressão. &quot;Cópia 1&quot; costuma ser fila fantasma de driver instalado duas vezes: teste e remova a que não imprime."/>
+          <ItemsControl x:Name="PrinterList">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border Margin="0,0,0,8" Padding="14,11" CornerRadius="8" Background="{DynamicResource PanelBrush}"
+                        BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
+                  <DockPanel>
+                    <WrapPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="12,0,0,0" MaxWidth="460" HorizontalAlignment="Right">
+                      <Button Content="Página de teste" Tag="test" Style="{StaticResource BtnGhost}" Padding="10,5" Margin="0,2,6,2" Click="Action_Click"/>
+                      <Button Content="Padrão" Tag="default" Style="{StaticResource BtnGhost}" Padding="10,5" Margin="0,2,6,2" Click="Action_Click"
+                              Visibility="{Binding CanSetDefault, Converter={StaticResource BoolToVisibility}}"/>
+                      <Button Content="Limpar fila" Tag="clear" Style="{StaticResource BtnGhost}" Padding="10,5" Margin="0,2,6,2" Click="Action_Click"
+                              Visibility="{Binding HasJobs, Converter={StaticResource BoolToVisibility}}"/>
+                      <Button Content="Abrir fila" Tag="queue" Style="{StaticResource BtnGhost}" Padding="10,5" Margin="0,2,6,2" Click="Action_Click"/>
+                      <Button Content="Remover" Tag="remove" Style="{StaticResource BtnGhost}" Padding="10,5" Margin="0,2,0,2" Click="Action_Click"/>
+                    </WrapPanel>
+                    <StackPanel VerticalAlignment="Center">
+                      <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14"/>
+                        <TextBlock Text="{Binding Badges}" Foreground="{Binding BadgeColor}" FontSize="11" FontWeight="Bold" Margin="10,2,0,0"/>
+                      </StackPanel>
+                      <TextBlock Text="{Binding Detail}" Style="{StaticResource Muted}" Margin="0,3,0,0" TextWrapping="Wrap"/>
+                      <TextBlock Text="{Binding Reach}" Foreground="{Binding ReachColor}" FontSize="12" Margin="0,2,0,0"/>
+                    </StackPanel>
+                  </DockPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <!-- Instalar por IP -->
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Instalar impressora de rede pelo IP" Style="{StaticResource H2}"/>
+          <Grid Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="180"/>
+              <ColumnDefinition Width="12"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+              <TextBlock Text="IP da impressora" Style="{StaticResource Label}"/>
+              <TextBox x:Name="IpBox" Style="{StaticResource Input}"/>
+            </StackPanel>
+            <StackPanel Grid.Column="2">
+              <TextBlock Text="Nome (como vai aparecer no Windows)" Style="{StaticResource Label}"/>
+              <TextBox x:Name="NameBox" Style="{StaticResource Input}"/>
+            </StackPanel>
+          </Grid>
+          <TextBlock Text="Driver" Style="{StaticResource Label}"/>
+          <ComboBox x:Name="DriverBox" Margin="0,0,0,6" Padding="8,6"/>
+          <TextBlock Style="{StaticResource Muted}" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,12"
+                     Text="Só aparecem drivers já instalados. O driver do fabricante não está na lista? Instale antes (Instalar apps, para os do pendrive, ou Drivers → pasta). &quot;Microsoft IPP Class Driver&quot; funciona com a maioria das impressoras de rede modernas."/>
+          <StackPanel Orientation="Horizontal">
+            <Button x:Name="PingBtn" Content="Testar IP" Style="{StaticResource BtnGhost}" Click="PingIp_Click" Margin="0,0,8,0"/>
+            <Button x:Name="InstallBtn" Content="Instalar" Style="{StaticResource Btn}" Click="Install_Click"/>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <!-- Compartilhada -->
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Conectar impressora compartilhada" Style="{StaticResource H2}"/>
+          <DockPanel>
+            <Button x:Name="ConnectBtn" DockPanel.Dock="Right" Content="Conectar" Style="{StaticResource Btn}" Click="Connect_Click" Margin="8,0,0,0"/>
+            <TextBox x:Name="ShareBox" Style="{StaticResource Input}" VerticalContentAlignment="Center"
+                     ToolTip="Ex.: \\servidor\impressora-andar1"/>
+          </DockPanel>
+          <TextBlock Style="{StaticResource Muted}" FontSize="11" Margin="0,6,0,0" TextWrapping="Wrap"
+                     Text="Formato \\servidor\impressora. O Windows baixa o driver do servidor."/>
+        </StackPanel>
+      </Border>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Registro" Style="{StaticResource H2}"/>
+          <TextBox x:Name="LogBox" Style="{StaticResource LogBox}" Height="150"/>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

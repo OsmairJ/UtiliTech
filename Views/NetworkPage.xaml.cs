@@ -55,6 +55,9 @@ public partial class NetworkPage : UserControl
     {
         var drives = NetworkTools.MappedDrives();
         NoDrives.Visibility = drives.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        var free = NetworkTools.FreeLetters(drives);
+        LetterBox.ItemsSource = free;
+        LetterBox.SelectedItem = free.LastOrDefault(); // do Z para trás, como o Windows sugere
         var rows = drives.Select(d => new DriveRow(d.Title, "verificando...", Palette.Muted)).ToList();
         DriveList.ItemsSource = rows;
         for (int i = 0; i < drives.Count; i++)
@@ -133,10 +136,27 @@ public partial class NetworkPage : UserControl
         SetBusy(false);
     }
 
+    async void Map_Click(object sender, RoutedEventArgs e)
+    {
+        string path = SharePathBox.Text.Trim().TrimEnd('\\');
+        if (_busy) return;
+        if (LetterBox.SelectedItem is not string letter) { Ui.Error("Escolha a letra da unidade."); return; }
+        if (!NetworkTools.IsValidUncPath(path)) { Ui.Error("Use o formato \\\\servidor\\pasta."); return; }
+        SetBusy(true);
+        Log($"=== Mapear {letter}: → {path} ===");
+        int code = await Task.Run(() => NetworkTools.MapDriveAsync(letter, path, m => Dispatcher.InvokeAsync(() => Log(m))));
+        Log(code == 0
+            ? $"✓ {letter}: mapeada. Aparece no Explorer depois de sair e entrar de novo no Windows."
+            : $"Falhou (código {code}): o caminho existe? O usuário tem acesso? Se pedir outra senha, mapeie pelo Explorer.");
+        SessionLog.Add("Rede", $"unidade {letter}: mapeada para {path}", code == 0);
+        SetBusy(false);
+        await LoadDrivesAsync();
+    }
+
     void SetBusy(bool busy)
     {
         _busy = busy;
-        TestBtn.IsEnabled = PingBtn.IsEnabled = TraceBtn.IsEnabled = ResolveBtn.IsEnabled = !busy;
+        TestBtn.IsEnabled = PingBtn.IsEnabled = TraceBtn.IsEnabled = ResolveBtn.IsEnabled = MapBtn.IsEnabled = !busy;
     }
 
     void Log(string msg)
