@@ -79,9 +79,8 @@ public static class AppInstaller
         App("Notepad++", "Notepad++.Notepad++", "Utilitário", "Notepad++"),
         App("CrystalDiskInfo", "CrystalDewWorld.CrystalDiskInfo", "Diagnóstico", "CrystalDiskInfo"),
         // Instaladores locais: ficam na pasta Instaladores, ao lado do UtiliTech.exe no pendrive
+        // (os instaladores da Lexmark ficam em Manutenção → Impressoras → Lexmark do pendrive)
         Local("PJe Office Pro", "Jurídico", "pjeoffice*.exe", "PJe Office Pro|PJeOffice Pro", "https://pje-office.pje.jus.br/pro/"),
-        Local("Impressora Lexmark colorida", "Driver de impressora", "LM COLOR W10.exe", ""),
-        Local("Impressora Lexmark P&B", "Driver de impressora", "LM PB W10.exe", ""),
     };
 
     static CatalogApp App(string name, string id, string category, string match) =>

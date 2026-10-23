@@ -114,6 +114,13 @@ public class ImpressorasTests
     }
 
     [Fact]
+    public void Lexmark_nao_fica_mais_em_Instalar_apps()
+    {
+        Assert.DoesNotContain(AppInstaller.DefaultCatalog(), a => a.Name.Contains("Lexmark") || (a.File ?? "").StartsWith("LM "));
+        Assert.Contains(AppInstaller.DefaultCatalog(), a => a.Name == "PJe Office Pro");
+    }
+
+    [Fact]
     public void Pacotes_Lexmark_do_pendrive()
     {
         Assert.Equal(new[] { ("MX620", "XL", "LM PB W10.exe"), ("CS725", "PS", "LM COLOR W10.exe") },
