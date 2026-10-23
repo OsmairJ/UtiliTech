@@ -143,6 +143,7 @@ public partial class MainWindow : Window
                 "domain" => new DomainPage(),
                 "repairs" => new RepairsPage(),
                 "cleanup" => new CleanupPage(),
+                "profiles" => new ProfilesPage(),
                 "drivers" => new DriversPage(),
                 "printers" => new PrintersPage(),
                 "settings" => new SettingsPage(),

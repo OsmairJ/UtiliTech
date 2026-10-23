@@ -1,0 +1,97 @@
+<UserControl x:Class="UtiliTech.Views.ProfilesPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="0,0,12,0">
+      <DockPanel Margin="0,0,0,18">
+        <Button x:Name="RefreshBtn" DockPanel.Dock="Right" Content="Atualizar" Style="{StaticResource BtnGhost}" VerticalAlignment="Center" Click="Refresh_Click"/>
+        <StackPanel>
+          <TextBlock Text="Usuários e perfis" Style="{StaticResource H1}"/>
+          <TextBlock x:Name="Status" Style="{StaticResource Muted}" Text="Lendo os perfis..."/>
+        </StackPanel>
+      </DockPanel>
+
+      <!-- Perfis -->
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Perfis neste PC" Style="{StaticResource H2}"/>
+          <TextBlock Style="{StaticResource Muted}" FontSize="11" Margin="0,0,0,10" TextWrapping="Wrap"
+                     Text="Cada pessoa que já entrou no PC tem uma pasta em C:\Users. Perfis parados há muito tempo ou de contas apagadas ocupam espaço e podem ser apagados (pasta e registro juntos, como o Windows faz). Copie antes o que o usuário precisar."/>
+          <ItemsControl x:Name="ProfileList">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border Margin="0,0,0,8" Padding="14,10" CornerRadius="8" Background="{DynamicResource PanelBrush}"
+                        BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
+                  <DockPanel>
+                    <Button DockPanel.Dock="Right" Content="Apagar perfil" Style="{StaticResource BtnGhost}" Padding="12,6" VerticalAlignment="Center"
+                            Margin="12,0,0,0" Click="Delete_Click" IsEnabled="{Binding CanDelete}"/>
+                    <TextBlock DockPanel.Dock="Right" Text="{Binding SizeText}" FontWeight="SemiBold" VerticalAlignment="Center" MinWidth="80" TextAlignment="Right"/>
+                    <StackPanel VerticalAlignment="Center">
+                      <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14"/>
+                        <TextBlock Text="{Binding Flag}" Foreground="{Binding FlagColor}" FontSize="11" FontWeight="Bold" Margin="10,2,0,0"/>
+                      </StackPanel>
+                      <TextBlock Text="{Binding Detail}" Style="{StaticResource Muted}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                    </StackPanel>
+                  </DockPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <!-- Copiar -->
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Copiar dados de um perfil para outro" Style="{StaticResource H2}"/>
+          <TextBlock Style="{StaticResource Muted}" FontSize="11" Margin="0,0,0,10" TextWrapping="Wrap"
+                     Text="Copia Área de Trabalho, Documentos, Imagens, Downloads, Vídeos, Música e Favoritos (do OneDrive, se as pastas estiverem lá) e os favoritos do Chrome e do Edge. Nada é apagado no destino; arquivos com o mesmo nome são atualizados. O usuário de destino precisa ter entrado no PC uma vez."/>
+          <Grid Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition/>
+              <ColumnDefinition Width="40"/>
+              <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+              <TextBlock Text="De (origem)" Style="{StaticResource Label}"/>
+              <ComboBox x:Name="FromBox" Padding="8,6" DisplayMemberPath="Name"/>
+            </StackPanel>
+            <TextBlock Grid.Column="1" Text="&#xE72A;" Style="{StaticResource Icon}" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,8"/>
+            <StackPanel Grid.Column="2">
+              <TextBlock Text="Para (destino)" Style="{StaticResource Label}"/>
+              <ComboBox x:Name="ToBox" Padding="8,6" DisplayMemberPath="Name"/>
+            </StackPanel>
+          </Grid>
+          <Button x:Name="CopyBtn" Content="Copiar" Style="{StaticResource Btn}" HorizontalAlignment="Left" Click="Copy_Click"/>
+        </StackPanel>
+      </Border>
+
+      <!-- Contas locais -->
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Contas locais" Style="{StaticResource H2}"/>
+          <TextBlock Style="{StaticResource Muted}" FontSize="11" Margin="0,0,0,8" TextWrapping="Wrap"
+                     Text="Contas criadas no próprio PC (as do domínio não aparecem aqui). Antes de ingressar no domínio, garanta uma conta de administrador local com senha conhecida."/>
+          <ItemsControl x:Name="AccountList">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <DockPanel Margin="0,3">
+                  <TextBlock DockPanel.Dock="Right" Text="{Binding Detail}" Foreground="{Binding Color}"/>
+                  <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                </DockPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Registro" Style="{StaticResource H2}"/>
+          <TextBox x:Name="LogBox" Style="{StaticResource LogBox}" Height="150"/>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

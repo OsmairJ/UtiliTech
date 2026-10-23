@@ -105,6 +105,7 @@
                         Visibility="{Binding IsChecked, ElementName=ManGroup, Converter={StaticResource BoolToVisibility}}">
               <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Reparos rápidos" Tag="repairs" v:NavIcon.Glyph="&#xE90F;" Checked="Nav_Checked"/>
               <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Limpeza" Tag="cleanup" v:NavIcon.Glyph="&#xE74D;" Checked="Nav_Checked"/>
+              <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Usuários e perfis" Tag="profiles" v:NavIcon.Glyph="&#xE716;" Checked="Nav_Checked"/>
               <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Drivers" Tag="drivers" v:NavIcon.Glyph="&#xEEA1;" Checked="Nav_Checked"/>
               <RadioButton GroupName="Nav" Style="{StaticResource NavItem}" Content="Impressoras" Tag="printers" v:NavIcon.Glyph="&#xE749;" Checked="Nav_Checked"/>
             </StackPanel>
