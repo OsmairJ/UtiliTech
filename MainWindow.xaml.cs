@@ -136,6 +136,7 @@ public partial class MainWindow : Window
                 "stress" => new StressPage(),
                 "network" => new NetworkPage(),
                 "security" => new SecurityPage(),
+                "events" => new EventsPage(),
                 "alerts" => new AlertsPage(),
                 "checklist" => new ChecklistPage(),
                 "install" => new InstallPage(),

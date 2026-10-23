@@ -1,0 +1,69 @@
+<UserControl x:Class="UtiliTech.Views.EventsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="0,0,12,0">
+      <DockPanel Margin="0,0,0,18">
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+          <RadioButton x:Name="Days7" Content="7 DIAS" Style="{StaticResource Pill}" GroupName="Period" Tag="7" Checked="Period_Checked"/>
+          <RadioButton x:Name="Days30" Content="30 DIAS" Style="{StaticResource Pill}" GroupName="Period" Tag="30" Checked="Period_Checked"/>
+          <RadioButton x:Name="Days90" Content="90 DIAS" Style="{StaticResource Pill}" GroupName="Period" Tag="90" Checked="Period_Checked"/>
+          <Button Content="Abrir Visualizador de Eventos" Style="{StaticResource BtnGhost}" Click="OpenViewer_Click" Margin="8,0,0,0"/>
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Text="Eventos" Style="{StaticResource H1}"/>
+          <TextBlock x:Name="Status" Style="{StaticResource Muted}" Text="Lendo o log do sistema..."/>
+        </StackPanel>
+      </DockPanel>
+
+      <!-- Resumo por tipo -->
+      <ItemsControl x:Name="SummaryList">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border Margin="0,0,0,8" Padding="16,12" CornerRadius="10" Background="{DynamicResource CardBrush}"
+                    BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
+              <DockPanel>
+                <Button DockPanel.Dock="Right" Content="{Binding ActionText}" Tag="{Binding Page}" Style="{StaticResource BtnGhost}" Padding="12,6"
+                        VerticalAlignment="Center" Margin="12,0,0,0" Click="Go_Click"
+                        Visibility="{Binding HasAction, Converter={StaticResource BoolToVisibility}}"/>
+                <TextBlock DockPanel.Dock="Right" Text="{Binding CountText}" Foreground="{Binding Color}" FontWeight="SemiBold" FontSize="15"
+                           VerticalAlignment="Center" Margin="12,0,0,0"/>
+                <StackPanel VerticalAlignment="Center">
+                  <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="14"/>
+                    <TextBlock Text="{Binding LastText}" Style="{StaticResource Muted}" FontSize="12" Margin="10,2,0,0"/>
+                  </StackPanel>
+                  <TextBlock Text="{Binding Advice}" Style="{StaticResource Muted}" FontSize="12" Margin="0,3,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+              </DockPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <!-- Linha do tempo -->
+      <Border Style="{StaticResource Card}" Margin="0,4,0,12">
+        <StackPanel>
+          <TextBlock Text="O que aconteceu, do mais recente ao mais antigo" Style="{StaticResource H2}"/>
+          <TextBlock x:Name="EmptyText" Style="{StaticResource Muted}" Text="Nenhum evento desses tipos no período." Visibility="Collapsed"/>
+          <ItemsControl x:Name="EventList">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <DockPanel Margin="0,0,0,10">
+                  <TextBlock DockPanel.Dock="Left" Text="{Binding When}" FontFamily="{StaticResource NumberFont}" Width="130" Margin="0,1,10,0"/>
+                  <StackPanel>
+                    <TextBlock>
+                      <Run Text="{Binding KindText, Mode=OneWay}" Foreground="{Binding Color}" FontWeight="SemiBold"/><Run Text=" · "/><Run Text="{Binding Title, Mode=OneWay}"/>
+                    </TextBlock>
+                    <TextBlock Text="{Binding Detail}" Style="{StaticResource Muted}" FontSize="12" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                  </StackPanel>
+                </DockPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <TextBlock x:Name="DumpText" Style="{StaticResource Muted}" FontSize="12" TextWrapping="Wrap" Margin="0,6,0,0" Visibility="Collapsed"/>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>
