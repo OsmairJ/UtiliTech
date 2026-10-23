@@ -25,6 +25,16 @@
     <!-- Barra de título -->
     <DockPanel Grid.ColumnSpan="2" Background="{DynamicResource TitleBrush}">
       <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+        <Button Style="{StaticResource TitleBtn}" Width="Auto" ToolTip="Buscar ferramenta (Ctrl+K)"
+                Click="Search_Click" WindowChrome.IsHitTestVisibleInChrome="True">
+          <StackPanel Orientation="Horizontal" Margin="12,0">
+            <TextBlock Text="&#xE721;" FontFamily="{StaticResource IconFont}" FontSize="13" VerticalAlignment="Center"/>
+            <TextBlock Text="Buscar" FontFamily="Segoe UI" FontSize="12" Margin="8,0,0,0" VerticalAlignment="Center"/>
+            <Border CornerRadius="4" BorderThickness="1" BorderBrush="{DynamicResource LineBrush}" Padding="5,0" Margin="10,0,0,0" VerticalAlignment="Center">
+              <TextBlock Text="Ctrl+K" FontFamily="Segoe UI" FontSize="10" Foreground="{DynamicResource MutedBrush}"/>
+            </Border>
+          </StackPanel>
+        </Button>
         <Button x:Name="ThemeBtn" Style="{StaticResource TitleBtn}" Content="&#xE706;" FontSize="14" ToolTip="Tema claro/escuro"
                 Click="Theme_Click" WindowChrome.IsHitTestVisibleInChrome="True"/>
         <Button Style="{StaticResource TitleBtn}" Content="&#xE921;" ToolTip="Minimizar"

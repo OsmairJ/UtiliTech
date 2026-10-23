@@ -20,6 +20,15 @@ public partial class MainWindow : Window
 
         VersionValue.Text = Updater.CurrentText;
         StateChanged += (_, _) => UpdateMaximized();
+        // Ctrl+K em qualquer tela abre a busca rápida (Preview: funciona mesmo com o cursor numa caixa de texto)
+        PreviewKeyDown += (_, e) =>
+        {
+            if (e.Key == System.Windows.Input.Key.K && System.Windows.Input.Keyboard.Modifiers == System.Windows.Input.ModifierKeys.Control)
+            {
+                SearchWindow.Show(this);
+                e.Handled = true;
+            }
+        };
 
         // Sensores em segundo plano (alertas) e situação da atualização no rodapé
         AlertWatcher.Raised += a => Dispatcher.InvokeAsync(() => ToastWindow.Show(a));
@@ -82,6 +91,8 @@ public partial class MainWindow : Window
         AppSettings.Current.LightTheme = light;
         AppSettings.Current.Save();
     }
+
+    void Search_Click(object sender, RoutedEventArgs e) => SearchWindow.Show(this);
 
     void Minimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
 

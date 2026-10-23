@@ -37,8 +37,8 @@
 - [x] **Eventos simplificados** (Diagnóstico → Eventos, 7/30/90 dias): telas azuis com o código explicado (ex.: 0xD1 = driver), desligamentos inesperados (com a hora em que o PC parou), erros de disco e do NTFS, driver de vídeo que travou e erros de hardware (WHEA). Um travamento que gera vários eventos conta uma vez; cada tipo tem o que fazer e atalho para a ferramenta (Drivers, Discos, Memória, Monitor).
 - [x] **Velocidade do disco** (Diagnóstico → Velocidade do disco): leitura e gravação sequencial (1 MiB) e aleatória 4K (QD1) sem o cache do Windows, com arquivo temporário de 256 MB/1 GB/4 GB apagado no fim (também ao parar); veredito do tipo de disco (NVMe, SSD SATA, HD mecânico, SSD lento) e o resultado entra no relatório.
 
-## Fase 7 — Interface e usabilidade
-- [ ] **Busca no menu (Ctrl+K)** para achar qualquer ferramenta ou reparo.
+## Fase 7 — Interface e usabilidade (em andamento)
+- [x] **Busca no menu (Ctrl+K)**: Ctrl+K em qualquer tela (ou o botão Buscar na barra de título) abre a busca; acha as 23 telas e ~40 ferramentas dentro delas (reparos, chave do BitLocker, mapear unidade, instalar impressora pelo IP...) pelo nome ou por sinônimo (bsod, gpupdate, spooler, service tag), sem diferenciar acentos; setas escolhem, Enter abre, Esc fecha.
 - [ ] **"Problemas encontrados"** na Visão geral, com o botão que resolve.
 - [ ] **Telas pequenas e DPI** (notebooks 1366×768) e atalhos de teclado.
 - [ ] **Notas da versão** ao abrir depois de atualizar.

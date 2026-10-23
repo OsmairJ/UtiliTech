@@ -7,6 +7,8 @@ Ferramenta de bancada para técnico de informática (WPF .NET 8), inspirada no
 
 **Visão geral** (tela inicial): gráfico de temperatura/carga/consumo da CPU e da GPU (1, 5 ou 15 min), resumo do PC (modelo, nº de série, Windows), tabela de componentes (temperatura, carga, clock, consumo) com atalho para cada tela, memória e disco, eventos recentes e saúde do PC (discos, bateria, drivers).
 
+**Busca rápida (Ctrl+K)**: em qualquer tela, Ctrl+K (ou o botão Buscar na barra de título) abre a busca. Digite o que precisa, como "tela azul", "bitlocker", "gpupdate", "impressora" ou "perfil antigo": aparecem as telas e as ferramentas dentro delas, sem diferenciar acentos. Setas escolhem, Enter abre, Esc fecha.
+
 **Atendimentos**: histórico guardado no pendrive. Ao exportar o relatório ou a planilha na tela Sistema, o "Salvar como" já abre na pasta do atendimento, dentro de `atendimentos` ao lado do `.exe` (se salvar em outro lugar, uma cópia vai para lá) (uma pasta por atendimento, com os dados em `atendimento.json`). A tela lista os atendimentos do mais novo para o mais antigo, com busca por cliente, OS, nº de série, nome do PC, modelo, técnico ou data (sem diferenciar acentos), e abre o relatório, a planilha ou a pasta com 1 clique. O nº de série identifica a máquina mesmo depois de formatada e renomeada. **Inventário**: a planilha `atendimentos\inventario.xlsx` é refeita sozinha a cada atendimento guardado, com uma linha por máquina (modelo, processador, memória, discos, Windows, MAC e IP, saúde, datas e clientes) e uma aba com todos os atendimentos; o botão "Inventário (planilha)" atualiza e abre.
 
 **Diagnóstico**
