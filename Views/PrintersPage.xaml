@@ -73,8 +73,41 @@
         </StackPanel>
       </Border>
 
-      <!-- Instalar por IP -->
+      <!-- Procurar na rede (sem Lexmark) -->
       <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <DockPanel Margin="0,0,0,4">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+              <Button x:Name="CancelScanBtn" Content="Parar" Style="{StaticResource BtnGhost}" Click="CancelScan_Click" Margin="0,0,8,0" Visibility="Collapsed"/>
+              <Button x:Name="ScanBtn" Content="Procurar na rede" Style="{StaticResource Btn}" Click="Scan_Click"/>
+            </StackPanel>
+            <TextBlock Text="Procurar impressoras na rede (exceto Lexmark)" Style="{StaticResource H2}" Margin="0" VerticalAlignment="Center"/>
+          </DockPanel>
+          <TextBlock x:Name="ScanStatus" Style="{StaticResource Muted}" FontSize="11" Margin="0,0,0,10" TextWrapping="Wrap"
+                     Text="Testa a porta de impressão (9100) em toda a rede da placa conectada e pergunta o modelo a cada impressora (SNMP, só leitura). Leva uns 10 segundos e não muda nada nas impressoras. As Lexmark ficam de fora: use Lexmark do pendrive."/>
+          <ItemsControl x:Name="FoundList">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border Margin="0,0,0,8" Padding="14,10" CornerRadius="8" Background="{DynamicResource PanelBrush}"
+                        BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
+                  <DockPanel>
+                    <Button DockPanel.Dock="Right" Content="Usar para instalar" Style="{StaticResource BtnGhost}" Padding="12,6"
+                            VerticalAlignment="Center" Margin="12,0,0,0" Click="UseFound_Click"/>
+                    <StackPanel VerticalAlignment="Center">
+                      <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="14"/>
+                      <TextBlock Text="{Binding Detail}" Style="{StaticResource Muted}" Margin="0,2,0,0"/>
+                      <TextBlock Text="{Binding DriverText}" FontSize="12" Margin="0,2,0,0" Foreground="{DynamicResource AccentBrush}"/>
+                    </StackPanel>
+                  </DockPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <!-- Instalar por IP -->
+      <Border x:Name="InstallCard" Style="{StaticResource Card}">
         <StackPanel>
           <TextBlock Text="Instalar impressora de rede pelo IP" Style="{StaticResource H2}"/>
           <Grid Margin="0,0,0,10">

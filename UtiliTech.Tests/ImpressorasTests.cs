@@ -230,6 +230,51 @@ public class ImpressorasTests
         Assert.Empty(Snmp.ParseStrings(msg[..20])); // resposta cortada não derruba
     }
 
+    // ---------- Procurar na rede ----------
+
+    [Fact]
+    public void Enderecos_da_rede_22()
+    {
+        var hosts = PrinterTools.HostsInSubnet("10.0.42.152", 22);
+        Assert.Equal(1021, hosts.Count); // 1024 - rede - broadcast - o próprio PC
+        Assert.Equal("10.0.40.1", hosts[0]);
+        Assert.Equal("10.0.43.254", hosts[^1]);
+        Assert.DoesNotContain("10.0.42.152", hosts);
+    }
+
+    [Fact]
+    public void Rede_24_e_rede_grande_limitada_a_22()
+    {
+        var h24 = PrinterTools.HostsInSubnet("192.168.0.10", 24);
+        Assert.Equal(253, h24.Count);
+        Assert.Equal("192.168.0.1", h24[0]);
+        Assert.Equal("192.168.0.254", h24[^1]);
+        Assert.Equal(1021, PrinterTools.HostsInSubnet("10.20.30.40", 16).Count); // /16 vira o /22 do PC
+        Assert.Empty(PrinterTools.HostsInSubnet("não é ip", 24));
+    }
+
+    [Fact]
+    public void Lista_tira_as_Lexmark_e_indica_o_driver()
+    {
+        var achadas = new List<(string, PrinterTools.SnmpInfo?)>
+        {
+            ("10.0.0.73", new("Lexmark CS725", "ET0021", "5028")),
+            ("10.0.0.240", new("Samsung SCX-483x 5x3x Series", "SEC0015", "Z5W1")),
+            ("10.0.0.108", new("Brother DCP-L2540DW series", "BRN94DD", "U638")),
+            ("10.0.0.9", null), // não respondeu SNMP
+            ("10.0.0.237", new("Lexmark MX622adhe", "LEXMARK-PB", "7018")),
+        };
+        var lista = PrinterTools.NonLexmark(achadas, new[] { PrinterTools.IppDriver, PrinterTools.Pcl6Driver }, new[] { "10.0.0.108" });
+
+        Assert.Equal(new[] { "10.0.0.108", "10.0.0.240", "10.0.0.9" }, lista.Select(p => p.Ip));
+        Assert.All(lista.Take(2), p => Assert.Equal(PrinterTools.Pcl6Driver, p.Driver));
+        Assert.Equal(PrinterTools.IppDriver, lista[2].Driver);
+        Assert.True(lista[0].Installed);
+        Assert.EndsWith("já instalada neste PC", lista[0].DriverText);
+        Assert.Equal("Modelo não informado (SNMP desligado)", lista[2].Title);
+        Assert.Equal("10.0.0.240 · SEC0015 · S/N Z5W1", lista[1].Detail);
+    }
+
     // ---------- Mapear unidade (tela Rede) ----------
 
     [Fact]

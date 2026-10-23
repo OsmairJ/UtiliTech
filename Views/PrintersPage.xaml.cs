@@ -148,6 +148,63 @@ public partial class PrintersPage : UserControl
         await LoadAsync();
     }
 
+    CancellationTokenSource? _scan;
+
+    async void Scan_Click(object sender, RoutedEventArgs e)
+    {
+        var adapter = NetworkTools.Adapters().FirstOrDefault(a => a.Gateways.Count > 0 && a.Ipv4.Count > 0 && !a.HasApipa);
+        if (adapter == null) { Ui.Error("Nenhuma placa de rede conectada com IP: confira o cabo ou o Wi-Fi."); return; }
+        var cidr = adapter.Ipv4[0].Split('/');
+        var hosts = PrinterTools.HostsInSubnet(cidr[0], int.Parse(cidr[1]));
+
+        _scan = new CancellationTokenSource();
+        ScanBtn.IsEnabled = false;
+        CancelScanBtn.Visibility = Visibility.Visible;
+        FoundList.ItemsSource = null;
+        try
+        {
+            var progress = new Progress<string>(m => ScanStatus.Text = m);
+            var found = await Task.Run(() => PrinterTools.ScanAsync(hosts, progress, _scan.Token));
+            var drivers = (DriverBox.ItemsSource as IEnumerable<PrinterTools.DriverOption>)?.Select(o => o.Name) ?? Enumerable.Empty<string>();
+            var installedHosts = (PrinterList.ItemsSource as IEnumerable<PrinterInfo>)?.Select(p => p.Host) ?? Enumerable.Empty<string>();
+            var list = PrinterTools.NonLexmark(found, drivers, installedHosts);
+            FoundList.ItemsSource = list;
+            int lexmark = found.Count - list.Count;
+            ScanStatus.Text = $"{found.Count} impressora(s) na rede {hosts.FirstOrDefault()} a {hosts.LastOrDefault()}: " +
+                              $"{list.Count} de outras marcas" + (lexmark > 0 ? $" · {lexmark} Lexmark fora da lista" : "") +
+                              $" · procurado às {DateTime.Now:HH:mm}";
+            Log($"Busca na rede: {list.Count} impressora(s) que não são Lexmark" +
+                (list.Count > 0 ? ": " + string.Join(", ", list.Select(p => $"{p.Title} ({p.Ip})")) : ""));
+        }
+        catch (OperationCanceledException) { ScanStatus.Text = "Busca interrompida."; }
+        catch (Exception ex)
+        {
+            Logger.Error("Procurar impressoras na rede", ex);
+            ScanStatus.Text = "Não foi possível procurar: " + ex.Message;
+        }
+        finally
+        {
+            ScanBtn.IsEnabled = true;
+            CancelScanBtn.Visibility = Visibility.Collapsed;
+            _scan.Dispose();
+            _scan = null;
+        }
+    }
+
+    void CancelScan_Click(object sender, RoutedEventArgs e) => _scan?.Cancel();
+
+    /// <summary>Preenche o Instalar pelo IP com a impressora achada e rola até ele.</summary>
+    void UseFound_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { DataContext: PrinterTools.FoundPrinter p }) return;
+        IpBox.Text = p.Ip;
+        NameBox.Text = p.Model.Length > 0 ? p.Model : "Impressora " + p.Ip;
+        SelectDriver(p.Driver);
+        InstallCard.BringIntoView();
+        NameBox.Focus();
+        Log($"{p.Title} ({p.Ip}) pronta para instalar com {p.Driver}: confira o nome e clique em Instalar.");
+    }
+
     void SelectDriver(string name)
     {
         var options = (DriverBox.ItemsSource as IEnumerable<PrinterTools.DriverOption>)?.ToList() ?? new();

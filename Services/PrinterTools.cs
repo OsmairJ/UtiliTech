@@ -299,20 +299,98 @@ public static class PrinterTools
     /// Pergunta o modelo à impressora por SNMP v1 (só leitura, comunidade "public"): hrDeviceDescr.1 e, se não vier,
     /// sysDescr. Null se não responder em 1,5 s. "Lexmark MX622adhe 7018... MXTGM.050.040" vira "Lexmark MX622adhe".
     /// </summary>
-    public static async Task<string?> IdentifyAsync(string ip)
+    public static async Task<string?> IdentifyAsync(string ip) => (await SnmpInfoAsync(ip))?.Model;
+
+    /// <summary>O que a impressora informa por SNMP: modelo, nome na rede e nº de série.</summary>
+    public record SnmpInfo(string Model, string Name, string Serial);
+
+    public static async Task<SnmpInfo?> SnmpInfoAsync(string ip)
     {
         try
         {
             using var udp = new System.Net.Sockets.UdpClient();
-            byte[] req = Snmp.GetRequest("1.3.6.1.2.1.25.3.2.1.3.1", "1.3.6.1.2.1.1.1.0");
+            // hrDeviceDescr.1, sysDescr, sysName, prtGeneralSerialNumber.1
+            byte[] req = Snmp.GetRequest("1.3.6.1.2.1.25.3.2.1.3.1", "1.3.6.1.2.1.1.1.0", "1.3.6.1.2.1.1.5.0", "1.3.6.1.2.1.43.5.1.1.17.1");
             await udp.SendAsync(req, req.Length, ip, 161);
             var recv = udp.ReceiveAsync();
             if (await Task.WhenAny(recv, Task.Delay(1500)) != recv) return null;
-            var values = Snmp.ParseStrings((await recv).Buffer);
-            string model = values.FirstOrDefault(v => v.Length > 0) ?? "";
-            return model.Length > 0 ? ShortModel(model) : null;
+            var v = Snmp.ParseStrings((await recv).Buffer);
+            string At(int i) => i < v.Count ? v[i] : "";
+            string model = At(0).Length > 0 ? At(0) : At(1);
+            return model.Length > 0 ? new SnmpInfo(ShortModel(model), At(2), At(3)) : null;
         }
         catch { return null; }
+    }
+
+    // ---------- Procurar impressoras na rede ----------
+
+    /// <summary>Uma impressora achada na rede.</summary>
+    public record FoundPrinter(string Ip, string Model, string Name, string Serial, string Driver, bool Installed)
+    {
+        public string Title => Model.Length > 0 ? Model : "Modelo não informado (SNMP desligado)";
+        public string Detail => string.Join(" · ", new[] { Ip, Name, Serial.Length > 0 ? "S/N " + Serial : "" }.Where(s => s.Length > 0));
+        public string DriverText => "Driver indicado: " + Driver + (Installed ? " · já instalada neste PC" : "");
+    }
+
+    public static bool IsLexmark(string model) => model.Contains("Lexmark", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Endereços da rede da placa (sem rede, broadcast e o próprio PC). Rede maior que /22 é limitada
+    /// ao bloco /22 do PC (1.022 endereços), para a busca não varrer milhares de IPs.
+    /// </summary>
+    public static List<string> HostsInSubnet(string ip, int prefix)
+    {
+        if (!IPAddress.TryParse(ip, out var addr) || addr.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork) return new();
+        prefix = Math.Clamp(prefix, 22, 30);
+        byte[] b = addr.GetAddressBytes();
+        uint me = (uint)(b[0] << 24 | b[1] << 16 | b[2] << 8 | b[3]);
+        uint mask = prefix == 0 ? 0 : uint.MaxValue << (32 - prefix);
+        uint net = me & mask, broadcast = net | ~mask;
+        var list = new List<string>();
+        for (uint h = net + 1; h < broadcast; h++)
+            if (h != me) list.Add($"{h >> 24}.{(h >> 16) & 255}.{(h >> 8) & 255}.{h & 255}");
+        return list;
+    }
+
+    /// <summary>
+    /// Procura impressoras: testa a porta 9100 (impressão direta) em lotes, com tempo curto, e pergunta o modelo
+    /// por SNMP (só leitura) a quem responder. Não muda nada nas impressoras.
+    /// </summary>
+    public static async Task<List<(string Ip, SnmpInfo? Info)>> ScanAsync(IReadOnlyList<string> hosts, IProgress<string>? progress,
+        CancellationToken cancel)
+    {
+        var open = new List<string>();
+        const int batch = 128;
+        for (int i = 0; i < hosts.Count; i += batch)
+        {
+            cancel.ThrowIfCancellationRequested();
+            progress?.Report($"Procurando: {Math.Min(i + batch, hosts.Count)} de {hosts.Count} endereços...");
+            var tries = hosts.Skip(i).Take(batch).Select(async h =>
+            {
+                using var tcp = new System.Net.Sockets.TcpClient();
+                var connect = tcp.ConnectAsync(h, 9100);
+                bool ok = await Task.WhenAny(connect, Task.Delay(600, cancel)) == connect && connect.IsCompletedSuccessfully;
+                return ok ? h : null;
+            });
+            open.AddRange((await Task.WhenAll(tries)).OfType<string>());
+        }
+        progress?.Report($"{open.Count} impressora(s) responderam; perguntando o modelo...");
+        var infos = await Task.WhenAll(open.Select(async ip => (ip, await SnmpInfoAsync(ip))));
+        return infos.Select(x => (x.ip, x.Item2)).ToList();
+    }
+
+    /// <summary>Monta a lista final: sem as Lexmark, com o driver indicado e se já está instalada, ordenada por modelo e IP.</summary>
+    public static List<FoundPrinter> NonLexmark(IEnumerable<(string Ip, SnmpInfo? Info)> found, IEnumerable<string> drivers,
+        IEnumerable<string> installedHosts)
+    {
+        var driverList = drivers.ToList();
+        var hosts = new HashSet<string>(installedHosts, StringComparer.OrdinalIgnoreCase);
+        return found.Where(f => !IsLexmark(f.Info?.Model ?? ""))
+            .Select(f => new FoundPrinter(f.Ip, f.Info?.Model ?? "", f.Info?.Name ?? "", f.Info?.Serial ?? "",
+                RecommendDriver(f.Info?.Model ?? "", driverList) ?? IppDriver, hosts.Contains(f.Ip)))
+            .OrderBy(p => p.Model.Length == 0).ThenBy(p => p.Model)
+            .ThenBy(p => Version.TryParse(p.Ip, out var v) ? v : new Version())
+            .ToList();
     }
 
     /// <summary>Tira nº de série, firmware e "version ..." do texto da impressora.</summary>
