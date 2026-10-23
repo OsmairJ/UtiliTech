@@ -27,10 +27,11 @@ public partial class PrintersPage : UserControl
 
         string? chosen = DriverBox.SelectedItem as string;
         // Driver com aspas quebraria o comando de instalação: fica de fora da lista
-        var drivers = await Task.Run(() => PrinterTools.Drivers().Where(d => !d.Contains('"')).ToList());
+        var drivers = await Task.Run(() => PrinterTools.SortDrivers(PrinterTools.Drivers().Where(d => !d.Contains('"'))));
         DriverBox.ItemsSource = drivers;
         DriverBox.SelectedItem = chosen != null && drivers.Contains(chosen) ? chosen
             : drivers.FirstOrDefault(d => d.Contains("IPP Class", StringComparison.OrdinalIgnoreCase)) ?? drivers.FirstOrDefault();
+        LexmarkList.ItemsSource = PrinterTools.LexmarkPackages.ToList(); // refaz: o arquivo pode ter sido copiado para o pendrive
 
         int real = printers.Count(p => !p.IsVirtual);
         int ghosts = printers.Count(p => p.IsGhost);
@@ -114,6 +115,38 @@ public partial class PrintersPage : UserControl
             Logger.Error($"Impressora {p.Name}: {action}", ex);
             Log($"{p.Name}: falhou: {ex.Message}");
         }
+    }
+
+    async void Lexmark_Click(object sender, RoutedEventArgs e)
+    {
+        if (_busy || sender is not Button { DataContext: PrinterTools.LexmarkPackage pkg } btn) return;
+        SetBusy(true);
+        btn.IsEnabled = false;
+        var before = PrinterTools.List().Select(p => p.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        Log($"=== {pkg.Title} (driver {pkg.DriverType}): abrindo o assistente da Lexmark ===");
+        Log("Na lista, escolha a impressora pelo IP ou nome de host, confira o driver " + pkg.DriverType + " e clique em Avançar.");
+        try
+        {
+            int code = await PrinterTools.RunLexmarkAsync(pkg);
+            var added = (await Task.Run(PrinterTools.List)).Where(p => !before.Contains(p.Name)).Select(p => p.Name).ToList();
+            if (added.Count > 0)
+            {
+                Log($"✓ Instalada(s): {string.Join(", ", added)}");
+                SessionLog.Add("Impressora", $"{string.Join(", ", added)} instalada(s) pelo assistente da Lexmark ({pkg.Model}, driver {pkg.DriverType})");
+            }
+            else Log($"O assistente fechou (código {code}) sem impressora nova.");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Instalador da Lexmark", ex);
+            Log("Falhou: " + ex.Message);
+        }
+        finally
+        {
+            SetBusy(false);
+            btn.IsEnabled = pkg.Available;
+        }
+        await LoadAsync();
     }
 
     async void PingIp_Click(object sender, RoutedEventArgs e)

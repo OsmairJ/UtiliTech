@@ -159,6 +159,43 @@ public static class PrinterTools
     public static void OpenQueue(string name) =>
         Process.Start(new ProcessStartInfo("rundll32.exe", $"printui.dll,PrintUIEntry /o /n \"{name}\"") { UseShellExecute = false });
 
+    // ---------- Lexmark do pendrive ----------
+
+    /// <summary>
+    /// Pacotes da Lexmark na pasta Instaladores do pendrive (autoextraíveis assinados pela Lexmark). Ao rodar, abrem
+    /// o assistente da Lexmark, que procura as impressoras na rede e instala com o tipo de driver escolhido.
+    /// </summary>
+    public record LexmarkPackage(string Title, string Model, string DriverType, string File)
+    {
+        public string? Path => System.IO.File.Exists(FullPath) ? FullPath : null;
+        string FullPath => System.IO.Path.Combine(AppInstaller.InstallersFolder, File);
+        public bool Available => Path != null;
+        public string State => Available ? $"Instaladores\\{File}" : $"Falta {File} na pasta Instaladores";
+        public string StateColor => Available ? Palette.Muted : Palette.Warn;
+    }
+
+    public static readonly IReadOnlyList<LexmarkPackage> LexmarkPackages = new[]
+    {
+        new LexmarkPackage("Lexmark MX620 · preto e branco", "MX620", "XL", "LM PB W10.exe"),
+        new LexmarkPackage("Lexmark CS725 · colorida", "CS725", "PS", "LM COLOR W10.exe"),
+    };
+
+    /// <summary>Abre o assistente da Lexmark e espera fechar. Devolve o código de saída.</summary>
+    public static async Task<int> RunLexmarkAsync(LexmarkPackage pkg)
+    {
+        string path = pkg.Path ?? throw new InvalidOperationException(pkg.State);
+        using var p = Process.Start(new ProcessStartInfo(path) { UseShellExecute = true, WorkingDirectory = AppInstaller.InstallersFolder })
+                      ?? throw new InvalidOperationException("O instalador da Lexmark não abriu.");
+        await p.WaitForExitAsync();
+        return p.ExitCode;
+    }
+
+    /// <summary>Drivers dos modelos da Lexmark usados na empresa primeiro (instalam direto pelo IP depois da 1ª vez).</summary>
+    public static List<string> SortDrivers(IEnumerable<string> drivers) =>
+        drivers.OrderBy(d => LexmarkPackages.Any(p => d.Contains(p.Model, StringComparison.OrdinalIgnoreCase)) ? 0
+                           : d.Contains("Lexmark", StringComparison.OrdinalIgnoreCase) ? 1 : 2)
+               .ThenBy(d => d, StringComparer.OrdinalIgnoreCase).ToList();
+
     // ---------- Instalar ----------
 
     public static bool IsValidIp(string ip) =>

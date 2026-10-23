@@ -48,6 +48,31 @@
         </StackPanel>
       </Border>
 
+      <!-- Lexmark do pendrive -->
+      <Border Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Lexmark do pendrive" Style="{StaticResource H2}"/>
+          <TextBlock Style="{StaticResource Muted}" FontSize="11" Margin="0,0,0,10" TextWrapping="Wrap"
+                     Text="Abre o assistente da Lexmark: ele procura as impressoras na rede (escolha pelo IP ou nome de host), instala com o driver indicado e já cria a impressora. Depois da primeira vez, o driver também aparece em Instalar pelo IP, para as próximas do mesmo modelo."/>
+          <ItemsControl x:Name="LexmarkList">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <DockPanel Margin="0,0,0,8">
+                  <Button DockPanel.Dock="Right" Content="Abrir instalador" Style="{StaticResource Btn}" Padding="12,6" Click="Lexmark_Click"
+                          IsEnabled="{Binding Available}" VerticalAlignment="Center"/>
+                  <StackPanel VerticalAlignment="Center">
+                    <TextBlock FontWeight="SemiBold">
+                      <Run Text="{Binding Title, Mode=OneWay}"/><Run Text=" · driver " Foreground="{DynamicResource MutedBrush}"/><Run Text="{Binding DriverType, Mode=OneWay}"/>
+                    </TextBlock>
+                    <TextBlock Text="{Binding State}" Foreground="{Binding StateColor}" FontSize="11" Margin="0,2,0,0"/>
+                  </StackPanel>
+                </DockPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
       <!-- Instalar por IP -->
       <Border Style="{StaticResource Card}">
         <StackPanel>

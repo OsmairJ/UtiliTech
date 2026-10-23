@@ -113,6 +113,26 @@ public class ImpressorasTests
         Assert.Equal("Lexmark · servidor srv", compartilhada.Detail);
     }
 
+    [Fact]
+    public void Pacotes_Lexmark_do_pendrive()
+    {
+        Assert.Equal(new[] { ("MX620", "XL", "LM PB W10.exe"), ("CS725", "PS", "LM COLOR W10.exe") },
+            PrinterTools.LexmarkPackages.Select(p => (p.Model, p.DriverType, p.File)));
+    }
+
+    [Fact]
+    public void Drivers_Lexmark_dos_modelos_vem_primeiro()
+    {
+        var ordem = PrinterTools.SortDrivers(new[]
+        {
+            "Microsoft IPP Class Driver", "Lexmark Universal v2", "Lexmark CS725 Series PS3", "HP Universal Printing PCL 6", "Lexmark MX620 Series XL",
+        });
+        Assert.Equal(new[]
+        {
+            "Lexmark CS725 Series PS3", "Lexmark MX620 Series XL", "Lexmark Universal v2", "HP Universal Printing PCL 6", "Microsoft IPP Class Driver",
+        }, ordem);
+    }
+
     // ---------- Mapear unidade (tela Rede) ----------
 
     [Fact]
