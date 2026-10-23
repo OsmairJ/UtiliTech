@@ -1,0 +1,67 @@
+<UserControl x:Class="UtiliTech.Views.SecurityPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="0,0,12,0">
+      <DockPanel Margin="0,0,0,18">
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+          <Button Content="Abrir Segurança do Windows" Style="{StaticResource BtnGhost}" Click="OpenWindowsSecurity_Click" Margin="0,0,8,0"/>
+          <Button x:Name="RefreshBtn" Content="Verificar de novo" Style="{StaticResource Btn}" Click="Refresh_Click"/>
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Text="Segurança" Style="{StaticResource H1}"/>
+          <TextBlock x:Name="Status" Style="{StaticResource Muted}" Text="Verificando..."/>
+        </StackPanel>
+      </DockPanel>
+
+      <ItemsControl x:Name="ItemList">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border Margin="0,0,0,8" Padding="16,12" CornerRadius="10" Background="{DynamicResource CardBrush}"
+                    BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
+              <DockPanel>
+                <TextBlock DockPanel.Dock="Left" Text="{Binding Glyph}" Style="{StaticResource Icon}" FontSize="20" Foreground="{Binding Color}"
+                           VerticalAlignment="Top" Width="28" Margin="0,2,12,0"/>
+                <Border DockPanel.Dock="Right" Style="{StaticResource Badge}" Background="{DynamicResource PanelBrush}" VerticalAlignment="Top" Margin="12,0,0,0">
+                  <TextBlock Text="{Binding StateText}" Foreground="{Binding Color}" FontWeight="SemiBold" FontSize="12"/>
+                </Border>
+                <StackPanel>
+                  <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="14"/>
+                  <TextBlock Text="{Binding Detail}" Margin="0,3,0,0" TextWrapping="Wrap"/>
+                  <TextBlock Text="{Binding Advice}" Style="{StaticResource Muted}" FontSize="12" Margin="0,3,0,0" TextWrapping="Wrap"
+                             Visibility="{Binding HasAdvice, Converter={StaticResource BoolToVisibility}}"/>
+                </StackPanel>
+              </DockPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <Border Style="{StaticResource Card}" Margin="0,4,0,12">
+        <StackPanel>
+          <TextBlock Text="Ações" Style="{StaticResource H2}"/>
+          <WrapPanel>
+            <Button x:Name="SignaturesBtn" Content="Atualizar assinaturas do Defender" Style="{StaticResource BtnGhost}" Click="Signatures_Click" Margin="0,0,8,8"/>
+            <Button x:Name="ScanBtn" Content="Verificação rápida" Style="{StaticResource BtnGhost}" Click="QuickScan_Click" Margin="0,0,8,8"/>
+            <Button x:Name="FirewallBtn" Content="Ligar firewall" Style="{StaticResource BtnGhost}" Click="Firewall_Click" Margin="0,0,8,8"/>
+            <Button x:Name="KeyBtn" Content="Mostrar chave do BitLocker" Style="{StaticResource BtnGhost}" Click="Key_Click" Margin="0,0,8,8"/>
+          </WrapPanel>
+          <Border x:Name="KeyBox" CornerRadius="8" Padding="12,10" Margin="0,4,0,8" Background="{DynamicResource PanelBrush}" Visibility="Collapsed">
+            <DockPanel>
+              <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="Copiar" Style="{StaticResource BtnGhost}" Click="CopyKey_Click" Margin="8,0,0,0"/>
+                <Button Content="Esconder" Style="{StaticResource BtnGhost}" Click="HideKey_Click" Margin="8,0,0,0"/>
+              </StackPanel>
+              <StackPanel>
+                <TextBlock x:Name="KeyTitle" Style="{StaticResource Muted}" FontSize="12"/>
+                <TextBox x:Name="KeyText" IsReadOnly="True" BorderThickness="0" Background="Transparent" Foreground="{DynamicResource TextBrush}"
+                         FontFamily="{StaticResource NumberFont}" FontSize="16" TextWrapping="Wrap"/>
+              </StackPanel>
+            </DockPanel>
+          </Border>
+          <TextBox x:Name="LogBox" Style="{StaticResource LogBox}" Height="130"/>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>
