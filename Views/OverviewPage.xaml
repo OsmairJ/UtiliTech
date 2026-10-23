@@ -56,7 +56,7 @@
         </StackPanel>
       </Border>
 
-      <Grid Margin="0,0,0,12">
+      <Grid Margin="0,0,0,12" v:Responsive.StackBelow="840">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="2*"/>
           <ColumnDefinition Width="12"/>
@@ -193,8 +193,8 @@
         </StackPanel>
       </Border>
 
-      <!-- Memória e disco · Eventos recentes · Saúde do PC -->
-      <Grid>
+      <!-- Memória e disco · Eventos recentes · Saúde do PC (empilham em janela estreita) -->
+      <Grid v:Responsive.StackBelow="840">
         <Grid.ColumnDefinitions>
           <ColumnDefinition/>
           <ColumnDefinition Width="12"/>

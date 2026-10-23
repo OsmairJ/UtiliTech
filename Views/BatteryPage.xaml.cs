@@ -4,8 +4,11 @@ using UtiliTech.Services;
 
 namespace UtiliTech.Views;
 
-public partial class BatteryPage : UserControl
+public partial class BatteryPage : UserControl, IRefreshable
 {
+    /// <summary>F5: atualiza a tela.</summary>
+    public Task RefreshAsync() => LoadAsync();
+
     bool _loaded;
 
     public BatteryPage()

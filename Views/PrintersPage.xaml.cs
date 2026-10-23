@@ -5,8 +5,11 @@ using UtiliTech.Services;
 namespace UtiliTech.Views;
 
 /// <summary>Impressoras: lista com ações, instalar por IP e conectar impressora compartilhada.</summary>
-public partial class PrintersPage : UserControl
+public partial class PrintersPage : UserControl, IRefreshable
 {
+    /// <summary>F5: atualiza a tela.</summary>
+    public Task RefreshAsync() => LoadAsync();
+
     bool _busy;
 
     public PrintersPage()

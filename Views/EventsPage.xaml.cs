@@ -6,8 +6,11 @@ using UtiliTech.Services;
 namespace UtiliTech.Views;
 
 /// <summary>Eventos simplificados: telas azuis, desligamentos inesperados, erros de disco, vídeo e hardware.</summary>
-public partial class EventsPage : UserControl
+public partial class EventsPage : UserControl, IRefreshable
 {
+    /// <summary>F5: atualiza a tela.</summary>
+    public Task RefreshAsync() => LoadAsync();
+
     int _days = 30;
     bool _busy;
 

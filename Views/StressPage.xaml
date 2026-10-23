@@ -61,7 +61,7 @@
 
       <Border Style="{StaticResource Card}">
         <StackPanel>
-          <UniformGrid Columns="4" Margin="0,0,0,14">
+          <UniformGrid Columns="4" Margin="0,0,0,14" v:Responsive.MinItemWidth="170">
             <StackPanel>
               <TextBlock Text="TEMPERATURA" Style="{StaticResource MetricLabel}"/>
               <TextBlock x:Name="TempText" Text="—" Style="{StaticResource MetricValue}"/>

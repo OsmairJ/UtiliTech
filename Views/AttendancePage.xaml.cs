@@ -6,8 +6,11 @@ using UtiliTech.Services;
 namespace UtiliTech.Views;
 
 /// <summary>Histórico de atendimentos guardados no pendrive, com busca.</summary>
-public partial class AttendancePage : UserControl
+public partial class AttendancePage : UserControl, IRefreshable
 {
+    /// <summary>F5: atualiza a tela.</summary>
+    public Task RefreshAsync() => LoadAsync();
+
     List<AttendanceRecord> _all = new();
 
     public AttendancePage()

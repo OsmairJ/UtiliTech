@@ -25,8 +25,11 @@ public class ComponentRow : Observable
 public record DotItem(string Label, string Value, string Color);
 public record EventItem(string Title, string Detail, string Color);
 
-public partial class OverviewPage : UserControl
+public partial class OverviewPage : UserControl, IRefreshable
 {
+    /// <summary>F5: atualiza a tela.</summary>
+    public Task RefreshAsync() => LoadIssuesAsync();
+
     static readonly string SystemDrive = Path.GetPathRoot(Environment.SystemDirectory) ?? @"C:\";
 
     readonly ComponentRow _cpu = new() { Glyph = "\uE950", Name = "Processador", Key = "monitor" };

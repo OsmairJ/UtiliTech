@@ -7,8 +7,11 @@ using UtiliTech.Services;
 
 namespace UtiliTech.Views;
 
-public partial class SystemPage : UserControl
+public partial class SystemPage : UserControl, IRefreshable
 {
+    /// <summary>F5: atualiza a tela.</summary>
+    public Task RefreshAsync() => LoadAsync();
+
     List<InfoSection> _sections = new();
     bool _loaded;
 

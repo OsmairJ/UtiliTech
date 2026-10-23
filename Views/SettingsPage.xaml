@@ -51,6 +51,25 @@
         </StackPanel>
       </Border>
 
+      <Border x:Name="ShortcutsCard" Style="{StaticResource Card}">
+        <StackPanel>
+          <TextBlock Text="Atalhos de teclado" Style="{StaticResource H2}"/>
+          <ItemsControl x:Name="ShortcutList">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <DockPanel Margin="0,3">
+                  <Border DockPanel.Dock="Left" CornerRadius="4" BorderThickness="1" BorderBrush="{DynamicResource LineBrush}"
+                          Background="{DynamicResource PanelBrush}" Padding="8,2" MinWidth="70" Margin="0,0,12,0">
+                    <TextBlock Text="{Binding Keys}" FontFamily="{StaticResource NumberFont}" FontSize="12" HorizontalAlignment="Center"/>
+                  </Border>
+                  <TextBlock Text="{Binding Description}" VerticalAlignment="Center"/>
+                </DockPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
       <Border Style="{StaticResource Card}">
         <StackPanel>
           <TextBlock Text="Registro de erros" Style="{StaticResource H2}"/>

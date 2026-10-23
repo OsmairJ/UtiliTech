@@ -5,8 +5,11 @@ using UtiliTech.Services;
 namespace UtiliTech.Views;
 
 /// <summary>Ferramenta de rede: teste de conexão com diagnóstico, placas, Wi-Fi, ping, rota e unidades mapeadas.</summary>
-public partial class NetworkPage : UserControl
+public partial class NetworkPage : UserControl, IRefreshable
 {
+    /// <summary>F5: atualiza a tela.</summary>
+    public Task RefreshAsync() => LoadAsync();
+
     List<AdapterInfo> _adapters = new();
     bool _loaded, _busy;
 

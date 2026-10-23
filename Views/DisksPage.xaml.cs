@@ -4,8 +4,11 @@ using UtiliTech.Services;
 
 namespace UtiliTech.Views;
 
-public partial class DisksPage : UserControl
+public partial class DisksPage : UserControl, IRefreshable
 {
+    /// <summary>F5: atualiza a tela.</summary>
+    public Task RefreshAsync() => LoadAsync();
+
     bool _loaded;
 
     public DisksPage()

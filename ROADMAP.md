@@ -40,7 +40,7 @@
 ## Fase 7 — Interface e usabilidade (em andamento)
 - [x] **Busca no menu (Ctrl+K)**: Ctrl+K em qualquer tela (ou o botão Buscar na barra de título) abre a busca; acha as 23 telas e ~40 ferramentas dentro delas (reparos, chave do BitLocker, mapear unidade, instalar impressora pelo IP...) pelo nome ou por sinônimo (bsod, gpupdate, spooler, service tag), sem diferenciar acentos; setas escolhem, Enter abre, Esc fecha.
 - [x] **"Problemas encontrados"** no topo da Visão geral: junta discos com falha, pouco espaço, drivers e vídeo sem driver, bateria gasta, segurança (antivírus/firewall/assinaturas/atualizações), eventos dos últimos 30 dias (telas azuis, erros de disco, desligamentos repetidos, vídeo, WHEA), Windows não ativado e reinício pendente, graves primeiro, cada um com o botão que leva à ferramenta.
-- [ ] **Telas pequenas e DPI** (notebooks 1366×768) e atalhos de teclado.
+- [x] **Telas pequenas e DPI** e **atalhos de teclado**: janela cabe na área útil (notebook 1366×768 abre maximizado; mínimos nunca maiores que a tela), menu lateral mais fino em janela estreita, cartões que quebram colunas (Reparos, Instalar apps, Velocidade do disco, Estresse) e empilham na Visão geral; DPI por monitor (PerMonitorV2). Atalhos: Ctrl+K busca, Ctrl+1..9 e Ctrl+, telas, F5 atualiza a tela, F1 lista de atalhos (em Configurações), dica no tooltip do menu.
 - [ ] **Notas da versão** ao abrir depois de atualizar.
 
 ## Fase 8 — Código e publicação

@@ -5,8 +5,11 @@ using UtiliTech.Services;
 namespace UtiliTech.Views;
 
 /// <summary>Usuários e perfis: lista com tamanho e último uso, apagar perfil antigo, copiar dados entre perfis e contas locais.</summary>
-public partial class ProfilesPage : UserControl
+public partial class ProfilesPage : UserControl, IRefreshable
 {
+    /// <summary>F5: atualiza a tela.</summary>
+    public Task RefreshAsync() => LoadAsync();
+
     List<UserProfileInfo> _profiles = new();
     bool _busy, _loaded;
 

@@ -20,15 +20,20 @@ public partial class MainWindow : Window
 
         VersionValue.Text = Updater.CurrentText;
         StateChanged += (_, _) => UpdateMaximized();
-        // Ctrl+K em qualquer tela abre a busca rápida (Preview: funciona mesmo com o cursor numa caixa de texto)
-        PreviewKeyDown += (_, e) =>
-        {
-            if (e.Key == System.Windows.Input.Key.K && System.Windows.Input.Keyboard.Modifiers == System.Windows.Input.ModifierKeys.Control)
-            {
-                SearchWindow.Show(this);
-                e.Handled = true;
-            }
-        };
+
+        // Tela pequena (notebook 1366×768, escala 125%): a janela cabe na área útil e abre maximizada
+        var area = SystemParameters.WorkArea;
+        var fit = Shortcuts.FitWindow(area.Width, area.Height, Width, Height, MinWidth, MinHeight);
+        (Width, Height, MinWidth, MinHeight) = (fit.Width, fit.Height, fit.MinWidth, fit.MinHeight);
+        if (fit.Maximize) { WindowState = WindowState.Maximized; UpdateMaximized(); }
+        SizeChanged += (_, e) => SideColumn.Width = new GridLength(Shortcuts.SidebarWidth(e.NewSize.Width));
+
+        // Atalhos: Ctrl+K busca, Ctrl+1..9 e Ctrl+, telas, F5 atualiza, F1 lista de atalhos
+        // (Preview: funcionam mesmo com o cursor numa caixa de texto)
+        PreviewKeyDown += OnShortcut;
+        foreach (var rb in new[] { DiagItems, PosItems, ManItems }.SelectMany(p => p.Children.OfType<RadioButton>())
+                     .Concat(new[] { NavOverview, NavAttendance, NavSettings }))
+            if (rb.Tag is string key && Shortcuts.KeysFor(key) is { } keys) rb.ToolTip = keys;
 
         // Sensores em segundo plano (alertas) e situação da atualização no rodapé
         AlertWatcher.Raised += a => Dispatcher.InvokeAsync(() => ToastWindow.Show(a));
@@ -93,6 +98,34 @@ public partial class MainWindow : Window
     }
 
     void Search_Click(object sender, RoutedEventArgs e) => SearchWindow.Show(this);
+
+    async void OnShortcut(object sender, System.Windows.Input.KeyEventArgs e)
+    {
+        var mods = System.Windows.Input.Keyboard.Modifiers;
+        var key = e.Key == System.Windows.Input.Key.System ? e.SystemKey : e.Key;
+        if (key == System.Windows.Input.Key.K && mods == System.Windows.Input.ModifierKeys.Control)
+        {
+            SearchWindow.Show(this);
+            e.Handled = true;
+        }
+        else if (Shortcuts.PageFor(key, mods) is { } page)
+        {
+            Navigate(page);
+            e.Handled = true;
+        }
+        else if (key == System.Windows.Input.Key.F1 && mods == System.Windows.Input.ModifierKeys.None)
+        {
+            Navigate("settings");
+            if (_pages.TryGetValue("settings", out var s) && s is SettingsPage settings) settings.ShowShortcuts();
+            e.Handled = true;
+        }
+        else if (key == System.Windows.Input.Key.F5 && mods == System.Windows.Input.ModifierKeys.None && Host.Content is IRefreshable r)
+        {
+            e.Handled = true;
+            try { await r.RefreshAsync(); }
+            catch (Exception ex) { Logger.Error("F5", ex); }
+        }
+    }
 
     void Minimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
 

@@ -6,8 +6,11 @@ using UtiliTech.Services;
 
 namespace UtiliTech.Views;
 
-public partial class DriversPage : UserControl
+public partial class DriversPage : UserControl, IRefreshable
 {
+    /// <summary>F5: atualiza a tela.</summary>
+    public Task RefreshAsync() => ScanProblemsAsync();
+
     List<DriverUpdate> _updates = new();
     bool _loaded;
 

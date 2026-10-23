@@ -1,6 +1,7 @@
 <UserControl x:Class="UtiliTech.Views.RepairsPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:v="clr-namespace:UtiliTech.Views">
   <ScrollViewer VerticalScrollBarVisibility="Auto">
     <StackPanel Margin="0,0,12,0">
       <DockPanel Margin="0,0,0,18">
@@ -17,7 +18,7 @@
       <ItemsControl x:Name="RepairList" Margin="0,0,-12,0">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
-            <UniformGrid Columns="2"/>
+            <UniformGrid Columns="2" v:Responsive.MinItemWidth="380"/>
           </ItemsPanelTemplate>
         </ItemsControl.ItemsPanel>
         <ItemsControl.ItemTemplate>

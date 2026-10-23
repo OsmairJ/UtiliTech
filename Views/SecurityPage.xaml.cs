@@ -5,8 +5,11 @@ using UtiliTech.Services;
 namespace UtiliTech.Views;
 
 /// <summary>Segurança do Windows: antivírus, firewall, BitLocker, Secure Boot, TPM, UAC e atualizações, com as ações básicas.</summary>
-public partial class SecurityPage : UserControl
+public partial class SecurityPage : UserControl, IRefreshable
 {
+    /// <summary>F5: atualiza a tela.</summary>
+    public Task RefreshAsync() => LoadAsync();
+
     SecurityFacts? _facts;
     bool _busy;
 

@@ -5,8 +5,11 @@ using UtiliTech.Services;
 
 namespace UtiliTech.Views;
 
-public partial class StartupPage : UserControl
+public partial class StartupPage : UserControl, IRefreshable
 {
+    /// <summary>F5: atualiza a tela.</summary>
+    public Task RefreshAsync() => LoadAsync();
+
     List<StartupEntry> _entries = new();
     bool _loaded;
 

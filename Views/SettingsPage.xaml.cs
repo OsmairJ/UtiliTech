@@ -17,6 +17,7 @@ public partial class SettingsPage : UserControl
         RepoBox.Text = cfg.UpdateRepo;
         AutoCheckBox.IsChecked = cfg.CheckUpdatesOnStart;
         RestorePointBox.IsChecked = cfg.CreateRestorePoints;
+        ShortcutList.ItemsSource = Shortcuts.All;
         UpdateThemeButtons();
         IsVisibleChanged += (_, _) =>
         {
@@ -154,6 +155,9 @@ public partial class SettingsPage : UserControl
             "Sensores: LibreHardwareMonitorLib (MPL 2.0) e driver PawnIO 2.2.0 (GPL 2.0, licença em Licencas\\PawnIO).\n" +
             $"Driver de sensores: {SensorDriver.State}\n" +
             $"Configurações: {Path.Combine(AppContext.BaseDirectory, "settings.json")}";
+
+    /// <summary>F1: rola até a lista de atalhos.</summary>
+    public void ShowShortcuts() => Dispatcher.InvokeAsync(() => ShortcutsCard.BringIntoView(), System.Windows.Threading.DispatcherPriority.Loaded);
 
     // ---------- Segurança ----------
 

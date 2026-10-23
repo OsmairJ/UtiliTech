@@ -5,8 +5,11 @@ using UtiliTech.Services;
 namespace UtiliTech.Views;
 
 /// <summary>Checklist de pós-formatação: mostra o que falta antes de entregar o PC, com atalho para cada ferramenta.</summary>
-public partial class ChecklistPage : UserControl
+public partial class ChecklistPage : UserControl, IRefreshable
 {
+    /// <summary>F5: atualiza a tela.</summary>
+    public Task RefreshAsync() => CheckAsync();
+
     bool _busy;
 
     public ChecklistPage()

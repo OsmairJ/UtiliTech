@@ -6,8 +6,11 @@ using UtiliTech.Services;
 
 namespace UtiliTech.Views;
 
-public partial class CleanupPage : UserControl
+public partial class CleanupPage : UserControl, IRefreshable
 {
+    /// <summary>F5: atualiza a tela.</summary>
+    public Task RefreshAsync() => AnalyzeAsync();
+
     readonly List<CleanCategory> _categories = Cleaner.Categories();
     bool _loaded, _busy;
     string? _simulationFile;
