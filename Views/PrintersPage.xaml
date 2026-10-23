@@ -95,9 +95,9 @@
           <TextBlock Text="Driver" Style="{StaticResource Label}"/>
           <ComboBox x:Name="DriverBox" Margin="0,0,0,6" Padding="8,6"/>
           <TextBlock Style="{StaticResource Muted}" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,12"
-                     Text="Só aparecem drivers já instalados. O driver do fabricante não está na lista? Instale antes (Instalar apps, para os do pendrive, ou Drivers → pasta). &quot;Microsoft IPP Class Driver&quot; funciona com a maioria das impressoras de rede modernas."/>
+                     Text="Testar IP pergunta o modelo à impressora e já escolhe o driver. Brother e Samsung: Microsoft PCL6 Class Driver (vem no Windows). Lexmark MX620/CS725: o driver aparece aqui depois do assistente do pendrive. Outro fabricante: instale o driver antes (Drivers → pasta) ou use o Microsoft IPP Class Driver."/>
           <StackPanel Orientation="Horizontal">
-            <Button x:Name="PingBtn" Content="Testar IP" Style="{StaticResource BtnGhost}" Click="PingIp_Click" Margin="0,0,8,0"/>
+            <Button x:Name="PingBtn" Content="Testar IP e achar driver" Style="{StaticResource BtnGhost}" Click="PingIp_Click" Margin="0,0,8,0"/>
             <Button x:Name="InstallBtn" Content="Instalar" Style="{StaticResource Btn}" Click="Install_Click"/>
           </StackPanel>
         </StackPanel>

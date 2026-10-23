@@ -25,12 +25,11 @@ public partial class PrintersPage : UserControl
         var printers = await Task.Run(PrinterTools.List);
         PrinterList.ItemsSource = printers;
 
-        string? chosen = DriverBox.SelectedItem as string;
+        string? chosen = (DriverBox.SelectedItem as PrinterTools.DriverOption)?.Name;
         // Driver com aspas quebraria o comando de instalação: fica de fora da lista
-        var drivers = await Task.Run(() => PrinterTools.SortDrivers(PrinterTools.Drivers().Where(d => !d.Contains('"'))));
+        var drivers = await Task.Run(() => PrinterTools.DriverOptions(PrinterTools.Drivers().Where(d => !d.Contains('"'))));
         DriverBox.ItemsSource = drivers;
-        DriverBox.SelectedItem = chosen != null && drivers.Contains(chosen) ? chosen
-            : drivers.FirstOrDefault(d => d.Contains("IPP Class", StringComparison.OrdinalIgnoreCase)) ?? drivers.FirstOrDefault();
+        SelectDriver(chosen ?? PrinterTools.IppDriver);
         LexmarkList.ItemsSource = PrinterTools.LexmarkPackages.ToList(); // refaz: o arquivo pode ter sido copiado para o pendrive
 
         int real = printers.Count(p => !p.IsVirtual);
@@ -149,6 +148,13 @@ public partial class PrintersPage : UserControl
         await LoadAsync();
     }
 
+    void SelectDriver(string name)
+    {
+        var options = (DriverBox.ItemsSource as IEnumerable<PrinterTools.DriverOption>)?.ToList() ?? new();
+        DriverBox.SelectedItem = options.FirstOrDefault(o => o.Name.Equals(name, StringComparison.OrdinalIgnoreCase)) ?? options.FirstOrDefault();
+    }
+
+    /// <summary>Ping e, se responder, pergunta o modelo (SNMP) e já escolhe o driver indicado.</summary>
     async void PingIp_Click(object sender, RoutedEventArgs e)
     {
         string ip = IpBox.Text.Trim();
@@ -156,24 +162,41 @@ public partial class PrintersPage : UserControl
         SetBusy(true);
         var r = await NetworkTools.PingAsync(ip, 3);
         Log($"Ping {ip}: {r.Summary}");
+        string? model = await PrinterTools.IdentifyAsync(ip);
+        if (model == null)
+            Log("  A impressora não informou o modelo (SNMP desligado?): escolha o driver na lista.");
+        else
+        {
+            Log($"  Modelo: {model}");
+            if (NameBox.Text.Trim().Length == 0) NameBox.Text = model;
+            var options = (DriverBox.ItemsSource as IEnumerable<PrinterTools.DriverOption>)?.Select(o => o.Name).ToList() ?? new();
+            if (PrinterTools.RecommendDriver(model, options) is { } driver)
+            {
+                SelectDriver(driver);
+                Log($"  Driver indicado: {driver}");
+            }
+            else if (PrinterTools.LexmarkFor(model) is { } pkg)
+                Log($"  O driver da Lexmark para este modelo ainda não está instalado: use \"{pkg.Title}\" em Lexmark do pendrive.");
+        }
         SetBusy(false);
     }
 
     async void Install_Click(object sender, RoutedEventArgs e)
     {
         string ip = IpBox.Text.Trim(), name = NameBox.Text.Trim();
-        string? driver = DriverBox.SelectedItem as string;
+        var option = DriverBox.SelectedItem as PrinterTools.DriverOption;
+        string? driver = option?.Name;
         if (!PrinterTools.IsValidIp(ip)) { Ui.Error("Digite um IP válido (ex.: 192.168.0.50)."); return; }
         if (!PrinterTools.IsValidPrinterName(name)) { Ui.Error("Digite um nome para a impressora (sem aspas, barras, vírgula, $ ou `)."); return; }
         if (driver == null) { Ui.Error("Escolha o driver."); return; }
+        var effects = new List<string>();
+        if (option!.BuiltIn) effects.Add($"Ativa o driver {driver}, que vem guardado no Windows (não baixa nada)");
+        effects.Add($"Cria a porta TCP/IP IP_{ip} (se ainda não existir)");
+        effects.Add($"Cria a impressora \"{name}\" com o driver {driver}");
         if (!ConfirmWindow.Ask(new ConfirmRequest
             {
                 Title = $"Instalar {name}?",
-                Effects = new[]
-                {
-                    $"Cria a porta TCP/IP IP_{ip} (se ainda não existir)",
-                    $"Cria a impressora \"{name}\" com o driver {driver}",
-                },
+                Effects = effects,
                 ConfirmText = "Instalar",
             }).Ok) return;
 

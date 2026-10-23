@@ -213,14 +213,116 @@ public static class PrinterTools
     /// <summary>Texto entre aspas simples do PowerShell (aspas simples viram duas).</summary>
     public static string PsQuote(string s) => "'" + s.Replace("'", "''") + "'";
 
-    /// <summary>Script que cria a porta TCP/IP (se ainda não existe) e a impressora.</summary>
+    /// <summary>
+    /// Script que ativa o driver (se ainda não está no spooler: os de classe da Microsoft vêm guardados no Windows),
+    /// cria a porta TCP/IP (se ainda não existe) e a impressora.
+    /// </summary>
     public static string InstallScript(string ip, string name, string driver)
     {
-        string port = PsQuote("IP_" + ip);
+        string port = PsQuote("IP_" + ip), drv = PsQuote(driver);
         return $"$ErrorActionPreference='Stop'; " +
+               $"if (-not (Get-PrinterDriver -Name {drv} -ErrorAction SilentlyContinue)) {{ Add-PrinterDriver -Name {drv} }}; " +
                $"if (-not (Get-PrinterPort -Name {port} -ErrorAction SilentlyContinue)) {{ Add-PrinterPort -Name {port} -PrinterHostAddress {PsQuote(ip)} }}; " +
-               $"Add-Printer -Name {PsQuote(name.Trim())} -DriverName {PsQuote(driver)} -PortName {port}; " +
+               $"Add-Printer -Name {PsQuote(name.Trim())} -DriverName {drv} -PortName {port}; " +
                $"Write-Output 'Impressora criada'";
+    }
+
+    // ---------- Drivers para Instalar pelo IP ----------
+
+    public const string Pcl6Driver = "Microsoft PCL6 Class Driver";
+    public const string PsDriver = "Microsoft PS Class Driver";
+    public const string IppDriver = "Microsoft IPP Class Driver";
+
+    /// <summary>
+    /// Drivers de classe que todo Windows 10/11 traz guardados (prnms005.inf) mas só entram no spooler quando usados.
+    /// Servem para impressoras que falam PCL6 ou PostScript, sem baixar nada do fabricante.
+    /// </summary>
+    static readonly (string Name, string Models)[] BuiltInDrivers =
+    {
+        (Pcl6Driver, "Brother DCP-L2540DW, Samsung SCX-483x/5x3x e SCX-5835/5935X"),
+        (PsDriver, "alternativa PostScript para Brother e Samsung"),
+    };
+
+    /// <summary>Um driver na lista de Instalar pelo IP: o nome real e o texto mostrado (com os modelos que atende).</summary>
+    public record DriverOption(string Name, string Label, bool BuiltIn)
+    {
+        public override string ToString() => Label;
+    }
+
+    /// <summary>Drivers instalados + os de classe do Windows ainda não ativados, com os modelos compatíveis no texto.</summary>
+    public static List<DriverOption> DriverOptions(IEnumerable<string> installed)
+    {
+        var names = installed.ToList();
+        var options = SortDrivers(names).Select(n => new DriverOption(n, Label(n), false)).ToList();
+        int at = options.FindIndex(o => !LexmarkPackages.Any(p => o.Name.Contains(p.Model, StringComparison.OrdinalIgnoreCase)));
+        if (at < 0) at = options.Count;
+        foreach (var (name, models) in BuiltInDrivers.Reverse())
+        {
+            options.RemoveAll(o => o.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+            options.Insert(at, new DriverOption(name, $"{name} · {models}" + (names.Contains(name, StringComparer.OrdinalIgnoreCase) ? "" : " (vem no Windows)"), true));
+        }
+        return options;
+    }
+
+    static string Label(string driver) =>
+        LexmarkPackages.FirstOrDefault(p => driver.Contains(p.Model, StringComparison.OrdinalIgnoreCase)) is { } p
+            ? $"{driver} · {p.Title}"
+            : driver.Equals(IppDriver, StringComparison.OrdinalIgnoreCase) ? $"{driver} · genérico para impressoras de rede modernas" : driver;
+
+    /// <summary>
+    /// Driver indicado para o modelo informado pela impressora (SNMP). Null se não houver um adequado instalado
+    /// (ex.: Lexmark ainda sem o driver do fabricante: use o assistente do pendrive).
+    /// </summary>
+    public static string? RecommendDriver(string model, IEnumerable<string> available)
+    {
+        var list = available.ToList();
+        string? Find(string part) => list.FirstOrDefault(d => d.Contains(part, StringComparison.OrdinalIgnoreCase));
+        if (model.Contains("Lexmark", StringComparison.OrdinalIgnoreCase))
+        {
+            if (Regex.IsMatch(model, @"MX6[2-9]\d", RegexOptions.IgnoreCase)) return Find("MX620") ?? Find("MX622");
+            if (model.Contains("CS725", StringComparison.OrdinalIgnoreCase)) return Find("CS725");
+            return Find("Lexmark Universal");
+        }
+        if (model.Contains("Brother", StringComparison.OrdinalIgnoreCase) || model.Contains("Samsung", StringComparison.OrdinalIgnoreCase))
+            return Find(Pcl6Driver);
+        return Find(IppDriver);
+    }
+
+    /// <summary>Qual pacote da Lexmark do pendrive serve para o modelo (quando o driver ainda não está instalado).</summary>
+    public static LexmarkPackage? LexmarkFor(string model) =>
+        Regex.IsMatch(model, @"Lexmark MX6[2-9]\d", RegexOptions.IgnoreCase) ? LexmarkPackages[0]
+        : model.Contains("Lexmark CS725", StringComparison.OrdinalIgnoreCase) ? LexmarkPackages[1] : null;
+
+    // ---------- Identificar a impressora (SNMP) ----------
+
+    /// <summary>
+    /// Pergunta o modelo à impressora por SNMP v1 (só leitura, comunidade "public"): hrDeviceDescr.1 e, se não vier,
+    /// sysDescr. Null se não responder em 1,5 s. "Lexmark MX622adhe 7018... MXTGM.050.040" vira "Lexmark MX622adhe".
+    /// </summary>
+    public static async Task<string?> IdentifyAsync(string ip)
+    {
+        try
+        {
+            using var udp = new System.Net.Sockets.UdpClient();
+            byte[] req = Snmp.GetRequest("1.3.6.1.2.1.25.3.2.1.3.1", "1.3.6.1.2.1.1.1.0");
+            await udp.SendAsync(req, req.Length, ip, 161);
+            var recv = udp.ReceiveAsync();
+            if (await Task.WhenAny(recv, Task.Delay(1500)) != recv) return null;
+            var values = Snmp.ParseStrings((await recv).Buffer);
+            string model = values.FirstOrDefault(v => v.Length > 0) ?? "";
+            return model.Length > 0 ? ShortModel(model) : null;
+        }
+        catch { return null; }
+    }
+
+    /// <summary>Tira nº de série, firmware e "version ..." do texto da impressora.</summary>
+    public static string ShortModel(string descr)
+    {
+        string s = Regex.Replace(descr, @"\s+version\s.*$", "", RegexOptions.IgnoreCase);
+        s = s.Split(';', ',')[0];
+        var words = s.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .TakeWhile(w => !(w.Length >= 8 && w.Any(char.IsDigit) && w.All(char.IsLetterOrDigit) && w.Count(char.IsDigit) >= 5)); // nº de série
+        return string.Join(" ", words).Trim();
     }
 
     public static string ConnectScript(string sharePath) =>

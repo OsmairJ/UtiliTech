@@ -133,6 +133,96 @@ public class ImpressorasTests
         }, ordem);
     }
 
+    // ---------- Drivers e identificação do modelo ----------
+
+    static readonly string[] Instalados = { "Microsoft IPP Class Driver", "Microsoft Print To PDF", "Lexmark MX620 Series XL" };
+
+    [Fact]
+    public void Lista_tem_os_drivers_do_Windows_para_Brother_e_Samsung()
+    {
+        var opcoes = PrinterTools.DriverOptions(Instalados);
+        var pcl6 = opcoes.Single(o => o.Name == PrinterTools.Pcl6Driver);
+        Assert.True(pcl6.BuiltIn);
+        Assert.Contains("Brother DCP-L2540DW", pcl6.Label);
+        Assert.Contains("Samsung SCX-483x", pcl6.Label);
+        Assert.EndsWith("(vem no Windows)", pcl6.Label);
+        Assert.Contains(opcoes, o => o.Name == PrinterTools.PsDriver);
+        // Lexmark do modelo primeiro, depois os de classe do Windows, depois o resto
+        Assert.Equal(new[] { "Lexmark MX620 Series XL", PrinterTools.Pcl6Driver, PrinterTools.PsDriver }, opcoes.Take(3).Select(o => o.Name));
+        Assert.Equal("Lexmark MX620 Series XL · Lexmark MX620 · preto e branco", opcoes[0].Label);
+        Assert.Equal(opcoes.Count, opcoes.Select(o => o.Name).Distinct().Count());
+    }
+
+    [Fact]
+    public void Driver_do_Windows_ja_ativado_nao_repete()
+    {
+        var opcoes = PrinterTools.DriverOptions(Instalados.Append(PrinterTools.Pcl6Driver));
+        var pcl6 = Assert.Single(opcoes, o => o.Name == PrinterTools.Pcl6Driver);
+        Assert.DoesNotContain("(vem no Windows)", pcl6.Label);
+    }
+
+    [Theory]
+    [InlineData("Lexmark MX622adhe 7018840002TB8 MXTGM.052.026", "Lexmark MX622adhe")]
+    [InlineData("Lexmark CS725 50288380F354Y CSTAT.081.225", "Lexmark CS725")]
+    [InlineData("Lexmark CS725 version CSTAT.052.024 kernel 4.11.12-yocto", "Lexmark CS725")]
+    [InlineData("Brother DCP-L2540DW series", "Brother DCP-L2540DW series")]
+    [InlineData("Samsung SCX-483x 5x3x Series; V2.00.01.18 NOV-28-2011;Engine 1.00.27", "Samsung SCX-483x 5x3x Series")]
+    [InlineData("Samsung SCX-5835_5935X Series", "Samsung SCX-5835_5935X Series")]
+    public void Modelo_sem_serie_e_firmware(string descricao, string modelo)
+    {
+        Assert.Equal(modelo, PrinterTools.ShortModel(descricao));
+    }
+
+    [Theory]
+    [InlineData("Lexmark MX622adhe", "Lexmark MX620 Series XL")]
+    [InlineData("Brother DCP-L2540DW series", PrinterTools.Pcl6Driver)]
+    [InlineData("Samsung SCX-483x 5x3x Series", PrinterTools.Pcl6Driver)]
+    [InlineData("Samsung SCX-5835_5935X Series", PrinterTools.Pcl6Driver)]
+    [InlineData("HP LaserJet M404", PrinterTools.IppDriver)]
+    public void Driver_indicado_pelo_modelo(string modelo, string driver)
+    {
+        var opcoes = PrinterTools.DriverOptions(Instalados).Select(o => o.Name);
+        Assert.Equal(driver, PrinterTools.RecommendDriver(modelo, opcoes));
+    }
+
+    [Fact]
+    public void Lexmark_sem_driver_instalado_aponta_o_assistente_do_pendrive()
+    {
+        var opcoes = PrinterTools.DriverOptions(new[] { "Microsoft IPP Class Driver" }).Select(o => o.Name);
+        Assert.Null(PrinterTools.RecommendDriver("Lexmark CS725", opcoes));
+        Assert.Equal("CS725", PrinterTools.LexmarkFor("Lexmark CS725")!.Model);
+        Assert.Equal("MX620", PrinterTools.LexmarkFor("Lexmark MX622adhe")!.Model);
+        Assert.Null(PrinterTools.LexmarkFor("Brother DCP-L2540DW series"));
+    }
+
+    [Fact]
+    public void Script_ativa_o_driver_se_precisar()
+    {
+        string s = PrinterTools.InstallScript("10.0.0.50", "Brother", PrinterTools.Pcl6Driver);
+        Assert.Contains("if (-not (Get-PrinterDriver -Name 'Microsoft PCL6 Class Driver' -ErrorAction SilentlyContinue)) { Add-PrinterDriver -Name 'Microsoft PCL6 Class Driver' }", s);
+        Assert.True(s.IndexOf("Add-PrinterDriver", StringComparison.Ordinal) < s.IndexOf("Add-Printer -Name", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void SNMP_monta_o_pedido_e_le_a_resposta()
+    {
+        var req = Snmp.GetRequest("1.3.6.1.2.1.1.1.0");
+        Assert.Equal(new byte[] { 0x2B, 6, 1, 2, 1, 1, 1, 0 }, Snmp.EncodeOid("1.3.6.1.2.1.1.1.0"));
+        Assert.Equal(0x30, req[0]);
+        Assert.Equal(req.Length - 2, req[1]);
+        // Resposta montada à mão: GetResponse com 1 varbind texto
+        byte[] texto = System.Text.Encoding.ASCII.GetBytes("Lexmark CS725");
+        byte[] oid = Snmp.EncodeOid("1.3.6.1.2.1.1.1.0");
+        byte[] vb = new byte[] { 0x30, (byte)(2 + oid.Length + 2 + texto.Length), 0x06, (byte)oid.Length }.Concat(oid)
+            .Concat(new byte[] { 0x04, (byte)texto.Length }).Concat(texto).ToArray();
+        byte[] vbl = new byte[] { 0x30, (byte)vb.Length }.Concat(vb).ToArray();
+        byte[] pdu = new byte[] { 0xA2, (byte)(9 + vbl.Length), 0x02, 1, 1, 0x02, 1, 0, 0x02, 1, 0 }.Concat(vbl).ToArray();
+        byte[] corpo = new byte[] { 0x02, 1, 0, 0x04, 6 }.Concat(System.Text.Encoding.ASCII.GetBytes("public")).Concat(pdu).ToArray();
+        byte[] msg = new byte[] { 0x30, (byte)corpo.Length }.Concat(corpo).ToArray();
+        Assert.Equal(new[] { "Lexmark CS725" }, Snmp.ParseStrings(msg));
+        Assert.Empty(Snmp.ParseStrings(msg[..20])); // resposta cortada não derruba
+    }
+
     // ---------- Mapear unidade (tela Rede) ----------
 
     [Fact]
