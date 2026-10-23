@@ -157,6 +157,9 @@ public static class Updater
         File.Move(exe, old);            // o .exe em uso pode ser renomeado
         File.Move(downloaded, exe);
         Logger.Info($"Atualizado de {CurrentText} para {update.Tag}");
+        // A versão nova mostra as novidades desde esta (inclusive se o settings.json ainda não tinha a versão vista)
+        AppSettings.Current.LastSeenVersion = Current.ToString(3);
+        AppSettings.Current.Save();
         Process.Start(new ProcessStartInfo(exe) { UseShellExecute = true });
     }
 

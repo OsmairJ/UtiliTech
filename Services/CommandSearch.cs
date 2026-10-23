@@ -78,6 +78,7 @@ public static class CommandSearch
         new("Instalar drivers de uma pasta", "Drivers", "drivers", "", "pnputil inf offline pendrive"),
         new("Ponto de restauração", "Configurações", "settings", "", "restauracao sistema restore point voltar"),
         new("Atualizar o UtiliTech", "Configurações", "settings", "", "versao nova github atualizacao"),
+        new("Novidades da versão", "Configurações", "settings", "", "novidades o que mudou changelog notas da versao"),
         new("Tema claro / escuro", "Configurações", "settings", "", "tema cores escuro claro"),
         new("Registro de erros do app", "Configurações", "settings", "", "log erro"),
     };

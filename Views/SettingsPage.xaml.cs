@@ -156,6 +156,8 @@ public partial class SettingsPage : UserControl
             $"Driver de sensores: {SensorDriver.State}\n" +
             $"Configurações: {Path.Combine(AppContext.BaseDirectory, "settings.json")}";
 
+    void Notes_Click(object sender, RoutedEventArgs e) => NotesWindow.ShowRecent(Window.GetWindow(this)!);
+
     /// <summary>F1: rola até a lista de atalhos.</summary>
     public void ShowShortcuts() => Dispatcher.InvokeAsync(() => ShortcutsCard.BringIntoView(), System.Windows.Threading.DispatcherPriority.Loaded);
 

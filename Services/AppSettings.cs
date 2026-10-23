@@ -22,6 +22,8 @@ public class AppSettings
     public string LastDomainUser { get; set; } = "";
     /// <summary>As confirmações já vêm com "Criar ponto de restauração antes" marcado.</summary>
     public bool CreateRestorePoints { get; set; } = true;
+    /// <summary>Última versão cujas novidades já foram mostradas (vazio = primeiro uso, não mostra).</summary>
+    public string LastSeenVersion { get; set; } = "";
 
     public static AppSettings Current { get; } = Load();
 

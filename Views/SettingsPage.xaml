@@ -87,6 +87,7 @@
         <StackPanel>
           <TextBlock Text="Sobre" Style="{StaticResource H2}"/>
           <TextBlock x:Name="AboutText" Style="{StaticResource Muted}"/>
+          <Button Content="Ver novidades" Style="{StaticResource BtnGhost}" HorizontalAlignment="Left" Margin="0,10,0,0" Click="Notes_Click"/>
         </StackPanel>
       </Border>
     </StackPanel>

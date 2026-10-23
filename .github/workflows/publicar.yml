@@ -37,10 +37,20 @@ jobs:
           "$hash  UtiliTech.exe" | Out-File dist/UtiliTech.exe.sha256 -Encoding ascii -NoNewline
           Write-Host "SHA-256: $hash"
 
+      - name: Notas da versão (seção do NOVIDADES.md)
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $md = Get-Content NOVIDADES.md -Raw -Encoding utf8
+          $m = [regex]::Match($md, "(?ms)^##\s+$([regex]::Escape($tag))\b.*?(?=^##\s|\z)")
+          if (-not $m.Success) { throw "NOVIDADES.md não tem a seção ${tag}: escreva as novidades antes de lançar a versão." }
+          $m.Value.Trim() | Out-File notas.md -Encoding utf8
+          Get-Content notas.md
+
       - name: Publicar a release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             dist/UtiliTech.exe
             dist/UtiliTech.exe.sha256
-          generate_release_notes: true
+          body_path: notas.md

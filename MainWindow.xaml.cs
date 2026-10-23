@@ -43,6 +43,8 @@ public partial class MainWindow : Window
         Loaded += async (_, _) =>
         {
             _ = Task.Run(SessionLog.CaptureBaseline); // "antes" do relatório: o PC como estava ao abrir o app
+            // Novidades da versão, se o app acabou de ser atualizado (depois de a janela aparecer)
+            _ = Dispatcher.InvokeAsync(() => NotesWindow.ShowIfUpdated(this), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
             SensorHistory.Start();
             await SensorHub.StartAsync();
             AlertWatcher.Start();

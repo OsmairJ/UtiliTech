@@ -37,11 +37,11 @@
 - [x] **Eventos simplificados** (Diagnóstico → Eventos, 7/30/90 dias): telas azuis com o código explicado (ex.: 0xD1 = driver), desligamentos inesperados (com a hora em que o PC parou), erros de disco e do NTFS, driver de vídeo que travou e erros de hardware (WHEA). Um travamento que gera vários eventos conta uma vez; cada tipo tem o que fazer e atalho para a ferramenta (Drivers, Discos, Memória, Monitor).
 - [x] **Velocidade do disco** (Diagnóstico → Velocidade do disco): leitura e gravação sequencial (1 MiB) e aleatória 4K (QD1) sem o cache do Windows, com arquivo temporário de 256 MB/1 GB/4 GB apagado no fim (também ao parar); veredito do tipo de disco (NVMe, SSD SATA, HD mecânico, SSD lento) e o resultado entra no relatório.
 
-## Fase 7 — Interface e usabilidade (em andamento)
+## Fase 7 — Interface e usabilidade (concluída)
 - [x] **Busca no menu (Ctrl+K)**: Ctrl+K em qualquer tela (ou o botão Buscar na barra de título) abre a busca; acha as 23 telas e ~40 ferramentas dentro delas (reparos, chave do BitLocker, mapear unidade, instalar impressora pelo IP...) pelo nome ou por sinônimo (bsod, gpupdate, spooler, service tag), sem diferenciar acentos; setas escolhem, Enter abre, Esc fecha.
 - [x] **"Problemas encontrados"** no topo da Visão geral: junta discos com falha, pouco espaço, drivers e vídeo sem driver, bateria gasta, segurança (antivírus/firewall/assinaturas/atualizações), eventos dos últimos 30 dias (telas azuis, erros de disco, desligamentos repetidos, vídeo, WHEA), Windows não ativado e reinício pendente, graves primeiro, cada um com o botão que leva à ferramenta.
 - [x] **Telas pequenas e DPI** e **atalhos de teclado**: janela cabe na área útil (notebook 1366×768 abre maximizado; mínimos nunca maiores que a tela), menu lateral mais fino em janela estreita, cartões que quebram colunas (Reparos, Instalar apps, Velocidade do disco, Estresse) e empilham na Visão geral; DPI por monitor (PerMonitorV2). Atalhos: Ctrl+K busca, Ctrl+1..9 e Ctrl+, telas, F5 atualiza a tela, F1 lista de atalhos (em Configurações), dica no tooltip do menu.
-- [ ] **Notas da versão** ao abrir depois de atualizar.
+- [x] **Notas da versão**: `NOVIDADES.md` (uma seção por versão) vai dentro do .exe; na primeira vez que o app abre depois de atualizar, mostra o que mudou desde a última versão vista (inclusive as puladas). "Ver novidades" em Configurações. A release do GitHub usa a seção da versão como texto, e o workflow barra a versão que não tiver a seção.
 
 ## Fase 8 — Código e publicação
 - [ ] **Separar lógica das telas grandes** (Drivers, Visão geral, Nome e domínio) para facilitar os testes.

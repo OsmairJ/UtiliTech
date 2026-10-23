@@ -69,7 +69,7 @@ A lista de programas de **Instalar apps** fica salva em `apps.json`, na mesma pa
 
 1. Crie um repositório no GitHub (ex.: `seu-usuario/UtiliTech`) e envie esta pasta para ele. O workflow `.github/workflows/publicar.yml` já vem pronto.
 2. Para lançar uma versão, crie uma tag e envie: `git tag v0.2.0` e `git push --tags`. O GitHub compila o `UtiliTech.exe` e publica a release sozinho.
-3. No app, em **Configurações → Atualizações**, informe `seu-usuario/UtiliTech`. Ao abrir, o UtiliTech avisa quando houver versão nova e instala com 1 clique (baixa, confere o SHA-256 com o publicado na release, troca o `.exe` e reabre). Se o hash não bater, nada é trocado.
+3. No app, em **Configurações → Atualizações**, informe `seu-usuario/UtiliTech`. Ao abrir, o UtiliTech avisa quando houver versão nova (com o que mudou) e instala com 1 clique (baixa, confere o SHA-256 com o publicado na release, troca o `.exe` e reabre). Se o hash não bater, nada é trocado. Na primeira vez que abre depois de atualizar, mostra as **novidades** da versão (do arquivo `NOVIDADES.md`, que vai dentro do .exe); elas também ficam em Configurações → Ver novidades. Antes de lançar uma versão, escreva a seção dela no `NOVIDADES.md`: o GitHub não publica a release sem ela.
 
 O repositório precisa ser **público** para o app conseguir ler as releases sem senha.
 

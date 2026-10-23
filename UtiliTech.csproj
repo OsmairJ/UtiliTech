@@ -12,7 +12,7 @@
     <AssemblyName>UtiliTech</AssemblyName>
     <RootNamespace>UtiliTech</RootNamespace>
     <!-- Versão local; nas releases do GitHub ela vem da tag (v0.2.0 → 0.2.0) -->
-    <Version>0.6.25</Version>
+    <Version>0.6.26</Version>
     <Product>UtiliTech</Product>
     <ApplicationIcon>Assets\utilitech.ico</ApplicationIcon>
     <!-- Os testes ficam numa subpasta com projeto próprio: fora da compilação do app -->
@@ -26,6 +26,8 @@
   <ItemGroup>
     <Resource Include="Assets\utilitech.ico" />
     <!-- Driver de sensores embutido no .exe; carregado só enquanto o app está aberto (Services/SensorDriver.cs) -->
+    <!-- Notas da versão: mostradas ao abrir depois de atualizar (Services/ReleaseNotes.cs) -->
+    <EmbeddedResource Include="NOVIDADES.md" LogicalName="UtiliTech.NOVIDADES.md" />
     <EmbeddedResource Include="Assets\Drivers\PawnIO.sys" LogicalName="UtiliTech.Drivers.PawnIO.sys" />
     <EmbeddedResource Include="Assets\Drivers\PawnIO.inf" LogicalName="UtiliTech.Drivers.PawnIO.inf" />
     <EmbeddedResource Include="Assets\Drivers\PawnIO.cat" LogicalName="UtiliTech.Drivers.PawnIO.cat" />
