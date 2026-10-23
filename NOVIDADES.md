@@ -2,6 +2,11 @@
 
 Uma seção por versão, da mais nova para a mais antiga. O app mostra as seções novas na primeira vez que abre depois de atualizar, e a release do GitHub usa a seção da versão como texto.
 
+## v0.6.27 — código mais organizado, trava contra dados internos e .exe menor
+- As telas Nome e domínio, Drivers e Visão geral passaram a usar regras separadas da tela, com testes automáticos (o funcionamento não muda)
+- Trava contra dados internos: o commit é bloqueado no PC e a release no GitHub se aparecer domínio, IP ou nome interno
+- .exe menor: de ~73,8 para ~68 MB (só os idiomas português e inglês do .NET)
+
 ## v0.6.26 — notas da versão ao abrir depois de atualizar
 - Na primeira vez que o UtiliTech abre depois de atualizar, mostra o que mudou (inclusive das versões puladas)
 - "Ver novidades" em Configurações e "novidades" na busca Ctrl+K

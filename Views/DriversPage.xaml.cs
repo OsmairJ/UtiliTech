@@ -30,51 +30,9 @@ public partial class DriversPage : UserControl, IRefreshable
     async Task LoadGpusAsync()
     {
         var gpus = await Task.Run(() => GpuDrivers.Detect());
-        var cards = gpus.Select(ToCard).ToList();
+        var cards = gpus.Select(GpuDrivers.Card).ToList();
         GpuList.ItemsSource = cards;
         foreach (var c in cards.Where(c => c.Info.Vendor == GpuVendor.Nvidia)) _ = CheckNvidiaAsync(c);
-    }
-
-    static GpuCard ToCard(GpuInfo g)
-    {
-        string vendor = g.Vendor switch { GpuVendor.Nvidia => "NVIDIA", GpuVendor.Amd => "AMD", GpuVendor.Intel => "Intel", _ => "Outro fabricante" };
-        string driver = g.HasVendorDriver
-            ? $"driver {g.VendorVersion}" + (g.DriverDate is { } d ? $" de {d:dd/MM/yyyy}" : "")
-            : "SEM DRIVER DO FABRICANTE";
-        var card = new GpuCard
-        {
-            Info = g,
-            Detail = $"{vendor} · {driver}",
-            SitePage = g.Vendor switch
-            {
-                GpuVendor.Nvidia => GpuDrivers.NvidiaPage,
-                GpuVendor.Amd => GpuDrivers.AmdPage,
-                GpuVendor.Intel => GpuDrivers.IntelDsaPage,
-                _ => "https://www.catalog.update.microsoft.com",
-            },
-        };
-        switch (g.Vendor)
-        {
-            case GpuVendor.Nvidia:
-                card.Status = "Consultando a versão mais nova na NVIDIA...";
-                break;
-            case GpuVendor.Amd:
-                card.Status = "A AMD não informa a versão mais nova para outros programas. A detecção automática do site reconhece a placa e baixa o driver certo.";
-                card.ActionText = "Detectar no site da AMD";
-                card.ActionVisible = true;
-                break;
-            case GpuVendor.Intel:
-                card.Status = (g.HasVendorDriver ? "" : "Sem driver: o Windows Update abaixo costuma ter um. ") +
-                              "Para a versão mais nova, use o assistente oficial da Intel.";
-                card.StatusColor = g.HasVendorDriver ? Palette.Muted : Palette.Warn;
-                card.ActionText = "Instalar assistente da Intel";
-                card.ActionVisible = true;
-                break;
-            default:
-                card.Status = "Use a busca do Windows Update abaixo.";
-                break;
-        }
-        return card;
     }
 
     async Task CheckNvidiaAsync(GpuCard card)
@@ -84,21 +42,8 @@ public partial class DriversPage : UserControl, IRefreshable
         card.ActionVisible = false;
         try
         {
-            var latest = await GpuDrivers.LatestNvidiaAsync(card.Info.Name);
-            card.Latest = latest;
-            string when = latest.ReleaseDate.Length > 0 ? $", lançado em {latest.ReleaseDate}" : "";
-            if (!card.Info.HasVendorDriver || GpuDrivers.IsNewer(latest.Version, card.Info.VendorVersion))
-            {
-                card.Status = $"Versão nova disponível: {latest.Version}{when} · {Fmt.Bytes(latest.Size)}";
-                card.StatusColor = Palette.Accent;
-                card.ActionText = $"Baixar e instalar {latest.Version}";
-                card.ActionVisible = true;
-            }
-            else
-            {
-                card.Status = $"✓ Driver em dia (o mais novo é o {latest.Version}{when})";
-                card.StatusColor = Palette.Good;
-            }
+            GpuDrivers.ApplyLatest(card, await GpuDrivers.LatestNvidiaAsync(card.Info.Name));
+
         }
         catch (Exception ex)
         {
@@ -206,11 +151,8 @@ public partial class DriversPage : UserControl, IRefreshable
         Status.Text = "Verificando dispositivos...";
         var problems = await Task.Run(() => DriverManager.ScanProblems());
         ProblemList.ItemsSource = problems;
-        int real = problems.Count(p => !p.IsDisabled);
-        int disabled = problems.Count - real;
-        ProblemsEmpty.Visibility = real == 0 ? Visibility.Visible : Visibility.Collapsed;
-        Status.Text = (real == 0 ? "Tudo certo no Gerenciador de Dispositivos" : $"{real} dispositivo(s) com problema") +
-                      (disabled > 0 ? $" · {disabled} desativado(s)" : "") + $" · verificado às {DateTime.Now:HH:mm}";
+        ProblemsEmpty.Visibility = problems.All(p => p.IsDisabled) ? Visibility.Visible : Visibility.Collapsed;
+        Status.Text = DriverManager.ProblemSummary(problems, DateTime.Now);
     }
 
     async void Refresh_Click(object sender, RoutedEventArgs e) => await ScanProblemsAsync();
@@ -303,9 +245,8 @@ public partial class DriversPage : UserControl, IRefreshable
             var result = await DriverManager.InstallWindowsUpdateAsync(chosen.Select(u => u.UpdateId), progress,
                 m => Dispatcher.InvokeAsync(() => Log(m)));
             WuBar.Value = 100;
-            SetWuStatus($"{result.Installed} instalado(s)" + (result.Failed > 0 ? $", {result.Failed} com falha" : "") +
-                        (result.RebootRequired ? " · reinicie o PC para concluir" : ""),
-                result.Failed > 0 ? Palette.Warn : Palette.Good);
+            var (summary, color) = DriverManager.InstallSummary(result);
+            SetWuStatus(summary, color);
             foreach (var u in chosen.Where(u => result.PerUpdate.ContainsKey(u.UpdateId)))
                 SessionLog.Add("Drivers", "Windows Update: " + u.Title, result.PerUpdate[u.UpdateId]);
             await ScanProblemsAsync();

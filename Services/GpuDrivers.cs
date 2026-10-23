@@ -260,4 +260,69 @@ public static class GpuDrivers
 
     [DllImport("wintrust.dll", CharSet = CharSet.Unicode)]
     static extern int WinVerifyTrust(IntPtr hwnd, ref Guid action, ref WINTRUST_DATA data);
+
+    // ---------- Cartão da placa na tela Drivers (sem interface, para testar) ----------
+
+    /// <summary>Monta o cartão da placa: fabricante, driver atual, site e o que fazer (NVIDIA consulta a versão depois).</summary>
+    public static GpuCard Card(GpuInfo g)
+    {
+        string vendor = g.Vendor switch { GpuVendor.Nvidia => "NVIDIA", GpuVendor.Amd => "AMD", GpuVendor.Intel => "Intel", _ => "Outro fabricante" };
+        string driver = g.HasVendorDriver
+            ? $"driver {g.VendorVersion}" + (g.DriverDate is { } d ? $" de {d:dd/MM/yyyy}" : "")
+            : "SEM DRIVER DO FABRICANTE";
+        var card = new GpuCard
+        {
+            Info = g,
+            Detail = $"{vendor} · {driver}",
+            SitePage = g.Vendor switch
+            {
+                GpuVendor.Nvidia => NvidiaPage,
+                GpuVendor.Amd => AmdPage,
+                GpuVendor.Intel => IntelDsaPage,
+                _ => "https://www.catalog.update.microsoft.com",
+            },
+        };
+        switch (g.Vendor)
+        {
+            case GpuVendor.Nvidia:
+                card.Status = "Consultando a versão mais nova na NVIDIA...";
+                break;
+            case GpuVendor.Amd:
+                card.Status = "A AMD não informa a versão mais nova para outros programas. A detecção automática do site reconhece a placa e baixa o driver certo.";
+                card.ActionText = "Detectar no site da AMD";
+                card.ActionVisible = true;
+                break;
+            case GpuVendor.Intel:
+                card.Status = (g.HasVendorDriver ? "" : "Sem driver: o Windows Update abaixo costuma ter um. ") +
+                              "Para a versão mais nova, use o assistente oficial da Intel.";
+                card.StatusColor = g.HasVendorDriver ? Palette.Muted : Palette.Warn;
+                card.ActionText = "Instalar assistente da Intel";
+                card.ActionVisible = true;
+                break;
+            default:
+                card.Status = "Use a busca do Windows Update abaixo.";
+                break;
+        }
+        return card;
+    }
+
+    /// <summary>Resultado da consulta à NVIDIA: oferece instalar se não há driver ou se o do site é mais novo.</summary>
+    public static void ApplyLatest(GpuCard card, NvidiaDriver latest)
+    {
+        card.Latest = latest;
+        string when = latest.ReleaseDate.Length > 0 ? $", lançado em {latest.ReleaseDate}" : "";
+        if (!card.Info.HasVendorDriver || IsNewer(latest.Version, card.Info.VendorVersion))
+        {
+            card.Status = $"Versão nova disponível: {latest.Version}{when} · {Fmt.Bytes(latest.Size)}";
+            card.StatusColor = Palette.Accent;
+            card.ActionText = $"Baixar e instalar {latest.Version}";
+            card.ActionVisible = true;
+        }
+        else
+        {
+            card.Status = $"✓ Driver em dia (o mais novo é o {latest.Version}{when})";
+            card.StatusColor = Palette.Good;
+            card.ActionVisible = false;
+        }
+    }
 }

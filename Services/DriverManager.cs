@@ -42,6 +42,21 @@ public record DriverInstallProgress(string UpdateId, int Index, int Count, strin
 /// </summary>
 public static class DriverManager
 {
+    // ---------- Textos da tela (sem interface, para testar) ----------
+
+    /// <summary>Resumo dos dispositivos com problema (desativados contam à parte, não são defeito).</summary>
+    public static string ProblemSummary(IReadOnlyCollection<ProblemDevice> problems, DateTime now)
+    {
+        int real = problems.Count(p => !p.IsDisabled), disabled = problems.Count - real;
+        return (real == 0 ? "Tudo certo no Gerenciador de Dispositivos" : $"{real} dispositivo(s) com problema") +
+               (disabled > 0 ? $" · {disabled} desativado(s)" : "") + $" · verificado às {now:HH:mm}";
+    }
+
+    /// <summary>Resultado da instalação pelo Windows Update: texto e cor.</summary>
+    public static (string Text, string Color) InstallSummary(DriverInstallResult r) =>
+        ($"{r.Installed} instalado(s)" + (r.Failed > 0 ? $", {r.Failed} com falha" : "") + (r.RebootRequired ? " · reinicie o PC para concluir" : ""),
+         r.Failed > 0 ? Palette.Warn : Palette.Good);
+
     // ---------- Dispositivos com problema ----------
 
     public static List<ProblemDevice> ScanProblems()

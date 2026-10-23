@@ -1,0 +1,22 @@
+# A cada envio para o main: confere se entrou algum dado interno (lista no segredo TERMOS_PROIBIDOS).
+# É a rede de segurança; a proteção principal é o hook local (ferramentas/instalar-trava.ps1), que barra antes do commit.
+name: Verificar
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  trava:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trava contra dados internos
+        shell: pwsh
+        env:
+          TERMOS: ${{ secrets.TERMOS_PROIBIDOS }}
+        run: ./ferramentas/trava-ci.ps1

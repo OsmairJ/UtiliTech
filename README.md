@@ -59,7 +59,7 @@ Os testes (xUnit) cobrem a lógica que não depende do PC: veredito dos discos e
 
 ## Usar no pendrive
 
-1. Dê dois cliques em `publicar.bat`. Ele gera `..\UtiliTech-dist\UtiliTech.exe` (~70 MB), um arquivo único com o .NET embutido.
+1. Dê dois cliques em `publicar.bat`. Ele gera `..\UtiliTech-dist\UtiliTech.exe` (~68 MB), um arquivo único com o .NET embutido.
 2. Copie o `UtiliTech.exe` para o pendrive (de preferência numa pasta, ex.: `E:\UtiliTech\`).
 3. No PC do cliente, dê dois cliques no `.exe` e aceite o pedido de administrador. Não precisa instalar nada (Windows 10/11 64 bits).
 
@@ -77,6 +77,13 @@ O repositório precisa ser **público** para o app conseguir ler as releases sem
 
 - `settings.json` (ao lado do `.exe`): tema, alertas e repositório de atualização.
 - `logs\utilitech-AAAAMMDD.log`: erros do app, últimos 10 dias. Abra por **Configurações → Registro de erros**.
+
+## Trava contra dados internos
+
+O repositório é público: nada da rede da empresa (domínio, IPs, nomes de PCs e usuários) pode entrar em código, commits ou releases. A lista desses termos fica **fora do repositório**:
+
+- **No PC do técnico**: rode uma vez `.\ferramentas\instalar-trava.ps1 -Termos "C:\caminho\fora\do\repositório\termos-proibidos.txt"` (um termo por linha). Os hooks `pre-commit` e `commit-msg` bloqueiam o commit se algum termo aparecer nas linhas adicionadas ou na mensagem.
+- **No GitHub**: a mesma lista fica no segredo `TERMOS_PROIBIDOS` do repositório. O workflow **Verificar** confere cada envio para o `main` e o **Publicar** confere antes de compilar; se achar algo, falha mostrando só o arquivo (nunca o termo).
 
 ## Estrutura
 

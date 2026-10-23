@@ -15,6 +15,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Trava contra dados internos
+        shell: pwsh
+        env:
+          TERMOS: ${{ secrets.TERMOS_PROIBIDOS }}
+        run: ./ferramentas/trava-ci.ps1
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'

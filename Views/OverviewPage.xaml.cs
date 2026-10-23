@@ -112,7 +112,7 @@ public partial class OverviewPage : UserControl, IRefreshable
         try
         {
             var drive = new DriveInfo(SystemDrive);
-            double usedPct = 100.0 * (drive.TotalSize - drive.TotalFreeSpace) / drive.TotalSize;
+            double usedPct = OverviewText.UsedPercent(drive.TotalSize, drive.TotalFreeSpace);
             _disk.Sub = s.Disks.FirstOrDefault().Name ?? "";
             _disk.Usage = $"{Fmt.Bytes(drive.TotalFreeSpace)} livres";
             DiskText.Text = $"Disco {SystemDrive.TrimEnd('\\')}";
@@ -140,17 +140,12 @@ public partial class OverviewPage : UserControl, IRefreshable
 
         var points = samples.Select(x => (x.Time, A: (double?)cpu(x.Snapshot), B: (double?)gpu(x.Snapshot))).ToList();
         double peak = points.SelectMany(p => new[] { p.A ?? 0, p.B ?? 0 }).DefaultIfEmpty(0).Max();
-        var (min, max) = _metric switch
-        {
-            "load" => (0d, 100d),
-            "power" => (0d, Math.Max(50, Math.Ceiling(peak * 1.2 / 10) * 10)),
-            _ => (20d, peak > 90 ? 110d : 90d),
-        };
+        var (min, max) = OverviewText.ChartRange(_metric, peak);
         Chart.Plot(points, _span, min, max, unit.Trim());
     }
 
-    static string Temp(float? t) => t is { } x ? $"{x:0} °C" : "—";
-    static string Pct(float? v) => v is { } x ? $"{x:0} %" : "—";
+    static string Temp(float? t) => OverviewText.Temp(t);
+    static string Pct(float? v) => OverviewText.Pct(v);
 
     void Row_Click(object sender, RoutedEventArgs e)
     {
@@ -172,10 +167,7 @@ public partial class OverviewPage : UserControl, IRefreshable
             string model = Environment.MachineName;
             if (cs != null)
             {
-                // "Positivo Informatica SA" + "Positivo Master D810": não repete a marca
-                string maker = Wmi.Str(cs, "Manufacturer"), name = Wmi.Str(cs, "Model");
-                string brand = maker.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "";
-                model = brand.Length > 0 && name.StartsWith(brand, StringComparison.OrdinalIgnoreCase) ? name : $"{maker} {name}".Trim();
+                model = OverviewText.DisplayModel(Wmi.Str(cs, "Manufacturer"), Wmi.Str(cs, "Model"), model);
             }
             string serial = bios == null ? "" : "Nº de série " + Wmi.Str(bios, "SerialNumber");
             var list = new List<InfoItem>
@@ -192,7 +184,7 @@ public partial class OverviewPage : UserControl, IRefreshable
         ModelText.Text = model;
         SerialText.Text = serial;
         SummaryList.ItemsSource = items;
-        CpuNameText.Text = cpu.Replace("(R)", "").Replace("(TM)", "").Replace(" CPU", "");
+        CpuNameText.Text = OverviewText.ShortCpuName(cpu);
         GpuNameText.Text = gpu;
     }
 

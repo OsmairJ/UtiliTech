@@ -1,0 +1,2 @@
+# O hook da trava roda no sh do Git: final de linha do Windows (CRLF) quebraria o script
+*.sh text eol=lf

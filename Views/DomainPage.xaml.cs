@@ -43,40 +43,20 @@ public partial class DomainPage : UserControl
     {
         _current = DomainTools.Current();
         string domain = DomainTools.DomainName;
-        bool inDomain = DomainTools.IsInDomain(_current);
         CheckBtn.IsEnabled = domain.Length > 0;
-        if (domain.Length == 0)
-        {
-            CurrentList.ItemsSource = new List<InfoItem>
-            {
-                new("Nome do computador", _current.Name),
-                new(_current.PartOfDomain ? "Domínio" : "Grupo de trabalho", _current.Domain),
-            };
-            Status.Text = "Informe abaixo o domínio da empresa para conferir nomes e ingressar.";
-            ApplyBtn.Content = "Renomear e adicionar ao domínio";
-            return;
-        }
-        CurrentList.ItemsSource = new List<InfoItem>
-        {
-            new("Nome do computador", _current.Name),
-            new(_current.PartOfDomain ? "Domínio" : "Grupo de trabalho", _current.Domain),
-            new("Usuário do Windows", $@"{Environment.UserDomainName}\{Environment.UserName}"),
-        };
-        Status.Text = inDomain
-            ? $"Este PC já está no domínio {domain}: dá para renomear (o nome muda também no AD)."
-            : $"Este PC não está no {domain}: renomeia e ingressa no domínio com uma única reinicialização.";
-        CredHint.Text = inDomain
-            ? "Conta com permissão para renomear computadores no AD. Também é usada para consultar o AD (se ficar vazia, a consulta usa a conta do Windows)."
-            : "Conta com permissão para ingressar máquinas no domínio. Também é usada para consultar o AD, já que este PC ainda não está no domínio.";
-        ApplyBtn.Content = inDomain ? "Renomear no domínio" : $"Renomear e adicionar ao {domain}";
+        var screen = DomainPlan.Describe(_current, domain, $@"{Environment.UserDomainName}\{Environment.UserName}");
+        CurrentList.ItemsSource = screen.Items;
+        Status.Text = screen.Status;
+        if (screen.CredHint.Length > 0) CredHint.Text = screen.CredHint;
+        ApplyBtn.Content = screen.ApplyText;
     }
 
     void NameBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         var name = NameBox.Text.Trim();
-        var error = name.Length == 0 ? null : DomainTools.Validate(name);
-        NameHint.Text = error ?? (name.Length > 0 ? $"{name.Length} de 15 caracteres" : "");
-        NameHint.Foreground = Ui.Hex(error != null ? Palette.Bad : Palette.Muted);
+        var (hint, isError) = DomainPlan.NameHint(name);
+        NameHint.Text = hint;
+        NameHint.Foreground = Ui.Hex(isError ? Palette.Bad : Palette.Muted);
         // Mudou o nome: precisa verificar de novo
         if (!string.Equals(name, _verifiedFree, StringComparison.OrdinalIgnoreCase)) ResultBox.Visibility = Visibility.Collapsed;
         UpdateApplyState();
@@ -85,15 +65,9 @@ public partial class DomainPage : UserControl
     async void Check_Click(object sender, RoutedEventArgs e)
     {
         var name = NameBox.Text.Trim().ToUpperInvariant();
-        var error = DomainTools.Validate(name);
-        if (error != null)
+        if (DomainPlan.PreCheck(name, _current, DomainTools.DomainName) is { } pre)
         {
-            ShowResult(Palette.Bad, error, "", null);
-            return;
-        }
-        if (name.Equals(_current.Name, StringComparison.OrdinalIgnoreCase) && DomainTools.IsInDomain(_current))
-        {
-            ShowResult(Palette.Warn, "Este já é o nome deste computador.", "Nada a mudar.", null);
+            ShowResult(pre, null);
             return;
         }
 
@@ -108,13 +82,11 @@ public partial class DomainPage : UserControl
             if (found == null)
             {
                 _verifiedFree = name;
-                ShowResult(Palette.Good, $"✓ {name} está livre no AD {DomainTools.DomainName}.", "Pode usar este nome.", null);
+                ShowResult(DomainPlan.Free(name, DomainTools.DomainName), null);
             }
             else
             {
-                ShowResult(Palette.Bad, $"⚠ {name} JÁ ESTÁ EM USO no AD {DomainTools.DomainName}.",
-                    "Escolha outro nome. Se for este mesmo computador sendo reformatado, peça a exclusão do objeto antigo no AD antes.",
-                    found.Items);
+                ShowResult(DomainPlan.InUse(name, DomainTools.DomainName), found.Items);
                 MessageBox.Show($"O nome {name} já está em uso no AD {DomainTools.DomainName}.\n\n{found.DistinguishedName}\n\nEscolha outro nome.",
                     "UtiliTech — nome em uso", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
@@ -122,8 +94,7 @@ public partial class DomainPage : UserControl
         catch (Exception ex)
         {
             Logger.Error("Consulta de nome no AD", ex);
-            ShowResult(Palette.Bad, "Não foi possível consultar o AD.",
-                ex.Message + (user == null && !_current.PartOfDomain ? " · Este PC não está no domínio: informe usuário e senha no passo 2." : ""), null);
+            ShowResult(DomainPlan.QueryFailed(ex.Message, user != null, _current.PartOfDomain), null);
         }
         finally
         {
@@ -131,6 +102,8 @@ public partial class DomainPage : UserControl
             UpdateApplyState();
         }
     }
+
+    void ShowResult(DomainMessage m, List<InfoItem>? details) => ShowResult(m.Color, m.Title, m.Text, details);
 
     void ShowResult(string color, string title, string text, List<InfoItem>? details)
     {
@@ -145,12 +118,9 @@ public partial class DomainPage : UserControl
 
     void UpdateApplyState()
     {
-        var name = NameBox.Text.Trim();
-        bool verified = name.Length > 0 && string.Equals(name, _verifiedFree, StringComparison.OrdinalIgnoreCase);
-        ApplyBtn.IsEnabled = verified;
-        ApplyHint.Text = verified
-            ? $"Pronto: {_current.Name} → {name}. A mudança vale depois de reiniciar."
-            : "Primeiro verifique no AD se o novo nome está livre. O botão só libera para um nome confirmado como livre.";
+        var (enabled, hint) = DomainPlan.ApplyState(_current.Name, NameBox.Text, _verifiedFree);
+        ApplyBtn.IsEnabled = enabled;
+        ApplyHint.Text = hint;
     }
 
     async void Apply_Click(object sender, RoutedEventArgs e)
@@ -165,17 +135,13 @@ public partial class DomainPage : UserControl
             return;
         }
         bool inDomain = DomainTools.IsInDomain(_current);
-        string action = inDomain ? $"Renomear {_current.Name} para {name} no domínio" : $"Renomear {_current.Name} para {name} e adicionar ao domínio {DomainTools.DomainName}";
-        var effects = new List<string> { $"O nome do computador muda de {_current.Name} para {name}" };
-        if (!inDomain) effects.Add($"O PC entra no domínio {DomainTools.DomainName} (conta criada no AD com a conta {user})");
-        else effects.Add($"A conta do computador é renomeada no AD (com a conta {user})");
-        effects.Add("O PC precisa reiniciar para concluir");
+        var plan = DomainPlan.Apply(_current, name, DomainTools.DomainName, user);
         if (!await ConfirmWindow.ConfirmAsync(new ConfirmRequest
             {
-                Title = action + "?",
-                Effects = effects,
-                Warning = inDomain ? null : "Depois de reiniciar, o login passa a ser com usuário do domínio. Confira se há uma conta local de administrador com senha conhecida.",
-                ConfirmText = inDomain ? "Renomear" : "Renomear e ingressar",
+                Title = plan.Title,
+                Effects = plan.Effects,
+                Warning = plan.Warning,
+                ConfirmText = plan.ConfirmText,
                 // Sem ponto de restauração: voltar um ponto depois de ingressar desfaz a senha da conta do
                 // computador e quebra a relação de confiança com o domínio
             }, null)) return;
@@ -190,8 +156,7 @@ public partial class DomainPage : UserControl
             AppSettings.Current.LastDomainUser = UserBox.Text.Trim();
             AppSettings.Current.Save();
             SessionLog.Add("Nome e domínio", $"{_current.Name} renomeado para {name}" + (inDomain ? "" : $" e ingressado no domínio {DomainTools.DomainName}"));
-            ApplyResult.Text = $"✓ Feito: o computador vai se chamar {name}" + (inDomain ? "" : $" e já está no domínio {DomainTools.DomainName}") +
-                               ". Reinicie o PC para concluir.";
+            ApplyResult.Text = DomainPlan.Done(name, inDomain, DomainTools.DomainName);
             ApplyResult.Foreground = Ui.Hex(Palette.Good);
             RestartBtn.Visibility = Visibility.Visible;
             _verifiedFree = null;

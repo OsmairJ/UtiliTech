@@ -14,7 +14,7 @@
 - [x] **Atualização automática** pelo GitHub Releases: avisa ao abrir quando há versão nova e instala com 1 clique em Configurações.
 - [x] **Tema claro** opcional, trocando na hora.
 - [x] **Registro de erros** do próprio app (pasta `logs`, últimos 10 dias).
-- Assinatura digital do .exe: fora por enquanto (exige certificado pago).
+- Assinatura digital do .exe: fora do plano (decidido em 23/10/2026).
 
 ## Fase 4 — Segurança e confiabilidade (concluída)
 - [x] **Ponto de restauração automático** antes de resetar rede, resetar Windows Update e instalar drivers (Windows Update, pasta e NVIDIA). Vem marcado na confirmação (Configurações → Segurança); se a Proteção do Sistema estiver desligada, oferece ligar. Nome e domínio fica de fora de propósito: voltar um ponto depois de ingressar quebra a relação de confiança com o domínio.
@@ -43,8 +43,7 @@
 - [x] **Telas pequenas e DPI** e **atalhos de teclado**: janela cabe na área útil (notebook 1366×768 abre maximizado; mínimos nunca maiores que a tela), menu lateral mais fino em janela estreita, cartões que quebram colunas (Reparos, Instalar apps, Velocidade do disco, Estresse) e empilham na Visão geral; DPI por monitor (PerMonitorV2). Atalhos: Ctrl+K busca, Ctrl+1..9 e Ctrl+, telas, F5 atualiza a tela, F1 lista de atalhos (em Configurações), dica no tooltip do menu.
 - [x] **Notas da versão**: `NOVIDADES.md` (uma seção por versão) vai dentro do .exe; na primeira vez que o app abre depois de atualizar, mostra o que mudou desde a última versão vista (inclusive as puladas). "Ver novidades" em Configurações. A release do GitHub usa a seção da versão como texto, e o workflow barra a versão que não tiver a seção.
 
-## Fase 8 — Código e publicação
-- [ ] **Separar lógica das telas grandes** (Drivers, Visão geral, Nome e domínio) para facilitar os testes.
-- [ ] **Trava contra dados internos** no workflow ou num hook de pré-commit.
-- [ ] **Tamanho do .exe**: avaliar *trimming* para reduzir os ~70 MB.
-- [ ] **Assinatura digital**: avaliar opção gratuita para código aberto (ex.: SignPath).
+## Fase 8 — Código e publicação (concluída)
+- [x] **Separar lógica das telas grandes**: Nome e domínio (`DomainPlan`), Drivers (`GpuDrivers.Card/ApplyLatest`, `DriverManager.ProblemSummary/InstallSummary`) e Visão geral (`OverviewText`) agora decidem fora da tela, com testes.
+- [x] **Trava contra dados internos**: hook local (pre-commit e commit-msg) e conferência no GitHub (a cada envio para o main e antes de cada release), com a lista de termos fora do repositório (arquivo local e segredo do GitHub); nunca mostra o termo no log.
+- [x] **Tamanho do .exe**: só os idiomas pt-BR e en do .NET/WPF (73,8 → 68 MB). Trimming descartado: sem suporte da Microsoft em WPF (NETSDK1168).
