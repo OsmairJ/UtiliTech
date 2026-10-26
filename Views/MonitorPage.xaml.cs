@@ -154,8 +154,8 @@ public partial class MonitorPage : UserControl
 
     async void InstallDriver_Click(object sender, RoutedEventArgs e)
     {
-        if (MessageBox.Show("Instalar o driver PawnIO pelo winget (namazso.PawnIO)?\n\nEle permite ler a temperatura da CPU e da placa-mãe.",
-                "UtiliTech", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+        if (!Ui.Ask("Instalar o driver PawnIO?", "Ele é instalado pelo winget (namazso.PawnIO) e permite ler a temperatura da CPU e da placa-mãe.",
+                "Instalar")) return;
 
         DriverBtn.IsEnabled = false;
         DriverBtn.Content = "Instalando...";

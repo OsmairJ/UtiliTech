@@ -34,7 +34,7 @@ public static class Updater
 
     public static string CurrentText => "v" + Current.ToString(3);
 
-    static HttpClient Client()
+    internal static HttpClient Client()
     {
         // Proxy de empresa: manda as credenciais do Windows, como o navegador
         var http = new HttpClient(new HttpClientHandler { DefaultProxyCredentials = System.Net.CredentialCache.DefaultCredentials })

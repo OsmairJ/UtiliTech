@@ -11,9 +11,13 @@ static class Ui
     public static void Open(string pathOrUrl) =>
         Process.Start(new ProcessStartInfo(pathOrUrl) { UseShellExecute = true });
 
-    public static void Error(string message)
+    public static void Error(string message, string title = "Não deu certo")
     {
         Services.Logger.Error("Aviso ao usuário: " + message);
-        MessageBox.Show(message, "UtiliTech", MessageBoxButton.OK, MessageBoxImage.Warning);
+        MessageWindow.Show(title, message, MessageKind.Warning);
     }
+
+    /// <summary>Pergunta sim/não no visual do app; true = botão principal.</summary>
+    public static bool Ask(string title, string message, string yesText = "Sim", string noText = "Cancelar") =>
+        MessageWindow.Show(title, message, MessageKind.Question, yesText, noText);
 }

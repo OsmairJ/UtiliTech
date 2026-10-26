@@ -13,7 +13,7 @@ o que cada tela faz. Para compilar ou mexer no código, veja o `README.md`.
 | `settings.json` | Suas configurações: tema, domínio, último usuário, alertas, atualização. Criado sozinho |
 | `apps.json` | Sua lista de programas de **Instalar apps**. Criado quando você muda a lista |
 | `atendimentos\` | Histórico: uma pasta por atendimento e a planilha `inventario.xlsx` |
-| `Instaladores\` | Instaladores que o app usa: assistentes da Lexmark, PJe Office Pro e a pasta `Drivers` |
+| `Instaladores\` | Instaladores que o app usa: assistentes da Lexmark, PJe Office Pro, a pasta `winget` e a pasta `Drivers` |
 | `logs\` | Registro de erros do app e listas do modo simulação |
 | `Manual do UtiliTech.html` | Este manual, para ler sem internet ou imprimir |
 
@@ -136,6 +136,10 @@ Instala em silêncio, um por vez, os programas marcados (pelo winget). O que já
 sua: busque e clique em **Adicionar**, use **×** para tirar ou **Restaurar lista padrão**. Ela fica no `apps.json` do
 pendrive. O PJe Office Pro é instalado a partir da pasta `Instaladores`.
 
+Se o Windows não tiver o winget (comum logo depois de formatar), o app oferece instalá-lo: usa os arquivos da pasta
+`Instaladores\winget` do pendrive ou, se ela estiver vazia, baixa os arquivos oficiais da Microsoft no GitHub (cerca de 300 MB)
+e guarda nessa pasta para as próximas vezes.
+
 ### Inicialização
 Programas que abrem com o Windows. Ative ou desative como no Gerenciador de Tarefas.
 
@@ -213,5 +217,5 @@ Mostra quanto cada categoria ocupa (temporários, cache do Windows Update, lixei
 | Temperatura da CPU não aparece | Alguns PCs bloqueiam o driver de sensores (Integridade de Memória ou antivírus). O resto funciona |
 | "Salvar como" não abriu no pendrive | O pendrive pode estar protegido contra escrita; o app guarda uma cópia na pasta do atendimento quando consegue |
 | Login recusado no domínio | Confira usuário e senha e o relógio do PC (o app avisa se estiver diferente do servidor) |
-| Instalar apps falha | O winget precisa de internet; em rede com proxy, teste a conexão em Rede. Se aparecer "winget não encontrado", atualize o "Instalador de Aplicativo" pela Microsoft Store ou rode o Windows Update |
+| Instalar apps falha | O winget precisa de internet; em rede com proxy, teste a conexão em Rede. Se aparecer "winget não encontrado", aceite instalar o winget pelo app ou atualize o "Instalador de Aplicativo" pela Microsoft Store |
 | Impressora não responde | Use **Testar IP**; confira cabo e se a impressora está na mesma rede |

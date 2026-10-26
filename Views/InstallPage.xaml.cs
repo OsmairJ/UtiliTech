@@ -85,8 +85,7 @@ public partial class InstallPage : UserControl
     void ResetList_Click(object sender, RoutedEventArgs e)
     {
         if (_installing) return;
-        if (MessageBox.Show("Voltar para a lista padrão? Os programas que você adicionou serão retirados.", "UtiliTech",
-                MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+        if (!Ui.Ask("Restaurar lista padrão?", "Os programas que você adicionou serão retirados da lista.", "Restaurar")) return;
         _apps.Clear();
         _installed.Clear();
         foreach (var app in AppInstaller.DefaultCatalog())
@@ -117,6 +116,8 @@ public partial class InstallPage : UserControl
         try
         {
             var results = await AppInstaller.SearchAsync(query);
+            if (results == null && await OfferWingetAsync())
+                results = await AppInstaller.SearchAsync(query);
             if (results == null)
                 SearchStatus.Text = AppInstaller.WingetMissingMessage;
             else if (results.Count == 0)
@@ -159,6 +160,7 @@ public partial class InstallPage : UserControl
         _installing = true;
         InstallBtn.IsEnabled = false;
         int ok = 0;
+        bool wingetOffered = false;
         for (int i = 0; i < selected.Count; i++)
         {
             var app = selected[i];
@@ -183,13 +185,48 @@ public partial class InstallPage : UserControl
             }
             if (r.Message == "winget não encontrado")
             {
-                Ui.Error(AppInstaller.WingetMissingMessage);
+                // Oferece instalar o winget uma vez; se der certo, tenta o mesmo programa de novo
+                if (!wingetOffered)
+                {
+                    wingetOffered = true;
+                    if (await OfferWingetAsync())
+                    {
+                        i--;
+                        continue;
+                    }
+                }
+                else Ui.Error(AppInstaller.WingetMissingMessage, "winget não encontrado");
                 break;
             }
         }
         Status.Text = $"Concluído: {ok} de {selected.Count} com sucesso";
         InstallBtn.IsEnabled = true;
         _installing = false;
+    }
+
+    /// <summary>Pergunta se instala o winget e instala (do pendrive ou do GitHub). Devolve true se ele passou a existir.</summary>
+    async Task<bool> OfferWingetAsync()
+    {
+        bool local = WingetSetup.HasFiles(WingetSetup.PendriveFolder);
+        if (!Ui.Ask("Instalar o winget?",
+                "O winget, que instala os programas desta lista, não está neste Windows.\n\n" +
+                (local
+                    ? "O UtiliTech pode instalá-lo agora com os arquivos da pasta Instaladores\\winget do pendrive."
+                    : "O UtiliTech pode baixar os arquivos oficiais da Microsoft no GitHub (cerca de 300 MB) e instalá-lo. " +
+                      "Os arquivos ficam na pasta Instaladores\\winget do pendrive para as próximas formatações."),
+                "Instalar winget")) return false;
+
+        Log(local ? "Instalando o winget pelo pendrive..." : "Baixando o winget do GitHub...");
+        var progress = new Progress<string>(s =>
+        {
+            Status.Text = s;
+            if (!s.StartsWith("Baixando")) Log(s);
+        });
+        var r = await WingetSetup.InstallAsync(progress);
+        Log("winget: " + r.Message);
+        SessionLog.Add("Programa", "winget: " + r.Message.Split('\n')[0], r.Success);
+        if (!r.Success) Ui.Error(r.Message, "O winget não foi instalado");
+        return r.Success;
     }
 
     void Log(string msg)

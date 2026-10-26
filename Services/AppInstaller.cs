@@ -264,7 +264,8 @@ public static class AppInstaller
 
     public const string WingetMissingMessage =
         "O winget não foi encontrado neste Windows, nem depois de tentar registrá-lo.\n\n" +
-        "Abra a Microsoft Store, atualize o \"Instalador de Aplicativo\" (ou rode o Windows Update) e tente de novo.";
+        "Clique em Instalar selecionados de novo para o UtiliTech instalar o winget, ou atualize o \"Instalador de Aplicativo\" " +
+        "pela Microsoft Store.";
     static string? _wingetPath;
 
     /// <summary>Caminho do winget.exe, ou null se não houver. Com <paramref name="register"/>, tenta registrar o pacote.</summary>
@@ -329,31 +330,9 @@ public static class AppInstaller
 
     static async Task<string> RunPowerShellAsync(string command)
     {
-        var psi = new ProcessStartInfo("powershell.exe")
-        {
-            UseShellExecute = false,
-            CreateNoWindow = true,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-        };
-        foreach (var a in new[] { "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", command })
-            psi.ArgumentList.Add(a);
-        try
-        {
-            using var p = Process.Start(psi);
-            if (p == null) return "";
-            var stdout = p.StandardOutput.ReadToEndAsync();
-            var stderr = p.StandardError.ReadToEndAsync();
-            await p.WaitForExitAsync();
-            await Task.WhenAll(stdout, stderr);
-            if (stderr.Result.Trim().Length > 0) Logger.Info("winget (PowerShell): " + stderr.Result.Trim());
-            return stdout.Result;
-        }
-        catch (Exception ex)
-        {
-            Logger.Info("winget (PowerShell): " + ex.Message);
-            return "";
-        }
+        var (output, errors) = await WingetSetup.PowerShellAsync(command);
+        if (errors.Trim().Length > 0) Logger.Info("winget (PowerShell): " + errors.Trim());
+        return output;
     }
 
     static async Task<(int? Code, string Output)> RunWingetAsync(params string[] args)

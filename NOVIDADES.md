@@ -2,6 +2,11 @@
 
 Uma seção por versão, da mais nova para a mais antiga. O app mostra as seções novas na primeira vez que abre depois de atualizar, e a release do GitHub usa a seção da versão como texto.
 
+## v0.6.29 — O UtiliTech instala o winget sozinho
+- Se o Windows não tiver o winget, Instalar apps oferece instalá-lo: usa a pasta Instaladores\winget do pendrive ou baixa os arquivos oficiais da Microsoft no GitHub (cerca de 300 MB, conferidos pelo SHA-256) e guarda no pendrive para as próximas formatações
+- Depois de instalar o winget, continua instalando os programas marcados
+- Avisos e perguntas agora aparecem numa janela com o tema do app, no lugar da caixa cinza do Windows
+
 ## v0.6.28 — Instalar apps acha o winget depois de formatar
 - Instalar apps não mostra mais "winget não encontrado" quando o UtiliTech é aberto como administrador com outra conta ou logo depois de formatar: o winget é procurado também dentro do Windows
 - Se o winget ainda não estiver ativado no Windows, o UtiliTech ativa sozinho antes de instalar

@@ -87,8 +87,8 @@ public partial class DomainPage : UserControl
             else
             {
                 ShowResult(DomainPlan.InUse(name, DomainTools.DomainName), found.Items);
-                MessageBox.Show($"O nome {name} já está em uso no AD {DomainTools.DomainName}.\n\n{found.DistinguishedName}\n\nEscolha outro nome.",
-                    "UtiliTech — nome em uso", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageWindow.Show("Nome em uso", $"O nome {name} já está em uso no AD {DomainTools.DomainName}.\n\n{found.DistinguishedName}\n\nEscolha outro nome.",
+                    MessageKind.Warning);
             }
         }
         catch (Exception ex)

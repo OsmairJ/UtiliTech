@@ -18,7 +18,7 @@ public partial class App : Application
         DispatcherUnhandledException += (_, args) =>
         {
             Logger.Error("Erro não tratado na tela", args.Exception);
-            MessageBox.Show(args.Exception.Message + $"\n\nDetalhes em {Logger.Folder}", "UtiliTech — erro", MessageBoxButton.OK, MessageBoxImage.Error);
+            Views.MessageWindow.Show("Erro inesperado", args.Exception.Message + $"\n\nDetalhes em {Logger.Folder}", Views.MessageKind.Error);
             args.Handled = true;
         };
         AppDomain.CurrentDomain.UnhandledException += (_, args) =>
