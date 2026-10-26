@@ -2,6 +2,10 @@
 
 Uma seção por versão, da mais nova para a mais antiga. O app mostra as seções novas na primeira vez que abre depois de atualizar, e a release do GitHub usa a seção da versão como texto.
 
+## v0.6.28 — Instalar apps acha o winget depois de formatar
+- Instalar apps não mostra mais "winget não encontrado" quando o UtiliTech é aberto como administrador com outra conta ou logo depois de formatar: o winget é procurado também dentro do Windows
+- Se o winget ainda não estiver ativado no Windows, o UtiliTech ativa sozinho antes de instalar
+
 ## v0.6.27 — código mais organizado, trava contra dados internos e .exe menor
 - As telas Nome e domínio, Drivers e Visão geral passaram a usar regras separadas da tela, com testes automáticos (o funcionamento não muda)
 - Trava contra dados internos: o commit é bloqueado no PC e a release no GitHub se aparecer domínio, IP ou nome interno

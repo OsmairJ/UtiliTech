@@ -255,10 +255,114 @@ public static class AppInstaller
         return results;
     }
 
+    // ---------- Onde está o winget ----------
+    // O atalho "winget" fica no perfil de quem registrou o Instalador de Aplicativo. Ao abrir o UtiliTech como
+    // administrador com outra conta, ou logo depois de formatar, esse atalho não existe: aí o winget.exe é
+    // procurado dentro do pacote instalado no Windows e, se nem o pacote estiver registrado, ele é registrado.
+
+    const string AppInstallerFamily = "Microsoft.DesktopAppInstaller_8wekyb3d8bbwe";
+
+    public const string WingetMissingMessage =
+        "O winget não foi encontrado neste Windows, nem depois de tentar registrá-lo.\n\n" +
+        "Abra a Microsoft Store, atualize o \"Instalador de Aplicativo\" (ou rode o Windows Update) e tente de novo.";
+    static string? _wingetPath;
+
+    /// <summary>Caminho do winget.exe, ou null se não houver. Com <paramref name="register"/>, tenta registrar o pacote.</summary>
+    public static async Task<string?> FindWingetAsync(bool register = true)
+    {
+        if (_wingetPath != null && File.Exists(_wingetPath)) return _wingetPath;
+        _wingetPath = FindWingetAlias() ?? await FindWingetInPackageAsync();
+        if (_wingetPath == null && register)
+        {
+            await RunPowerShellAsync($"Add-AppxPackage -RegisterByFamilyName -MainPackage {AppInstallerFamily}");
+            _wingetPath = FindWingetAlias() ?? await FindWingetInPackageAsync();
+        }
+        return _wingetPath;
+    }
+
+    static string? FindWingetAlias()
+    {
+        var folders = (Environment.GetEnvironmentVariable("PATH") ?? "").Split(';', StringSplitOptions.RemoveEmptyEntries)
+            .Prepend(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft", "WindowsApps"));
+        foreach (var folder in folders)
+        {
+            try
+            {
+                var path = Path.Combine(folder.Trim(), "winget.exe");
+                if (File.Exists(path)) return path;
+            }
+            catch { }
+        }
+        return null;
+    }
+
+    static async Task<string?> FindWingetInPackageAsync()
+    {
+        var folders = new List<string>();
+        // Pastas do pacote para todos os usuários (precisa de administrador, que o UtiliTech já é)
+        var output = await RunPowerShellAsync(
+            "Get-AppxPackage -AllUsers -Name Microsoft.DesktopAppInstaller | ForEach-Object { $_.InstallLocation }");
+        folders.AddRange(output.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries));
+        try
+        {
+            var apps = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "WindowsApps");
+            folders.AddRange(Directory.GetDirectories(apps, "Microsoft.DesktopAppInstaller_*"));
+        }
+        catch { } // a pasta WindowsApps costuma negar a listagem
+        return PickWinget(folders, File.Exists);
+    }
+
+    /// <summary>Entre as pastas do Instalador de Aplicativo, a da versão mais nova que tem winget.exe.</summary>
+    internal static string? PickWinget(IEnumerable<string> packageFolders, Func<string, bool> exists) =>
+        packageFolders
+            .Select(f => Path.Combine(f, "winget.exe"))
+            .Where(exists)
+            .OrderByDescending(p => PackageVersion(Path.GetFileName(Path.GetDirectoryName(p)!)))
+            .FirstOrDefault();
+
+    /// <summary>Versão no nome da pasta do pacote (ex.: Microsoft.DesktopAppInstaller_1.24.25200.0_x64__8wekyb3d8bbwe).</summary>
+    internal static Version PackageVersion(string folderName)
+    {
+        var parts = folderName.Split('_');
+        return parts.Length > 1 && Version.TryParse(parts[1], out var v) ? v : new Version(0, 0);
+    }
+
+    static async Task<string> RunPowerShellAsync(string command)
+    {
+        var psi = new ProcessStartInfo("powershell.exe")
+        {
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+        };
+        foreach (var a in new[] { "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", command })
+            psi.ArgumentList.Add(a);
+        try
+        {
+            using var p = Process.Start(psi);
+            if (p == null) return "";
+            var stdout = p.StandardOutput.ReadToEndAsync();
+            var stderr = p.StandardError.ReadToEndAsync();
+            await p.WaitForExitAsync();
+            await Task.WhenAll(stdout, stderr);
+            if (stderr.Result.Trim().Length > 0) Logger.Info("winget (PowerShell): " + stderr.Result.Trim());
+            return stdout.Result;
+        }
+        catch (Exception ex)
+        {
+            Logger.Info("winget (PowerShell): " + ex.Message);
+            return "";
+        }
+    }
+
     static async Task<(int? Code, string Output)> RunWingetAsync(params string[] args)
     {
-        var psi = new ProcessStartInfo("winget")
+        var winget = await FindWingetAsync();
+        if (winget == null) return (null, "");
+        var psi = new ProcessStartInfo(winget)
         {
+            WorkingDirectory = Path.GetDirectoryName(winget)!,
             UseShellExecute = false,
             CreateNoWindow = true,
             RedirectStandardOutput = true,

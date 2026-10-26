@@ -118,7 +118,7 @@ public partial class InstallPage : UserControl
         {
             var results = await AppInstaller.SearchAsync(query);
             if (results == null)
-                SearchStatus.Text = "winget não encontrado. Instale o \"Instalador de Aplicativo\" pela Microsoft Store.";
+                SearchStatus.Text = AppInstaller.WingetMissingMessage;
             else if (results.Count == 0)
                 SearchStatus.Text = "Nada encontrado. Tente outro nome.";
             else
@@ -183,7 +183,7 @@ public partial class InstallPage : UserControl
             }
             if (r.Message == "winget não encontrado")
             {
-                Ui.Error("O winget não foi encontrado. Instale o \"Instalador de Aplicativo\" pela Microsoft Store e tente de novo.");
+                Ui.Error(AppInstaller.WingetMissingMessage);
                 break;
             }
         }

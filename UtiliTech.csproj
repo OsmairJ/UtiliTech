@@ -12,7 +12,7 @@
     <AssemblyName>UtiliTech</AssemblyName>
     <RootNamespace>UtiliTech</RootNamespace>
     <!-- Versão local; nas releases do GitHub ela vem da tag (v0.2.0 → 0.2.0) -->
-    <Version>0.6.27</Version>
+    <Version>0.6.28</Version>
     <Product>UtiliTech</Product>
     <ApplicationIcon>Assets\utilitech.ico</ApplicationIcon>
     <!-- Só os pacotes de idioma do .NET/WPF que o app usa: o .exe cai de ~73,8 para ~68 MB.

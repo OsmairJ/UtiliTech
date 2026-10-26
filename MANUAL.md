@@ -213,5 +213,5 @@ Mostra quanto cada categoria ocupa (temporários, cache do Windows Update, lixei
 | Temperatura da CPU não aparece | Alguns PCs bloqueiam o driver de sensores (Integridade de Memória ou antivírus). O resto funciona |
 | "Salvar como" não abriu no pendrive | O pendrive pode estar protegido contra escrita; o app guarda uma cópia na pasta do atendimento quando consegue |
 | Login recusado no domínio | Confira usuário e senha e o relógio do PC (o app avisa se estiver diferente do servidor) |
-| Instalar apps falha | O winget precisa de internet; em rede com proxy, teste a conexão em Rede |
+| Instalar apps falha | O winget precisa de internet; em rede com proxy, teste a conexão em Rede. Se aparecer "winget não encontrado", atualize o "Instalador de Aplicativo" pela Microsoft Store ou rode o Windows Update |
 | Impressora não responde | Use **Testar IP**; confira cabo e se a impressora está na mesma rede |
